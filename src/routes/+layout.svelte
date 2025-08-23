@@ -8,13 +8,16 @@
 
 <div class="bg-surface-50-900-token flex h-screen flex-col">
 	<!-- Header -->
-	<Header />
+
+	<div class="relative z-10">
+		<Header />
+	</div>
 
 	<!-- Main content dengan sidebar -->
-	<div class="flex flex-1 overflow-hidden">
+	<div class="flex flex-1">
 		<Sidebar>
 			<!-- Konten utama akan ditampilkan di sini -->
-			<main class="bg-surface-50-900-token flex-1 overflow-y-auto p-6">
+			<main class="bg-surface-50-900-token flex-1 overflow-x-auto overflow-y-auto p-6">
 				{@render children()}
 			</main>
 		</Sidebar>

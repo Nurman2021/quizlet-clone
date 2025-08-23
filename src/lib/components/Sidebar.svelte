@@ -11,41 +11,28 @@
 		BookOpenIcon,
 		SettingsIcon
 	} from 'lucide-svelte';
+	import { sidebarExpanded } from '$lib/stores/sidebar.js';
 
 	let { children } = $props();
-	let isExpanded = $state(true);
-
 	function toggleExpanded() {
-		isExpanded = !isExpanded;
+		sidebarExpanded.update((expanded) => !expanded);
 	}
 </script>
 
-<div class="grid h-[100vh] w-full grid-cols-[auto_1fr] card border-[1px] border-surface-100-900">
+<div class="grid h-full w-full grid-cols-[auto_1fr] card border-[1px] border-surface-100-900">
 	<!-- Navigation Component -->
-	<Navigation.Rail expanded={isExpanded}>
-		{#snippet header()}
-			<Navigation.Tile labelExpanded="Menu" onclick={toggleExpanded} title="Toggle Menu Width">
-				<MenuIcon />
-			</Navigation.Tile>
-		{/snippet}
-
+	<Navigation.Rail expanded={$sidebarExpanded}>
 		{#snippet tiles()}
 			<!-- Main Navigation -->
 			<Navigation.Tile labelExpanded="Beranda" href="/">
 				<HomeIcon />
 			</Navigation.Tile>
-			<Navigation.Tile labelExpanded="Perpustakaan Anda" href="/library">
-				<LibraryIcon />
-			</Navigation.Tile>
-			<Navigation.Tile labelExpanded="Pemberitahuan" href="/notifications">
-				<BellIcon />
-			</Navigation.Tile>
 
 			<!-- Separator -->
-			{#if isExpanded}
-				<div class="border-surface-300-600-token mt-4 border-t px-4 py-2">
-					<p class="text-surface-600-300-token mb-2 text-xs font-semibold tracking-wider uppercase">
-						Pelajaran Anda
+			{#if $sidebarExpanded}
+				<div class="border-surface-300-600-token mt-4 w-full border-t px-4 py-2">
+					<p class="text-surface-600-300-token my-4 text-xs font-semibold tracking-wider uppercase">
+						Your Subjects
 					</p>
 				</div>
 			{/if}
@@ -59,10 +46,10 @@
 			</Navigation.Tile>
 
 			<!-- Separator -->
-			{#if isExpanded}
-				<div class="border-surface-300-600-token mt-4 border-t px-4 py-2">
-					<p class="text-surface-600-300-token mb-2 text-xs font-semibold tracking-wider uppercase">
-						Mulai di sini
+			{#if $sidebarExpanded}
+				<div class="border-surface-300-600-token mt-4 w-full border-t px-4 py-2">
+					<p class="text-surface-600-300-token my-4 text-xs font-semibold tracking-wider uppercase">
+						Start here
 					</p>
 				</div>
 			{/if}
@@ -70,9 +57,6 @@
 			<!-- Mulai di sini Section -->
 			<Navigation.Tile labelExpanded="Flashcard" href="/flashcards">
 				<ZapIcon />
-			</Navigation.Tile>
-			<Navigation.Tile labelExpanded="Solusi yang dive..." href="/solutions">
-				<BookOpenIcon />
 			</Navigation.Tile>
 		{/snippet}
 
@@ -84,7 +68,7 @@
 	</Navigation.Rail>
 
 	<!-- Content -->
-	<div class="flex-1 overflow-hidden">
+	<div class="flex-1">
 		{@render children()}
 	</div>
 </div>
