@@ -23,6 +23,7 @@
 		X
 	} from 'lucide-svelte';
 	import { Tabs } from '@skeletonlabs/skeleton-svelte';
+	import TestSetupModal from '$lib/components/TestSetupModal.svelte';
 
 	let setId;
 	let showAnswer = false;
@@ -32,9 +33,15 @@
 	let progress = 0;
 
 	// Test mode variables
+	let showTestSetupModal = false;
+	let testConfig = null;
+	let testQuestions = [];
+	let currentTestQuestion = 0;
 	let testAnswers = {};
 	let showTestResults = false;
 	let testScore = 0;
+	let testStarted = false;
+	let correctAnswers = 0;
 
 	onMount(async () => {
 		setId = $page.params.id;
@@ -112,21 +119,175 @@
 	}
 
 	function startTest() {
-		tabSet = 'test';
+		console.log('Starting test setup...');
+		testStarted = false;
+		showTestResults = false;
+		testQuestions = [];
+		testAnswers = {};
+		currentTestQuestion = 0;
+		showTestSetupModal = true;
+	}
+
+	function handleStartTest(event) {
+		console.log('handleStartTest called with event:', event);
+		const config = event.detail;
+		console.log('Test config received:', config);
+
+		testConfig = config;
+		showTestSetupModal = false;
+		testStarted = true;
+		generateTestQuestions();
+	}
+
+	function generateTestQuestions() {
+		console.log('Generating test questions...');
+		console.log('Current flashcard set:', $currentFlashcardSet);
+		console.log('Test config:', testConfig);
+
+		if (!$currentFlashcardSet || !testConfig) {
+			console.error('Missing flashcard set or test config');
+			return;
+		}
+
+		let questions = [];
+		let availableCards = [...$currentFlashcardSet.flashcards];
+		console.log('Available cards:', availableCards);
+
+		// Shuffle cards
+		availableCards = availableCards.sort(() => Math.random() - 0.5);
+
+		// Take specified number of questions
+		const numQuestions = Math.min(testConfig.questionCount, availableCards.length);
+		console.log('Number of questions to generate:', numQuestions);
+
+		const selectedCards = availableCards.slice(0, numQuestions);
+
+		selectedCards.forEach((card, index) => {
+			// Generate question types based on config
+			let questionTypes = [];
+			if (testConfig.trueFalse) questionTypes.push('true_false');
+			if (testConfig.multipleChoice) questionTypes.push('multiple_choice');
+			if (testConfig.written) questionTypes.push('written');
+
+			if (questionTypes.length === 0) {
+				questionTypes = ['written']; // Default to written if none selected
+			}
+
+			// Random question type
+			const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+			console.log(`Question ${index + 1} type:`, questionType);
+
+			let question = {
+				id: `q_${index}`,
+				cardId: card.id,
+				type: questionType,
+				term: card.term,
+				definition: card.definition,
+				correctAnswer: '',
+				options: [],
+				userAnswer: '',
+				isCorrect: false,
+				question: '' // Add question property
+			};
+
+			// Generate question based on type and answerWith setting
+			if (questionType === 'multiple_choice') {
+				if (testConfig.answerWith === 'terms' || testConfig.answerWith === 'both') {
+					question.question = `What is the definition of "${card.term}"?`;
+					question.correctAnswer = card.definition;
+					question.options = generateMultipleChoiceOptions(
+						card.definition,
+						availableCards,
+						'definition'
+					);
+				} else {
+					question.question = `What term matches this definition: "${card.definition}"?`;
+					question.correctAnswer = card.term;
+					question.options = generateMultipleChoiceOptions(card.term, availableCards, 'term');
+				}
+			} else if (questionType === 'true_false') {
+				// Generate true/false question
+				const isTrue = Math.random() > 0.5;
+				if (isTrue) {
+					question.question = `True or False: "${card.term}" means "${card.definition}"`;
+					question.correctAnswer = 'true';
+				} else {
+					// Pick random wrong definition
+					const wrongOptions = availableCards.filter((c) => c.id !== card.id);
+					if (wrongOptions.length > 0) {
+						const wrongCard = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+						question.question = `True or False: "${card.term}" means "${wrongCard.definition}"`;
+						question.correctAnswer = 'false';
+					} else {
+						// If no wrong options, default to true
+						question.question = `True or False: "${card.term}" means "${card.definition}"`;
+						question.correctAnswer = 'true';
+					}
+				}
+				question.options = ['True', 'False'];
+			} else if (questionType === 'written') {
+				if (testConfig.answerWith === 'terms' || testConfig.answerWith === 'both') {
+					question.question = `What is the definition of "${card.term}"?`;
+					question.correctAnswer = card.definition;
+				} else {
+					question.question = `What term matches this definition: "${card.definition}"?`;
+					question.correctAnswer = card.term;
+				}
+			}
+
+			questions.push(question);
+		});
+
+		console.log('Generated questions:', questions);
+		testQuestions = questions;
+		currentTestQuestion = 0;
 		testAnswers = {};
 		showTestResults = false;
-		testScore = 0;
+	}
+
+	function generateMultipleChoiceOptions(correctAnswer, allCards, type) {
+		let options = [correctAnswer];
+		let availableOptions = allCards
+			.map((card) => (type === 'definition' ? card.definition : card.term))
+			.filter((option) => option !== correctAnswer);
+
+		// Add 3 random wrong options
+		while (options.length < 4 && availableOptions.length > 0) {
+			const randomIndex = Math.floor(Math.random() * availableOptions.length);
+			options.push(availableOptions[randomIndex]);
+			availableOptions.splice(randomIndex, 1);
+		}
+
+		// If not enough options, fill with dummy ones
+		while (options.length < 4) {
+			options.push(`Option ${options.length}`);
+		}
+
+		// Shuffle options
+		return options.sort(() => Math.random() - 0.5);
 	}
 
 	function submitTest() {
-		// Calculate score
-		let correct = 0;
-		$currentFlashcardSet.flashcards.forEach((card) => {
-			if (testAnswers[card.id]?.toLowerCase().trim() === card.definition.toLowerCase().trim()) {
-				correct++;
+		correctAnswers = 0;
+
+		testQuestions.forEach((question) => {
+			const userAnswer = testAnswers[question.id];
+
+			if (question.type === 'multiple_choice' || question.type === 'true_false') {
+				question.isCorrect = userAnswer === question.correctAnswer;
+			} else if (question.type === 'written') {
+				// Simple string matching for written answers (could be improved with fuzzy matching)
+				const userAnswerLower = (userAnswer || '').toLowerCase().trim();
+				const correctAnswerLower = question.correctAnswer.toLowerCase().trim();
+				question.isCorrect = userAnswerLower === correctAnswerLower;
+			}
+
+			if (question.isCorrect) {
+				correctAnswers++;
 			}
 		});
-		testScore = (correct / $currentFlashcardSet.flashcards.length) * 100;
+
+		testScore = (correctAnswers / testQuestions.length) * 100;
 		showTestResults = true;
 	}
 
@@ -270,25 +431,108 @@
 								<div class="variant-ghost-surface card p-6">
 									<h3 class="mb-4 text-xl font-semibold">Test Mode</h3>
 
-									{#if !showTestResults}
-										<div class="max-h-[600px] space-y-4 overflow-y-auto">
-											{#each $currentFlashcardSet.flashcards as card, index}
-												<div class="variant-ghost-surface card p-4">
-													<p class="mb-2 font-medium">{index + 1}. {card.term}</p>
-													<input
-														type="text"
-														class="input"
-														placeholder="Type your answer..."
-														bind:value={testAnswers[card.id]}
-													/>
-												</div>
-											{/each}
+									{#if !testStarted}
+										<!-- Tombol untuk membuka modal -->
+										<div class="py-8 text-center">
+											<p class="text-surface-600-300-token mb-4">
+												Klik tombol di bawah untuk mengatur dan memulai test
+											</p>
+											<button class="variant-filled-primary btn" on:click={startTest}>
+												Setup Test
+											</button>
 										</div>
-										<button class="variant-filled-primary mt-6 btn w-full" on:click={submitTest}>
-											Submit Test
-										</button>
-									{:else}
-										<!-- Test Results -->
+									{:else if !showTestResults}
+										<!-- Test questions -->
+										<div class="space-y-6">
+											<div class="flex items-center justify-between">
+												<h3 class="text-xl font-semibold">
+													Question {currentTestQuestion + 1} of {testQuestions.length}
+												</h3>
+												<div class="text-surface-600-300-token text-sm">
+													Progress: {Math.round(
+														(currentTestQuestion / testQuestions.length) * 100
+													)}%
+												</div>
+											</div>
+
+											{#if testQuestions[currentTestQuestion]}
+												{@const question = testQuestions[currentTestQuestion]}
+												<div class="variant-ghost-surface card p-6">
+													<h4 class="mb-4 text-lg font-medium">{question.question}</h4>
+
+													{#if question.type === 'multiple_choice'}
+														<div class="space-y-2">
+															{#each question.options as option}
+																<label
+																	class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
+																>
+																	<input
+																		type="radio"
+																		bind:group={testAnswers[question.id]}
+																		value={option}
+																		class="radio"
+																	/>
+																	<span>{option}</span>
+																</label>
+															{/each}
+														</div>
+													{:else if question.type === 'true_false'}
+														<div class="space-y-2">
+															{#each question.options as option}
+																<label
+																	class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
+																>
+																	<input
+																		type="radio"
+																		bind:group={testAnswers[question.id]}
+																		value={option.toLowerCase()}
+																		class="radio"
+																	/>
+																	<span>{option}</span>
+																</label>
+															{/each}
+														</div>
+													{:else if question.type === 'written'}
+														<textarea
+															class="textarea w-full"
+															placeholder="Type your answer here..."
+															bind:value={testAnswers[question.id]}
+															rows="3"
+														></textarea>
+													{/if}
+												</div>
+
+												<div class="flex justify-between">
+													<button
+														class="variant-ghost-surface btn"
+														on:click={() =>
+															(currentTestQuestion = Math.max(0, currentTestQuestion - 1))}
+														disabled={currentTestQuestion === 0}
+													>
+														Previous
+													</button>
+
+													{#if currentTestQuestion === testQuestions.length - 1}
+														<button class="variant-filled-primary btn" on:click={submitTest}>
+															Submit Test
+														</button>
+													{:else}
+														<button
+															class="variant-filled-primary btn"
+															on:click={() =>
+																(currentTestQuestion = Math.min(
+																	testQuestions.length - 1,
+																	currentTestQuestion + 1
+																))}
+														>
+															Next
+														</button>
+													{/if}
+												</div>
+											{/if}
+										</div>
+									{:else if showTestResults}
+										<!-- Test results -->
 										<div class="text-center">
 											<h3 class="mb-4 text-2xl font-bold">Test Results</h3>
 											<div
@@ -298,9 +542,23 @@
 											>
 												{testScore.toFixed(0)}%
 											</div>
-											<button class="variant-filled-primary btn" on:click={startTest}>
-												Retake Test
-											</button>
+											<p class="text-surface-600-300-token mb-6">
+												You scored {correctAnswers} out of {testQuestions.length} questions correctly
+											</p>
+											<div class="flex justify-center gap-4">
+												<button class="variant-filled-primary btn" on:click={startTest}>
+													Retake Test
+												</button>
+												<button
+													class="variant-ghost-surface btn"
+													on:click={() => {
+														testStarted = false;
+														showTestResults = false;
+													}}
+												>
+													Back to Setup
+												</button>
+											</div>
 										</div>
 									{/if}
 								</div>
@@ -370,6 +628,11 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Test Setup Modal -->
+	{#if $currentFlashcardSet}
+		<TestSetupModal bind:show={showTestSetupModal} on:start-test={handleStartTest} />
+	{/if}
 {:else}
 	<div class="flex min-h-screen items-center justify-center">
 		<div class="text-center">
