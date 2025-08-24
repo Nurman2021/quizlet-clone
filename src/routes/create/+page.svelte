@@ -1,17 +1,38 @@
 <script>
 	import { Plus, Image, Settings, Grid, Copy, Trash2, MoreHorizontal } from 'lucide-svelte';
-	import { flashcardActions } from '$lib/stores/flashcards.js';
+	import { flashcardActions, folders, folderActions } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 
 	let title = '';
 	let description = '';
 	let suggestionToggle = true;
 	let cards = [
-		{ id: 1, term: '', definition: '' },
-		{ id: 2, term: '', definition: '' }
+		{ id: Date.now(), term: '', definition: '' },
+		{ id: Date.now() + 1, term: '', definition: '' }
 	];
 	let isLoading = false;
+	let selectedFolderId = null;
+
+	onMount(async () => {
+		// Get current user
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
+
+		if (user) {
+			// Load folders
+			await folderActions.loadFolders(user.id);
+		}
+
+		// Check if folder ID is passed via URL params
+		const folderId = $page.url.searchParams.get('folder');
+		if (folderId) {
+			selectedFolderId = folderId;
+		}
+	});
 
 	function addCard() {
 		cards = [...cards, { id: Date.now(), term: '', definition: '' }];
@@ -22,15 +43,10 @@
 	}
 
 	async function saveFlashcardSet() {
-		if (!title.trim()) {
-			alert('Judul tidak boleh kosong!');
-			return;
-		}
-
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Minimal harus ada satu kartu dengan istilah dan definisi!');
+			alert('Tambahkan minimal satu kartu dengan istilah dan definisi!');
 			return;
 		}
 
@@ -52,7 +68,8 @@
 				{
 					title: title.trim(),
 					description: description.trim(),
-					cards: validCards
+					cards: validCards,
+					folderId: selectedFolderId // Include folder ID
 				},
 				user.id
 			);
@@ -66,30 +83,26 @@
 				{ id: Date.now(), term: '', definition: '' },
 				{ id: Date.now() + 1, term: '', definition: '' }
 			];
+			selectedFolderId = null;
 		} catch (error) {
-			alert('Gagal menyimpan flashcard set: ' + error.message);
+			console.error('Gagal menyimpan flashcard set:', error);
+			alert('Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
 		} finally {
 			isLoading = false;
 		}
 	}
 
 	async function saveAndPractice() {
-		if (!title.trim()) {
-			alert('Judul tidak boleh kosong!');
-			return;
-		}
-
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Minimal harus ada satu kartu dengan istilah dan definisi!');
+			alert('Tambahkan minimal satu kartu dengan istilah dan definisi!');
 			return;
 		}
 
 		isLoading = true;
 
 		try {
-			// Get current user
 			const {
 				data: { user }
 			} = await supabase.auth.getUser();
@@ -104,7 +117,8 @@
 				{
 					title: title.trim(),
 					description: description.trim(),
-					cards: validCards
+					cards: validCards,
+					folderId: selectedFolderId // Include folder ID
 				},
 				user.id
 			);
@@ -112,7 +126,8 @@
 			// Redirect ke halaman quiz
 			goto(`/quiz/${newSet.id}`);
 		} catch (error) {
-			alert('Gagal menyimpan flashcard set: ' + error.message);
+			console.error('Gagal menyimpan flashcard set:', error);
+			alert('Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
 		} finally {
 			isLoading = false;
 		}
@@ -259,6 +274,35 @@
 			>
 				Tambahkan kartu
 			</button>
+
+			<!-- Folder Selection (optional) -->
+			<div>
+				<label class="label" for="folder-select">
+					<span>Folder (opsional)</span>
+					<p class="text-surface-600-300-token mb-2 text-sm">
+						Pilih folder untuk mengelompokkan flashcard set ini
+					</p>
+				</label>
+				<select
+					id="folder-select"
+					class="variant-form-material select"
+					bind:value={selectedFolderId}
+				>
+					<option value={null}>-- Tanpa folder --</option>
+					{#each $folders as folder}
+						<option value={folder.id}>
+							{folder.name}
+						</option>
+					{/each}
+				</select>
+				{#if $folders.length === 0}
+					<p class="text-surface-600-300-token mt-2 text-sm">
+						Anda belum memiliki folder. <a href="/folders" class="text-primary-500 hover:underline"
+							>Buat folder</a
+						>
+					</p>
+				{/if}
+			</div>
 
 			<!-- Bottom Actions -->
 			<div class="flex items-center justify-between pt-8">

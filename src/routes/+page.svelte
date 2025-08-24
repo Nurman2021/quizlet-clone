@@ -1,12 +1,59 @@
 <script>
-	import { FolderOpen, Book, BarChart3, Plus, Eye } from 'lucide-svelte';
+	import { FolderOpen, Book, BarChart3, Plus, Eye, MoreVertical, Folder } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { flashcardActions, recentActivities } from '$lib/stores/flashcards.js';
+	import {
+		flashcardActions,
+		recentActivities,
+		folders,
+		folderActions
+	} from '$lib/stores/flashcards.js';
+	import { goto } from '$app/navigation';
+	import { supabase } from '$lib/supabase.js';
+
+	let showDropdown = null;
+	let showMoveToFolderModal = false;
+	let selectedSetId = null;
+	let selectedFolderId = null;
 
 	onMount(async () => {
 		// Load recent activities saat halaman dimuat
 		await flashcardActions.loadRecentActivities();
+
+		// Load folders
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
+		if (user) {
+			await folderActions.loadFolders(user.id);
+		}
 	});
+
+	function toggleDropdown(setId) {
+		showDropdown = showDropdown === setId ? null : setId;
+	}
+
+	function openMoveToFolder(setId) {
+		selectedSetId = setId;
+		selectedFolderId = null;
+		showMoveToFolderModal = true;
+		showDropdown = null;
+	}
+
+	async function moveToFolder() {
+		if (!selectedSetId || !selectedFolderId) {
+			alert('Pilih folder tujuan!');
+			return;
+		}
+
+		try {
+			await folderActions.addSetToFolder(selectedSetId, selectedFolderId);
+			await flashcardActions.loadRecentActivities();
+			alert('Flashcard set berhasil dipindahkan ke folder!');
+			showMoveToFolderModal = false;
+		} catch (error) {
+			alert('Gagal memindahkan set: ' + error.message);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -45,10 +92,39 @@
 											'id-ID'
 										)}
 									</span>
-									<a href="/quiz/{activity.id}" class="variant-filled-primary btn btn-sm">
-										<Eye class="h-4 w-4" />
-										<span>Lihat</span>
-									</a>
+
+									<!-- Dropdown Menu -->
+									<div class="relative">
+										<button
+											class="variant-ghost-surface btn-icon btn-icon-sm"
+											on:click={() => toggleDropdown(activity.id)}
+										>
+											<MoreVertical class="h-4 w-4" />
+										</button>
+
+										{#if showDropdown === activity.id}
+											<div
+												class="variant-filled-surface absolute right-0 z-10 mt-2 w-48 card shadow-xl"
+											>
+												<nav class="list-nav p-2">
+													<button
+														class="variant-ghost-surface btn w-full justify-start btn-sm"
+														on:click={() => goto(`/quiz/${activity.id}`)}
+													>
+														<Eye class="h-4 w-4" />
+														<span>Lihat</span>
+													</button>
+													<button
+														class="variant-ghost-surface btn w-full justify-start btn-sm"
+														on:click={() => openMoveToFolder(activity.id)}
+													>
+														<Folder class="h-4 w-4" />
+														<span>Move to Folder</span>
+													</button>
+												</nav>
+											</div>
+										{/if}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -70,3 +146,70 @@
 		</div>
 	</div>
 </div>
+
+<!-- Move to Folder Modal -->
+{#if showMoveToFolderModal}
+	<div
+		class="bg-surface-backdrop-token fixed inset-0 z-40"
+		on:click={() => (showMoveToFolderModal = false)}
+		role="button"
+		tabindex="-1"
+		on:keydown={(e) => e.key === 'Escape' && (showMoveToFolderModal = false)}
+	>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
+			on:click|stopPropagation
+		>
+			<div class="bg-surface-100-800-token rounded-container-token shadow-xl">
+				<div class="p-6">
+					<h3 class="mb-4 text-xl font-bold">Move to Folder</h3>
+
+					<label class="label">
+						<span>Select destination folder</span>
+						<select class="variant-form-material select" bind:value={selectedFolderId}>
+							<option value={null}>-- Select Folder --</option>
+							{#each $folders as folder}
+								<option value={folder.id}>{folder.name}</option>
+							{/each}
+						</select>
+					</label>
+
+					{#if $folders.length === 0}
+						<p class="text-surface-600-300-token mt-2 text-sm">
+							No folders yet. <a href="/folders" class="text-primary-500">Create a new folder</a>
+						</p>
+					{/if}
+
+					<div class="mt-6 flex justify-end space-x-2">
+						<button
+							class="variant-ghost-surface btn"
+							on:click={() => (showMoveToFolderModal = false)}
+						>
+							Cancel
+						</button>
+						<button
+							class="variant-filled-primary btn"
+							on:click={moveToFolder}
+							disabled={!selectedFolderId}
+						>
+							Move
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Click outside to close dropdown -->
+{#if showDropdown}
+	<div
+		class="fixed inset-0 z-0"
+		on:click={() => (showDropdown = null)}
+		on:keydown={() => {}}
+		role="button"
+		tabindex="-1"
+	></div>
+{/if}

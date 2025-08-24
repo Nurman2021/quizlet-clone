@@ -97,7 +97,7 @@ export const flashcardActions = {
     // Menambah flashcard set baru ke Supabase
     addSet: async (setData, userId) => {
         try {
-            // Cek apakah user ada di tabel users
+            // Check if user exists first
             const { data: userData, error: userError } = await supabase
                 .from('users')
                 .select('id')
@@ -105,10 +105,10 @@ export const flashcardActions = {
                 .single();
 
             if (userError || !userData) {
-                // Jika user belum ada di tabel users, coba insert
+                // Insert user if not exists
                 const { data: authUser } = await supabase.auth.getUser();
                 if (authUser?.user) {
-                    const { error: insertError } = await supabase
+                    await supabase
                         .from('users')
                         .insert({
                             id: authUser.user.id,
@@ -117,26 +117,24 @@ export const flashcardActions = {
                         })
                         .select()
                         .single();
-
-                    if (insertError && insertError.code !== '23505') { // 23505 is duplicate key error
-                        throw new Error('Failed to create user profile');
-                    }
                 }
             }
 
-            // Insert flashcard set
+            // Insert flashcard set with folder_id
             const { data: newSet, error: setError } = await supabase
                 .from('flashcard_sets')
                 .insert({
                     user_id: userId,
                     title: setData.title,
                     description: setData.description,
-                    folder_id: setData.folderId || null,
+                    folder_id: setData.folderId || null, // Include folder_id
                     total_cards: setData.cards.length,
-                    is_public: true // Set as public agar muncul di recent
+                    is_public: true
                 })
                 .select()
-                .single(); if (setError) throw setError;
+                .single();
+
+            if (setError) throw setError;
 
             // Insert flashcards
             const flashcardsToInsert = setData.cards.map((card, index) => ({
@@ -152,10 +150,8 @@ export const flashcardActions = {
 
             if (cardsError) throw cardsError;
 
-            // Reload sets untuk user
+            // Reload sets and recent activities
             await flashcardActions.loadSets(userId);
-
-            // Reload recent activities untuk homepage
             await flashcardActions.loadRecentActivities();
 
             return newSet;

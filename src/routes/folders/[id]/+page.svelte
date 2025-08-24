@@ -44,7 +44,10 @@
 				.eq('user_id', user.id)
 				.single();
 
-			if (error) throw error;
+			if (error) {
+				console.error('Error loading folder:', error);
+				throw error;
+			}
 
 			if (!folder) {
 				goto('/folders');
@@ -73,7 +76,7 @@
 
 		try {
 			await folderActions.removeSetFromFolder(setId);
-			// Reload folder
+			// Reload folder untuk refresh data
 			location.reload();
 		} catch (error) {
 			alert('Gagal menghapus set dari folder: ' + error.message);
