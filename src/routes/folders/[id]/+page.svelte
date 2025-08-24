@@ -151,7 +151,9 @@
 			{:else}
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{#each folderSets as set}
-						<div class="variant-ghost-surface hover:variant-soft-surface card transition-all">
+						<div
+							class="divide-surface-200-800 card border-[1px] border-surface-200-800 preset-filled-surface-100-900 card-hover transition-all"
+						>
 							<div class="p-6">
 								<div class="mb-4 flex items-start justify-between">
 									<h3 class="mr-2 flex-1 font-semibold">{set.title}</h3>
