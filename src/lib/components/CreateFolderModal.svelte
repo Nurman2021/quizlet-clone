@@ -58,6 +58,8 @@
 		on:keydown={(e) => e.key === 'Escape' && closeModal()}
 	>
 		<!-- Modal -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<div
 			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
 			on:click|stopPropagation
@@ -101,6 +103,7 @@
 						<span class="label">Pilih warna</span>
 						<div class="mt-2 grid grid-cols-4 gap-2">
 							{#each colors as color}
+								<!-- svelte-ignore a11y_consider_explicit_label -->
 								<button
 									type="button"
 									class="h-10 w-full rounded-lg transition-all {selectedColor === color
