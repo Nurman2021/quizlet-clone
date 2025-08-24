@@ -78,7 +78,7 @@
 			<h1 class="text-3xl font-bold">Folder</h1>
 			<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
 				<FolderPlus class="h-5 w-5" />
-				<span>Buat folder</span>
+				<span>Create folder</span>
 			</button>
 		</div>
 
@@ -107,7 +107,7 @@
 
 				<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
 					<FolderPlus class="h-5 w-5" />
-					<span>Buat folder</span>
+					<span>Create folder</span>
 				</button>
 			</div>
 		{:else}

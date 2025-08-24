@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>International English Language Testing System - Academic</title>
+	<title>Quizcard</title>
 	<meta name="description" content="Quizcard - Interactive learning platform" />
 </svelte:head>
 

@@ -53,7 +53,7 @@
 				<div class="flex h-8 w-8 items-center justify-center rounded bg-primary-500">
 					<span class="text-lg font-bold text-white">Q</span>
 				</div>
-				<span class="text-surface-900-50-token hidden text-xl font-bold sm:block">Quicard</span>
+				<span class="text-surface-900-50-token hidden text-xl font-bold sm:block">Quizcard</span>
 			</div>
 		</div>
 

@@ -9,22 +9,21 @@
 		FolderPlusIcon,
 		ZapIcon,
 		BookOpenIcon,
-		SettingsIcon
+		SettingsIcon,
+		FolderSearchIcon
 	} from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
 
-	let { children } = $props();
 	function toggleExpanded() {
 		sidebarExpanded.update((expanded) => !expanded);
 	}
 </script>
 
-<div class="grid h-full w-full grid-cols-[auto_1fr] card border-[1px] border-surface-100-900">
-	<!-- Navigation Component -->
+<div class="bg-surface-100-800-token h-full">
 	<Navigation.Rail expanded={$sidebarExpanded}>
 		{#snippet tiles()}
 			<!-- Main Navigation -->
-			<Navigation.Tile labelExpanded="Beranda" href="/">
+			<Navigation.Tile labelExpanded="Home" href="/">
 				<HomeIcon />
 			</Navigation.Tile>
 
@@ -37,12 +36,8 @@
 				</div>
 			{/if}
 
-			<!-- Pelajaran Anda Section -->
-			<Navigation.Tile labelExpanded="International En..." href="/international-en">
+			<Navigation.Tile labelExpanded="Your Folders" href="/folders">
 				<BookIcon />
-			</Navigation.Tile>
-			<Navigation.Tile labelExpanded="Folder baru" href="/create-folder">
-				<FolderPlusIcon />
 			</Navigation.Tile>
 
 			<!-- Separator -->
@@ -66,9 +61,4 @@
 			</Navigation.Tile>
 		{/snippet} -->
 	</Navigation.Rail>
-
-	<!-- Content -->
-	<div class="flex-1">
-		{@render children()}
-	</div>
 </div>

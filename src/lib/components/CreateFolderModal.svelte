@@ -67,7 +67,7 @@
 			<div class="bg-surface-100-800-token rounded-container-token shadow-xl">
 				<!-- Header -->
 				<div class="border-surface-300-600-token flex items-center justify-between border-b p-6">
-					<h2 class="text-xl font-bold">Buat folder baru</h2>
+					<h2 class="text-xl font-bold">Create a new folder</h2>
 					<button class="variant-ghost-surface btn-icon" on:click={closeModal}>
 						<X class="h-5 w-5" />
 					</button>
@@ -137,9 +137,9 @@
 					<!-- Actions -->
 					<div class="flex justify-end space-x-2 pt-4">
 						<button type="button" class="variant-ghost-surface btn" on:click={closeModal}>
-							Batal
+							Cancel
 						</button>
-						<button type="submit" class="variant-filled-primary btn"> Buat folder </button>
+						<button type="submit" class="variant-filled-primary btn"> Create folder </button>
 					</div>
 				</form>
 			</div>
