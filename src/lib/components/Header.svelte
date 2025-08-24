@@ -65,8 +65,9 @@
 				</div>
 				<input
 					type="search"
-					placeholder="Cari flashcard, buku pelajaran, pertanyaan"
+					placeholder="Search for flashcards, textbooks, questions"
 					class="input"
+					disabled
 				/>
 			</div>
 		</div>

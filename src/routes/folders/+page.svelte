@@ -68,7 +68,7 @@
 </script>
 
 <svelte:head>
-	<title>Folder Saya</title>
+	<title>Your Folder</title>
 </svelte:head>
 
 <div class="bg-surface-50-900-token min-h-screen p-6">
