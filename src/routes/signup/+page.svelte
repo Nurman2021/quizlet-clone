@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-	<title>Daftar | Quizlet Clone</title>
+	<title>Signup | Quizcard</title>
 </svelte:head>
 
 <div class="bg-surface-50-900-token flex min-h-screen items-center justify-center p-4">
@@ -93,10 +93,10 @@
 			<div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-lg bg-primary-500">
 				<span class="text-3xl font-bold text-white">Q</span>
 			</div>
-			<h1 class="text-2xl font-bold">Daftar ke Quizlet</h1>
+			<h1 class="text-2xl font-bold">Signup to Quizcard</h1>
 			<p class="text-surface-600-300-token mt-2">
-				Sudah punya akun?
-				<a href="/login" class="text-primary-500 hover:underline">Masuk</a>
+				Already have an account?
+				<a href="/login" class="text-primary-500 hover:underline">Log in</a>
 			</p>
 		</div>
 
@@ -121,9 +121,9 @@
 		<form on:submit|preventDefault={handleSignup} class="space-y-4">
 			<!-- Full Name Input -->
 			<label class="label">
-				<span>Nama Lengkap</span>
+				<span>Full Name</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<User class="h-4 w-4" />
 					</div>
 					<input
@@ -141,7 +141,7 @@
 			<label class="label">
 				<span>Email</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<Mail class="h-4 w-4" />
 					</div>
 					<input
@@ -159,7 +159,7 @@
 			<label class="label">
 				<span>Password</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<Lock class="h-4 w-4" />
 					</div>
 					<input
@@ -172,14 +172,14 @@
 						minlength="6"
 					/>
 				</div>
-				<p class="text-surface-600-300-token mt-1 text-xs">Minimal 6 karakter</p>
+				<p class="text-surface-600-300-token mt-1 text-xs">Minimum 6 characters</p>
 			</label>
 
 			<!-- Confirm Password Input -->
 			<label class="label">
-				<span>Konfirmasi Password</span>
+				<span>Confirm Password</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<Lock class="h-4 w-4" />
 					</div>
 					<input
@@ -194,13 +194,13 @@
 			</label>
 
 			<!-- Terms -->
-			<label class="flex items-center space-x-2">
+			<!-- <label class="flex items-center space-x-2">
 				<input type="checkbox" class="checkbox" required />
 				<span class="text-sm">
 					Saya setuju dengan
 					<a href="/terms" class="text-primary-500 hover:underline">Syarat & Ketentuan</a>
 				</span>
-			</label>
+			</label> -->
 
 			<!-- Submit Button -->
 			<button type="submit" class="variant-filled-primary btn w-full" disabled={isLoading}>
@@ -208,20 +208,16 @@
 					<Loader2 class="h-4 w-4 animate-spin" />
 					<span>Sedang mendaftar...</span>
 				{:else}
-					<span>Daftar</span>
+					<span>Sign up</span>
 				{/if}
 			</button>
 		</form>
 
-		<!-- Divider -->
-		<div class="relative my-6">
-			<div class="absolute inset-0 flex items-center">
-				<div class="border-surface-300-600-token w-full border-t"></div>
-			</div>
-			<div class="relative flex justify-center text-sm">
-				<span class="bg-surface-50-900-token text-surface-600-300-token px-2">atau</span>
-			</div>
-		</div>
+		<p class="my-6 flex w-full items-center">
+			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+			<span class="mx-4 text-sm">or</span>
+			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+		</p>
 
 		<!-- Social Signup -->
 		<div class="space-y-3">
@@ -244,7 +240,7 @@
 						d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 					/>
 				</svg>
-				<span>Lanjutkan dengan Google</span>
+				<span>Continue with Google</span>
 			</button>
 		</div>
 	</div>

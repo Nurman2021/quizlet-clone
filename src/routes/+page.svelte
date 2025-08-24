@@ -11,7 +11,7 @@
 
 <svelte:head>
 	<title>International English Language Testing System - Academic</title>
-	<meta name="description" content="Quizlet Clone - Platform pembelajaran interaktif" />
+	<meta name="description" content="Quizcard - Interactive learning platform" />
 </svelte:head>
 
 <div class="bg-surface-50-900-token p-6">

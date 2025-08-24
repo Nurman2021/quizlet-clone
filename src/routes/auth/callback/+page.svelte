@@ -1,4 +1,3 @@
-<!-- filepath: c:\Users\X1 Carbon\Desktop\QUIZ-FIVERR\quizlet-clone\src\routes\auth\callback\+page.svelte -->
 <script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -12,7 +11,6 @@
 			console.error('Error during authentication:', error);
 			goto('/login');
 		} else {
-			// Redirect ke halaman utama setelah berhasil
 			goto('/');
 		}
 	});
@@ -23,6 +21,6 @@
 		<div class="mb-4">
 			<div class="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-primary-500"></div>
 		</div>
-		<p class="text-surface-600-300-token">Sedang memproses autentikasi...</p>
+		<p class="text-surface-600-300-token">Processing authentication...</p>
 	</div>
 </div>

@@ -52,7 +52,7 @@
 </script>
 
 <svelte:head>
-	<title>Login | Quizlet Clone</title>
+	<title>Login | Quizcard</title>
 </svelte:head>
 
 <div class="bg-surface-50-900-token flex min-h-screen items-center justify-center p-4">
@@ -62,10 +62,10 @@
 			<div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-lg bg-primary-500">
 				<span class="text-3xl font-bold text-white">Q</span>
 			</div>
-			<h1 class="text-2xl font-bold">Masuk ke Quizlet</h1>
+			<h1 class="text-2xl font-bold">Log in to Quizcard</h1>
 			<p class="text-surface-600-300-token mt-2">
-				Belum punya akun?
-				<a href="/signup" class="text-primary-500 hover:underline">Daftar</a>
+				Don't have an account yet?
+				<a href="/signup" class="text-primary-500 hover:underline">Signup</a>
 			</p>
 		</div>
 
@@ -84,13 +84,13 @@
 			<label class="label">
 				<span>Email</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<Mail class="h-4 w-4" />
 					</div>
 					<input
 						type="email"
 						bind:value={email}
-						placeholder="nama@email.com"
+						placeholder="your@email.com"
 						class="input"
 						required
 						disabled={isLoading}
@@ -102,7 +102,7 @@
 			<label class="label">
 				<span>Password</span>
 				<div class="input-group-divider input-group grid-cols-[auto_1fr]">
-					<div class="input-group-shim">
+					<div class="ig-cell preset-tonal">
 						<Lock class="h-4 w-4" />
 					</div>
 					<input
@@ -120,34 +120,30 @@
 			<div class="flex items-center justify-between">
 				<label class="flex items-center space-x-2">
 					<input type="checkbox" class="checkbox" />
-					<span class="text-sm">Ingat saya</span>
+					<span class="text-sm">Remember me</span>
 				</label>
-				<a href="/forgot-password" class="text-sm text-primary-500 hover:underline">
-					Lupa password?
-				</a>
+				<!-- <a href="/forgot-password" class="text-sm text-primary-500 hover:underline">
+					Forgot password?
+				</a> -->
 			</div>
 
 			<!-- Submit Button -->
 			<button type="submit" class="variant-filled-primary btn w-full" disabled={isLoading}>
 				{#if isLoading}
 					<Loader2 class="h-4 w-4 animate-spin" />
-					<span>Sedang masuk...</span>
+					<span>Logging in...</span>
 				{:else}
-					<span>Masuk</span>
+					<span>Login</span>
 				{/if}
 			</button>
 		</form>
 
 		<!-- Divider -->
-		<div class="relative my-6">
-			<div class="absolute inset-0 flex items-center">
-				<div class="border-surface-300-600-token w-full border-t"></div>
-			</div>
-			<div class="relative flex justify-center text-sm">
-				<span class="bg-surface-50-900-token text-surface-600-300-token px-2">atau</span>
-			</div>
-		</div>
-
+		<p class="my-6 flex w-full items-center">
+			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+			<span class="mx-4 text-sm">or</span>
+			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+		</p>
 		<!-- Social Login -->
 		<div class="space-y-3">
 			<button type="button" on:click={handleGoogleLogin} class="variant-ghost-surface btn w-full">
@@ -169,7 +165,7 @@
 						d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 					/>
 				</svg>
-				<span>Lanjutkan dengan Google</span>
+				<span>Continue with Google</span>
 			</button>
 		</div>
 	</div>
