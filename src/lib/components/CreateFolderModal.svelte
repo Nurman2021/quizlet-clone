@@ -64,7 +64,7 @@
 			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
 			on:click|stopPropagation
 		>
-			<div class="bg-surface-100-800-token rounded-container-token shadow-xl">
+			<div class="bg-surface-100-800-token rounded-container-token shadow-xl backdrop-blur-lg">
 				<!-- Header -->
 				<div class="border-surface-300-600-token flex items-center justify-between border-b p-6">
 					<h2 class="text-xl font-bold">Create a new folder</h2>
