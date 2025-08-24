@@ -55,7 +55,7 @@
 			{/if}
 
 			<!-- Mulai di sini Section -->
-			<Navigation.Tile labelExpanded="Flashcard" href="/flashcards">
+			<Navigation.Tile labelExpanded="Flashcard" href="/create">
 				<ZapIcon />
 			</Navigation.Tile>
 		{/snippet}

@@ -1,10 +1,37 @@
 <script>
-	import { Search, User, Plus, Menu } from 'lucide-svelte';
+	import { Search, User, Plus, Menu, LogOut } from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
 	import { Avatar } from '@skeletonlabs/skeleton-svelte';
+	import { supabase } from '$lib/supabase.js';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+
+	let user = null;
 
 	function toggleSidebar() {
 		sidebarExpanded.update((expanded) => !expanded);
+	}
+
+	onMount(async () => {
+		// Get current user
+		const {
+			data: { user: currentUser }
+		} = await supabase.auth.getUser();
+		user = currentUser;
+
+		// Listen for auth changes
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange((event, session) => {
+			user = session?.user || null;
+		});
+
+		return () => subscription.unsubscribe();
+	});
+
+	async function handleLogout() {
+		await supabase.auth.signOut();
+		goto('/login');
 	}
 </script>
 
@@ -14,7 +41,7 @@
 		<div class="flex items-center space-x-3">
 			<!-- Sidebar Toggle Button -->
 			<button
-				class="variant-ghost-surface btn btn-sm"
+				class="variant-ghost-surface btn btn-lg"
 				on:click={toggleSidebar}
 				aria-label="Toggle sidebar"
 			>
@@ -46,14 +73,34 @@
 
 		<!-- User Actions -->
 		<div class="flex items-center space-x-2">
-			<a href="/create" class="variant-ghost-surface btn btn-sm" aria-label="Tambah konten">
-				<Plus class="h-5 w-5" />
-			</a>
-			<!-- <button class="variant-ghost-surface btn btn-sm" aria-label="Profil pengguna">
-				<User class="h-5 w-5" />
-			</button> -->
+			{#if user}
+				<a href="/create" class="variant-ghost-surface btn btn-sm" aria-label="Tambah konten">
+					<Plus class="h-5 w-5" />
+				</a>
 
-			<Avatar src="https://i.pravatar.cc/150?img=48" classes="h-8 w-8" name="skeleton" />
+				<div class="relative">
+					<button class="variant-ghost-surface btn btn-sm" aria-label="Profil pengguna">
+						{#if user.user_metadata?.avatar_url}
+							<Avatar src={user.user_metadata.avatar_url} width="w-8" />
+						{:else}
+							<User class="h-5 w-5" />
+						{/if}
+					</button>
+
+					<!-- Dropdown menu (you can add this later) -->
+				</div>
+
+				<button
+					class="variant-ghost-surface btn btn-sm"
+					on:click={handleLogout}
+					aria-label="Logout"
+				>
+					<LogOut class="h-5 w-5" />
+				</button>
+			{:else}
+				<a href="/login" class="variant-ghost-surface btn btn-sm"> Masuk </a>
+				<a href="/signup" class="variant-filled-primary btn btn-sm"> Daftar </a>
+			{/if}
 		</div>
 	</div>
 </header>
