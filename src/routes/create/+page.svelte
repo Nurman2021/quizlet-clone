@@ -1,5 +1,5 @@
 <script>
-	import { Plus, Image, Settings, Grid, Copy, Trash2, MoreHorizontal } from 'lucide-svelte';
+	import { Plus, Trash2 } from 'lucide-svelte';
 	import { flashcardActions, folders, folderActions } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { goto } from '$app/navigation';
@@ -8,7 +8,6 @@
 
 	let title = '';
 	let description = '';
-	let suggestionToggle = true;
 	let cards = [
 		{ id: Date.now(), term: '', definition: '' },
 		{ id: Date.now() + 1, term: '', definition: '' }
@@ -174,41 +173,6 @@
 				></textarea>
 			</div>
 
-			<!-- Add Options -->
-			<div class="flex items-center space-x-4">
-				<button class="variant-ghost-surface btn btn-sm">
-					<Plus class="h-4 w-4" />
-					<span>Import</span>
-				</button>
-				<button class="variant-ghost-surface btn btn-sm">
-					<Plus class="h-4 w-4" />
-					<span>Add diagram</span>
-					<span class="variant-filled-warning badge">BETA</span>
-				</button>
-			</div>
-
-			<!-- Card Settings -->
-			<div class="flex items-center justify-between py-4">
-				<div class="flex items-center space-x-4">
-					<div class="flex items-center space-x-2">
-						<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-							<Settings class="h-4 w-4" />
-						</button>
-						<span>Suggestions</span>
-						<input type="checkbox" class="checkbox" bind:checked={suggestionToggle} />
-					</div>
-					<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-						<Grid class="h-4 w-4" />
-					</button>
-					<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-						<Copy class="h-4 w-4" />
-					</button>
-					<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-						<MoreHorizontal class="h-4 w-4" />
-					</button>
-				</div>
-			</div>
-
 			<!-- Cards Section -->
 			<div class="space-y-4">
 				{#each cards as card, index (card.id)}
@@ -224,13 +188,6 @@
 										<Trash2 class="h-4 w-4" />
 									</button>
 								{/if}
-								<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-									<MoreHorizontal class="h-4 w-4" />
-								</button>
-								<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
-									<Image class="h-4 w-4" />
-								</button>
-								<span class="text-sm opacity-75">Image</span>
 							</div>
 						</div>
 
