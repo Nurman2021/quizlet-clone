@@ -2,11 +2,29 @@
 	import { supabase } from '$lib/supabase.js';
 	import { goto } from '$app/navigation';
 	import { Mail, Lock, Loader2 } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	let email = '';
 	let password = '';
 	let isLoading = false;
 	let errorMessage = '';
+
+	// Check if user is already logged in
+	onMount(async () => {
+		const {
+			data: { session }
+		} = await supabase.auth.getSession();
+		if (session) {
+			goto('/');
+		}
+
+		// Check for error message from URL params (from callback)
+		const urlParams = new URLSearchParams(window.location.search);
+		const error = urlParams.get('error');
+		if (error) {
+			errorMessage = decodeURIComponent(error);
+		}
+	});
 
 	async function handleLogin() {
 		if (!email || !password) {

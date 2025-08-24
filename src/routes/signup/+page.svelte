@@ -2,6 +2,7 @@
 	import { supabase } from '$lib/supabase.js';
 	import { goto } from '$app/navigation';
 	import { Mail, Lock, User, Loader2 } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	let email = '';
 	let password = '';
@@ -10,6 +11,16 @@
 	let isLoading = false;
 	let errorMessage = '';
 	let successMessage = '';
+
+	// Check if user is already logged in
+	onMount(async () => {
+		const {
+			data: { session }
+		} = await supabase.auth.getSession();
+		if (session) {
+			goto('/');
+		}
+	});
 
 	async function handleSignup() {
 		// Validation

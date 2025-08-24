@@ -1,7 +1,6 @@
 <script>
 	import { Search, User, Plus, Menu, LogOut } from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
-	import { Avatar } from '@skeletonlabs/skeleton-svelte';
 	import { supabase } from '$lib/supabase.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -23,6 +22,7 @@
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange((event, session) => {
+			console.log('Auth state changed:', event, session?.user);
 			user = session?.user || null;
 		});
 
@@ -33,6 +33,11 @@
 		await supabase.auth.signOut();
 		goto('/login');
 	}
+
+	// Helper function to safely get avatar URL
+	$: avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+	$: userDisplayName =
+		user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User';
 </script>
 
 <header class="bg-surface-100-800-token border-surface-300-600-token border-b px-4 py-4">
@@ -81,10 +86,19 @@
 
 				<div class="relative">
 					<button class="variant-ghost-surface btn btn-sm" aria-label="User profile">
-						{#if user.user_metadata?.avatar_url}
-							<Avatar src={user.user_metadata.avatar_url} width="w-8" />
+						{#if avatarUrl}
+							<img
+								src={avatarUrl}
+								alt="User avatar"
+								class="h-8 w-8 rounded-full object-cover"
+								on:error={(e) => (e.target.style.display = 'none')}
+							/>
 						{:else}
-							<User class="h-5 w-5" />
+							<div
+								class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-sm font-medium text-white"
+							>
+								{userDisplayName.charAt(0).toUpperCase()}
+							</div>
 						{/if}
 					</button>
 

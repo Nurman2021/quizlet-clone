@@ -4,14 +4,31 @@
 	import { supabase } from '$lib/supabase.js';
 
 	onMount(async () => {
-		// Handle OAuth callback
-		const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+		console.log('Auth callback page loaded');
+		console.log('Current URL:', window.location.href);
 
-		if (error) {
-			console.error('Error during authentication:', error);
-			goto('/login');
-		} else {
-			goto('/');
+		try {
+			// Handle OAuth callback
+			const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+
+			console.log('Auth callback result:', { data, error });
+
+			if (error) {
+				console.error('Error during authentication:', error);
+				goto('/login?error=' + encodeURIComponent(error.message));
+			} else if (data?.session?.user) {
+				console.log('Authentication successful:', data.session.user);
+				// Wait a bit for the auth state to propagate
+				setTimeout(() => {
+					goto('/');
+				}, 500);
+			} else {
+				console.log('No session created, redirecting to login');
+				goto('/login');
+			}
+		} catch (error) {
+			console.error('Callback processing error:', error);
+			goto('/login?error=' + encodeURIComponent('Authentication failed'));
 		}
 	});
 </script>
