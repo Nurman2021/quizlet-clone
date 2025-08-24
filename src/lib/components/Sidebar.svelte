@@ -60,11 +60,11 @@
 			</Navigation.Tile>
 		{/snippet}
 
-		{#snippet footer()}
+		<!-- {#snippet footer()}
 			<Navigation.Tile labelExpanded="Settings" href="/settings" title="Settings">
 				<SettingsIcon />
 			</Navigation.Tile>
-		{/snippet}
+		{/snippet} -->
 	</Navigation.Rail>
 
 	<!-- Content -->

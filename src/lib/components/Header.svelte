@@ -60,7 +60,7 @@
 		<!-- Search Bar -->
 		<div class="mx-8 max-w-xl flex-1">
 			<div class="input-group-divider input-group grid-cols-[auto_1fr_auto]">
-				<div class="input-group-shim">
+				<div class="input-group-shim ig-cell">
 					<Search class="h-4 w-4" />
 				</div>
 				<input
@@ -98,8 +98,8 @@
 					<LogOut class="h-5 w-5" />
 				</button>
 			{:else}
-				<a href="/login" class="variant-ghost-surface btn btn-sm"> Masuk </a>
-				<a href="/signup" class="variant-filled-primary btn btn-sm"> Daftar </a>
+				<a href="/login" class="variant-ghost-surface btn btn-sm"> Sign In </a>
+				<a href="/signup" class="variant-filled-primary btn btn-sm"> Register </a>
 			{/if}
 		</div>
 	</div>
