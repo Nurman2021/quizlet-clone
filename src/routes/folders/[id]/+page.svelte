@@ -72,14 +72,14 @@
 	}
 
 	async function removeSetFromFolder(setId) {
-		if (!confirm('Hapus set dari folder ini?')) return;
+		if (!confirm('Remove set from this folder?')) return;
 
 		try {
 			await folderActions.removeSetFromFolder(setId);
-			// Reload folder untuk refresh data
+			// Reload folder to refresh data
 			location.reload();
 		} catch (error) {
-			alert('Gagal menghapus set dari folder: ' + error.message);
+			alert('Failed to remove set from folder: ' + error.message);
 		}
 	}
 </script>
@@ -94,14 +94,14 @@
 			<!-- Loading -->
 			<div class="py-16 text-center">
 				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-300-token">Memuat folder...</p>
+				<p class="text-surface-600-300-token">Loading folder...</p>
 			</div>
 		{:else if $currentFolder}
 			<!-- Header -->
 			<div class="mb-8">
 				<button class="variant-ghost-surface mb-4 btn btn-sm" on:click={() => goto('/folders')}>
 					<ArrowLeft class="h-4 w-4" />
-					<span>Kembali ke Folder</span>
+					<span>Back to Folders</span>
 				</button>
 
 				<div class="flex items-start justify-between">
@@ -118,7 +118,7 @@
 								<p class="text-surface-600-300-token mt-1">{$currentFolder.description}</p>
 							{/if}
 							<p class="text-surface-600-300-token mt-2 text-sm">
-								{folderSets.length} set flashcard
+								{folderSets.length} flashcard sets
 							</p>
 						</div>
 					</div>
@@ -130,7 +130,7 @@
 						</button>
 						<a href="/create?folder={folderId}" class="variant-filled-primary btn">
 							<Plus class="h-4 w-4" />
-							<span>Tambah set</span>
+							<span>Add Set</span>
 						</a>
 					</div>
 				</div>
@@ -139,13 +139,13 @@
 			<!-- Flashcard Sets -->
 			{#if folderSets.length === 0}
 				<div class="variant-ghost-surface card p-16 text-center">
-					<h3 class="mb-2 text-xl font-semibold">Folder ini masih kosong</h3>
+					<h3 class="mb-2 text-xl font-semibold">This folder is empty</h3>
 					<p class="text-surface-600-300-token mb-6">
-						Tambahkan set flashcard ke folder ini untuk mengaturnya dengan lebih baik
+						Add flashcard sets to this folder to organize them better
 					</p>
 					<a href="/create?folder={folderId}" class="variant-filled-primary btn">
 						<Plus class="h-4 w-4" />
-						<span>Buat set flashcard</span>
+						<span>Create flashcard set</span>
 					</a>
 				</div>
 			{:else}
@@ -171,10 +171,10 @@
 
 								<div class="mb-4 flex items-center justify-between">
 									<span class="text-surface-600-300-token text-sm">
-										{set.total_cards} kartu
+										{set.total_cards} cards
 									</span>
 									<span class="text-surface-600-300-token text-sm">
-										{new Date(set.created_at).toLocaleDateString('id-ID')}
+										{new Date(set.created_at).toLocaleDateString('en-US')}
 									</span>
 								</div>
 
@@ -183,14 +183,14 @@
 										class="variant-ghost-surface btn flex-1 btn-sm"
 										on:click={() => goToSet(set.id)}
 									>
-										Lihat
+										View
 									</button>
 									<button
 										class="variant-filled-primary btn flex-1 btn-sm"
 										on:click={() => startQuiz(set.id)}
 									>
 										<Play class="h-4 w-4" />
-										<span>Mulai</span>
+										<span>Start</span>
 									</button>
 								</div>
 							</div>

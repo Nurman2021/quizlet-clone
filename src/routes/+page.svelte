@@ -16,7 +16,7 @@
 	let selectedFolderId = null;
 
 	onMount(async () => {
-		// Load recent activities saat halaman dimuat
+		// Load recent activities when page loads
 		await flashcardActions.loadRecentActivities();
 
 		// Load folders
@@ -41,17 +41,17 @@
 
 	async function moveToFolder() {
 		if (!selectedSetId || !selectedFolderId) {
-			alert('Pilih folder tujuan!');
+			alert('Select destination folder!');
 			return;
 		}
 
 		try {
 			await folderActions.addSetToFolder(selectedSetId, selectedFolderId);
 			await flashcardActions.loadRecentActivities();
-			alert('Flashcard set berhasil dipindahkan ke folder!');
+			alert('Flashcard set successfully moved to folder!');
 			showMoveToFolderModal = false;
 		} catch (error) {
-			alert('Gagal memindahkan set: ' + error.message);
+			alert('Failed to move set: ' + error.message);
 		}
 	}
 </script>
@@ -80,7 +80,7 @@
 										{activity.title}
 									</h4>
 									<p class="text-sm opacity-75">
-										{activity.total_cards} kartu • {activity.users?.full_name || 'Anonymous'}
+										{activity.total_cards} cards • {activity.users?.full_name || 'Anonymous'}
 									</p>
 									{#if activity.description}
 										<p class="mt-1 text-sm opacity-60">{activity.description}</p>
@@ -89,7 +89,7 @@
 								<div class="flex items-center space-x-2">
 									<span class="text-xs opacity-60">
 										{new Date(activity.last_studied_at || activity.created_at).toLocaleDateString(
-											'id-ID'
+											'en-US'
 										)}
 									</span>
 
@@ -112,7 +112,7 @@
 														on:click={() => goto(`/quiz/${activity.id}`)}
 													>
 														<Eye class="h-4 w-4" />
-														<span>Lihat</span>
+														<span>View</span>
 													</button>
 													<button
 														class="variant-ghost-surface btn w-full justify-start btn-sm"

@@ -24,6 +24,7 @@
 	} from 'lucide-svelte';
 	import { Tabs } from '@skeletonlabs/skeleton-svelte';
 	import TestSetupModal from '$lib/components/TestSetupModal.svelte';
+	import TestResults from '$lib/components/TestResults.svelte';
 
 	let setId;
 	let showAnswer = false;
@@ -291,6 +292,27 @@
 		showTestResults = true;
 	}
 
+	function handleRetakeTest() {
+		showTestResults = false;
+		testStarted = false;
+		testQuestions = [];
+		testAnswers = {};
+		currentTestQuestion = 0;
+		startTest();
+	}
+
+	function handleBackToSetup() {
+		testStarted = false;
+		showTestResults = false;
+		testQuestions = [];
+		testAnswers = {};
+		currentTestQuestion = 0;
+	}
+
+	function handleGoHome() {
+		goto('/');
+	}
+
 	function togglePlay() {
 		isPlaying = !isPlaying;
 		// Auto-play logic here
@@ -326,9 +348,9 @@
 			</div>
 
 			<!-- Main Content Area -->
-			<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-				<!-- Left Column - Flashcard/Test Area -->
-				<div class="lg:col-span-2">
+			<div class="flex justify-center">
+				<!-- Main Flashcard/Test Area -->
+				<div class="w-full max-w-4xl">
 					<!-- Tab Navigation -->
 					<Tabs value={tabSet} onValueChange={(e) => (tabSet = e.value)}>
 						{#snippet list()}
@@ -432,12 +454,12 @@
 									<h3 class="mb-4 text-xl font-semibold">Test Mode</h3>
 
 									{#if !testStarted}
-										<!-- Tombol untuk membuka modal -->
+										<!-- Button to open modal -->
 										<div class="py-8 text-center">
 											<p class="text-surface-600-300-token mb-4">
-												Klik tombol di bawah untuk mengatur dan memulai test
+												Click the button below to set up and start the test
 											</p>
-											<button class="variant-filled-primary btn" on:click={startTest}>
+											<button class="btn preset-filled-primary-500" on:click={startTest}>
 												Setup Test
 											</button>
 										</div>
@@ -532,98 +554,21 @@
 											{/if}
 										</div>
 									{:else if showTestResults}
-										<!-- Test results -->
-										<div class="text-center">
-											<h3 class="mb-4 text-2xl font-bold">Test Results</h3>
-											<div
-												class="mb-4 text-4xl font-bold {testScore >= 70
-													? 'text-success-500'
-													: 'text-error-500'}"
-											>
-												{testScore.toFixed(0)}%
-											</div>
-											<p class="text-surface-600-300-token mb-6">
-												You scored {correctAnswers} out of {testQuestions.length} questions correctly
-											</p>
-											<div class="flex justify-center gap-4">
-												<button class="variant-filled-primary btn" on:click={startTest}>
-													Retake Test
-												</button>
-												<button
-													class="variant-ghost-surface btn"
-													on:click={() => {
-														testStarted = false;
-														showTestResults = false;
-													}}
-												>
-													Back to Setup
-												</button>
-											</div>
-										</div>
+										<!-- Test Results Component -->
+										<TestResults
+											{testQuestions}
+											{testAnswers}
+											{testScore}
+											{correctAnswers}
+											on:retake-test={handleRetakeTest}
+											on:back-to-setup={handleBackToSetup}
+											on:go-home={handleGoHome}
+										/>
 									{/if}
 								</div>
 							</Tabs.Panel>
 						{/snippet}
 					</Tabs>
-				</div>
-
-				<!-- Right Column - Terms List -->
-				<div class="lg:col-span-1">
-					<div class="variant-ghost-surface card p-4">
-						<div class="mb-4 flex items-center justify-between">
-							<h3 class="font-semibold">
-								Terms in this set ({$currentFlashcardSet.flashcards.length})
-							</h3>
-							<select class="select-sm select w-auto">
-								<option value="original">Original</option>
-								<option value="alphabetical">Alphabetical</option>
-								<option value="starred">Starred first</option>
-							</select>
-						</div>
-
-						<div class="max-h-[600px] space-y-3 overflow-y-auto">
-							{#each $currentFlashcardSet.flashcards as card, index}
-								<div
-									class="variant-ghost-surface hover:variant-soft-surface cursor-pointer card p-4 transition-all"
-									class:ring-2={$quizState.currentCardIndex === index}
-									class:ring-primary-500={$quizState.currentCardIndex === index}
-									role="button"
-									tabindex="0"
-									on:click={() => {
-										$quizState.currentCardIndex = index;
-										showAnswer = false;
-										updateProgress();
-									}}
-									on:keydown={(e) => {
-										if (e.key === 'Enter' || e.key === ' ') {
-											$quizState.currentCardIndex = index;
-											showAnswer = false;
-											updateProgress();
-										}
-									}}
-								>
-									<div class="flex items-start space-x-3">
-										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm flex-shrink-0"
-											on:click|stopPropagation={() => {}}
-										>
-											<Star class="h-4 w-4" />
-										</button>
-										<div class="min-w-0 flex-1">
-											<p class="mb-1 truncate text-sm font-medium">{card.term}</p>
-											<p class="text-surface-600-300-token truncate text-sm">{card.definition}</p>
-										</div>
-										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm flex-shrink-0"
-											on:click|stopPropagation={() => {}}
-										>
-											<Edit class="h-4 w-4" />
-										</button>
-									</div>
-								</div>
-							{/each}
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -637,7 +582,7 @@
 	<div class="flex min-h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Loading...</h2>
-			<p class="text-surface-600-300-token mt-2">Memuat flashcard set...</p>
+			<p class="text-surface-600-300-token mt-2">Loading flashcard set...</p>
 		</div>
 	</div>
 {/if}

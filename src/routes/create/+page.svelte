@@ -46,7 +46,7 @@
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Tambahkan minimal satu kartu dengan istilah dan definisi!');
+			alert('Add at least one card with term and definition!');
 			return;
 		}
 
@@ -59,7 +59,7 @@
 			} = await supabase.auth.getUser();
 
 			if (!user) {
-				alert('Silakan login terlebih dahulu!');
+				alert('Please login first!');
 				goto('/login');
 				return;
 			}
@@ -74,9 +74,9 @@
 				user.id
 			);
 
-			alert('Flashcard set berhasil disimpan!');
+			alert('Flashcard set saved successfully!');
 
-			// Reset form setelah berhasil save
+			// Reset form after successful save
 			title = '';
 			description = '';
 			cards = [
@@ -85,8 +85,8 @@
 			];
 			selectedFolderId = null;
 		} catch (error) {
-			console.error('Gagal menyimpan flashcard set:', error);
-			alert('Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+			console.error('Failed to save flashcard set:', error);
+			alert('An error occurred while saving. Please try again.');
 		} finally {
 			isLoading = false;
 		}
@@ -96,7 +96,7 @@
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Tambahkan minimal satu kartu dengan istilah dan definisi!');
+			alert('Add at least one card with term and definition!');
 			return;
 		}
 
@@ -108,7 +108,7 @@
 			} = await supabase.auth.getUser();
 
 			if (!user) {
-				alert('Silakan login terlebih dahulu!');
+				alert('Please login first!');
 				goto('/login');
 				return;
 			}
@@ -123,11 +123,11 @@
 				user.id
 			);
 
-			// Redirect ke halaman quiz
+			// Redirect to quiz page
 			goto(`/quiz/${newSet.id}`);
 		} catch (error) {
-			console.error('Gagal menyimpan flashcard set:', error);
-			alert('Terjadi kesalahan saat menyimpan. Silakan coba lagi.');
+			console.error('Failed to save flashcard set:', error);
+			alert('An error occurred while saving. Please try again.');
 		} finally {
 			isLoading = false;
 		}
@@ -135,18 +135,18 @@
 </script>
 
 <svelte:head>
-	<title>Buat set flashcard baru</title>
+	<title>Create new flashcard set</title>
 </svelte:head>
 
 <div class="bg-surface-50-900-token p-6">
 	<div class="mx-auto max-w-4xl">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
-			<h1 class="text-2xl font-bold">Buat set flashcard baru</h1>
+			<h1 class="text-2xl font-bold">Create new flashcard set</h1>
 			<div class="flex items-center space-x-4">
-				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Buat </button>
+				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Create </button>
 				<button class="variant-filled-primary btn" on:click={saveAndPractice}>
-					Buat dan latihan
+					Create and practice
 				</button>
 			</div>
 		</div>
@@ -158,7 +158,7 @@
 				<input
 					bind:value={title}
 					type="text"
-					placeholder="Judul"
+					placeholder="Title"
 					class="input text-xl font-semibold"
 					required
 				/>
@@ -168,7 +168,7 @@
 			<div>
 				<textarea
 					bind:value={description}
-					placeholder="Tambahkan deskripsi..."
+					placeholder="Add description..."
 					rows="3"
 					class="textarea resize-none"
 				></textarea>
@@ -178,11 +178,11 @@
 			<div class="flex items-center space-x-4">
 				<button class="variant-ghost-surface btn btn-sm">
 					<Plus class="h-4 w-4" />
-					<span>Masukkan</span>
+					<span>Import</span>
 				</button>
 				<button class="variant-ghost-surface btn btn-sm">
 					<Plus class="h-4 w-4" />
-					<span>Tambahkan diagram</span>
+					<span>Add diagram</span>
 					<span class="variant-filled-warning badge">BETA</span>
 				</button>
 			</div>
@@ -194,7 +194,7 @@
 						<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
 							<Settings class="h-4 w-4" />
 						</button>
-						<span>Saran</span>
+						<span>Suggestions</span>
 						<input type="checkbox" class="checkbox" bind:checked={suggestionToggle} />
 					</div>
 					<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
@@ -230,7 +230,7 @@
 								<button class="variant-ghost-surface btn-icon btn btn-icon-sm">
 									<Image class="h-4 w-4" />
 								</button>
-								<span class="text-sm opacity-75">Gambar</span>
+								<span class="text-sm opacity-75">Image</span>
 							</div>
 						</div>
 
@@ -238,12 +238,12 @@
 							<!-- Term -->
 							<div>
 								<label class="label mb-2" for="term-{card.id}">
-									<span class="text-sm font-semibold">ISTILAH</span>
+									<span class="text-sm font-semibold">TERM</span>
 								</label>
 								<textarea
 									id="term-{card.id}"
 									bind:value={card.term}
-									placeholder="Masukkan istilah"
+									placeholder="Enter term"
 									class="textarea min-h-[120px]"
 									rows="4"
 								></textarea>
@@ -252,12 +252,12 @@
 							<!-- Definition -->
 							<div>
 								<label class="label mb-2" for="definition-{card.id}">
-									<span class="text-sm font-semibold">DEFINISI</span>
+									<span class="text-sm font-semibold">DEFINITION</span>
 								</label>
 								<textarea
 									id="definition-{card.id}"
 									bind:value={card.definition}
-									placeholder="Masukkan definisi"
+									placeholder="Enter definition"
 									class="textarea min-h-[120px]"
 									rows="4"
 								></textarea>
@@ -272,15 +272,15 @@
 				on:click={addCard}
 				class="variant-ghost-surface !border-surface-300-600-token btn w-full border-2 border-dashed"
 			>
-				Tambahkan kartu
+				Add card
 			</button>
 
 			<!-- Folder Selection (optional) -->
 			<div>
 				<label class="label" for="folder-select">
-					<span>Folder (opsional)</span>
+					<span>Folder (optional)</span>
 					<p class="text-surface-600-300-token mb-2 text-sm">
-						Pilih folder untuk mengelompokkan flashcard set ini
+						Select a folder to group this flashcard set
 					</p>
 				</label>
 				<select
@@ -288,7 +288,7 @@
 					class="variant-form-material select"
 					bind:value={selectedFolderId}
 				>
-					<option value={null}>-- Tanpa folder --</option>
+					<option value={null}>-- No folder --</option>
 					{#each $folders as folder}
 						<option value={folder.id}>
 							{folder.name}
@@ -297,8 +297,9 @@
 				</select>
 				{#if $folders.length === 0}
 					<p class="text-surface-600-300-token mt-2 text-sm">
-						Anda belum memiliki folder. <a href="/folders" class="text-primary-500 hover:underline"
-							>Buat folder</a
+						You don't have any folders yet. <a
+							href="/folders"
+							class="text-primary-500 hover:underline">Create folder</a
 						>
 					</p>
 				{/if}
@@ -306,9 +307,9 @@
 
 			<!-- Bottom Actions -->
 			<div class="flex items-center justify-between pt-8">
-				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Buat </button>
+				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Create </button>
 				<button class="variant-filled-primary btn" on:click={saveAndPractice}>
-					Buat dan latihan
+					Create and practice
 				</button>
 			</div>
 		</div>
@@ -318,7 +319,7 @@
 {#if isLoading}
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 		<div class="card p-4">
-			<p>Menyimpan flashcard set...</p>
+			<p>Saving flashcard set...</p>
 		</div>
 	</div>
 {/if}

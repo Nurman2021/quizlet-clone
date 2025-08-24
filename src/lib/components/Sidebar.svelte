@@ -49,7 +49,7 @@
 				</div>
 			{/if}
 
-			<!-- Mulai di sini Section -->
+			<!-- Start here Section -->
 			<Navigation.Tile labelExpanded="Flashcard" href="/create">
 				<ZapIcon />
 			</Navigation.Tile>

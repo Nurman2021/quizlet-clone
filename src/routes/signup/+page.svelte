@@ -12,19 +12,19 @@
 	let successMessage = '';
 
 	async function handleSignup() {
-		// Validasi
+		// Validation
 		if (!email || !password || !confirmPassword || !fullName) {
-			errorMessage = 'Semua field harus diisi';
+			errorMessage = 'All fields must be filled';
 			return;
 		}
 
 		if (password.length < 6) {
-			errorMessage = 'Password minimal 6 karakter';
+			errorMessage = 'Password must be at least 6 characters';
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			errorMessage = 'Password tidak cocok';
+			errorMessage = 'Passwords do not match';
 			return;
 		}
 
@@ -45,8 +45,8 @@
 
 			if (error) throw error;
 
-			// Tampilkan pesan sukses
-			successMessage = 'Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi.';
+			// Show success message
+			successMessage = 'Registration successful! Please check your email for verification.';
 
 			// Reset form
 			email = '';
@@ -54,13 +54,13 @@
 			confirmPassword = '';
 			fullName = '';
 
-			// Redirect setelah 3 detik
+			// Redirect after 3 seconds
 			setTimeout(() => {
 				goto('/login');
 			}, 3000);
 		} catch (error) {
 			errorMessage =
-				error.message === 'User already registered' ? 'Email sudah terdaftar' : error.message;
+				error.message === 'User already registered' ? 'Email already registered' : error.message;
 		} finally {
 			isLoading = false;
 		}
@@ -77,7 +77,7 @@
 
 			if (error) throw error;
 		} catch (error) {
-			errorMessage = 'Gagal daftar dengan Google: ' + error.message;
+			errorMessage = 'Failed to signup with Google: ' + error.message;
 		}
 	}
 </script>
@@ -147,7 +147,7 @@
 					<input
 						type="email"
 						bind:value={email}
-						placeholder="nama@email.com"
+						placeholder="name@email.com"
 						class="input"
 						required
 						disabled={isLoading}
@@ -206,7 +206,7 @@
 			<button type="submit" class="variant-filled-primary btn w-full" disabled={isLoading}>
 				{#if isLoading}
 					<Loader2 class="h-4 w-4 animate-spin" />
-					<span>Sedang mendaftar...</span>
+					<span>Signing up...</span>
 				{:else}
 					<span>Sign up</span>
 				{/if}

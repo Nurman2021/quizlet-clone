@@ -10,7 +10,7 @@
 
 	async function handleLogin() {
 		if (!email || !password) {
-			errorMessage = 'Email dan password harus diisi';
+			errorMessage = 'Email and password must be filled';
 			return;
 		}
 
@@ -25,11 +25,13 @@
 
 			if (error) throw error;
 
-			// Redirect ke halaman utama setelah login berhasil
+			// Redirect to main page after successful login
 			goto('/');
 		} catch (error) {
 			errorMessage =
-				error.message === 'Invalid login credentials' ? 'Email atau password salah' : error.message;
+				error.message === 'Invalid login credentials'
+					? 'Email or password is incorrect'
+					: error.message;
 		} finally {
 			isLoading = false;
 		}
@@ -46,7 +48,7 @@
 
 			if (error) throw error;
 		} catch (error) {
-			errorMessage = 'Gagal login dengan Google: ' + error.message;
+			errorMessage = 'Failed to login with Google: ' + error.message;
 		}
 	}
 </script>

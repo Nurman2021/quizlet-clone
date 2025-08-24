@@ -75,12 +75,12 @@
 		<!-- User Actions -->
 		<div class="flex items-center space-x-2">
 			{#if user}
-				<a href="/create" class="variant-ghost-surface btn btn-sm" aria-label="Tambah konten">
+				<a href="/create" class="variant-ghost-surface btn btn-sm" aria-label="Add content">
 					<Plus class="h-5 w-5" />
 				</a>
 
 				<div class="relative">
-					<button class="variant-ghost-surface btn btn-sm" aria-label="Profil pengguna">
+					<button class="variant-ghost-surface btn btn-sm" aria-label="User profile">
 						{#if user.user_metadata?.avatar_url}
 							<Avatar src={user.user_metadata.avatar_url} width="w-8" />
 						{:else}

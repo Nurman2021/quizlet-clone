@@ -35,26 +35,26 @@
 				data: { user }
 			} = await supabase.auth.getUser();
 			if (!user) {
-				alert('Silakan login terlebih dahulu!');
+				alert('Please login first!');
 				return;
 			}
 
 			await folderActions.createFolder(folderData, user.id);
 			showCreateModal = false;
 		} catch (error) {
-			alert('Gagal membuat folder: ' + error.message);
+			alert('Failed to create folder: ' + error.message);
 		}
 	}
 
 	async function deleteFolder(folderId) {
-		if (!confirm('Apakah Anda yakin ingin menghapus folder ini?')) {
+		if (!confirm('Are you sure you want to delete this folder?')) {
 			return;
 		}
 
 		try {
 			await folderActions.deleteFolder(folderId);
 		} catch (error) {
-			alert('Gagal menghapus folder: ' + error.message);
+			alert('Failed to delete folder: ' + error.message);
 		}
 	}
 
@@ -68,14 +68,14 @@
 </script>
 
 <svelte:head>
-	<title>Your Folder</title>
+	<title>Your Folders</title>
 </svelte:head>
 
 <div class="bg-surface-50-900-token min-h-screen p-6">
 	<div class="mx-auto max-w-5xl">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
-			<h1 class="text-3xl font-bold">Folder</h1>
+			<h1 class="text-3xl font-bold">Folders</h1>
 			<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
 				<FolderPlus class="h-5 w-5" />
 				<span>Create folder</span>
@@ -86,7 +86,7 @@
 			<!-- Loading State -->
 			<div class="py-16 text-center">
 				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-300-token">Memuat folder...</p>
+				<p class="text-surface-600-300-token">Loading folders...</p>
 			</div>
 		{:else if $folders.length === 0}
 			<!-- Empty State -->
@@ -100,9 +100,9 @@
 					</div>
 				</div>
 
-				<h2 class="mb-4 text-2xl font-semibold">Anda belum memiliki folder</h2>
+				<h2 class="mb-4 text-2xl font-semibold">You don't have any folders yet</h2>
 				<p class="text-surface-600-300-token mx-auto mb-8 max-w-md">
-					Folder membantu Anda mengatur set flashcard dan tes latihan
+					Folders help you organize flashcard sets and practice tests
 				</p>
 
 				<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
@@ -170,7 +170,7 @@
 													}}
 												>
 													<Trash2 class="h-4 w-4" />
-													<span>Hapus</span>
+													<span>Delete</span>
 												</button>
 											</nav>
 										</div>
@@ -182,10 +182,10 @@
 							<div class="text-surface-600-300-token flex items-center justify-between text-sm">
 								<div class="flex items-center space-x-1">
 									<FileText class="h-4 w-4" />
-									<span>{folder.flashcard_sets?.length || 0} set</span>
+									<span>{folder.flashcard_sets?.length || 0} sets</span>
 								</div>
 								<span>
-									{new Date(folder.created_at).toLocaleDateString('id-ID')}
+									{new Date(folder.created_at).toLocaleDateString('en-US')}
 								</span>
 							</div>
 						</div>

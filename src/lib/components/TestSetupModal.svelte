@@ -66,8 +66,7 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h2 class="text-2xl font-bold text-white">Psikologi</h2>
-			<h3 class="mt-1 text-xl font-medium text-white">Set up your test</h3>
+			<h2 class="text-xl font-bold text-white">Set up your test</h2>
 		</div>
 		<button
 			type="button"

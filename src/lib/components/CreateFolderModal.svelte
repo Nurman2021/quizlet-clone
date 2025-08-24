@@ -34,7 +34,7 @@
 
 	function handleSubmit() {
 		if (!name.trim()) {
-			alert('Nama folder harus diisi!');
+			alert('Folder name must be filled!');
 			return;
 		}
 
@@ -77,30 +77,30 @@
 				<form on:submit|preventDefault={handleSubmit} class="space-y-4 p-6">
 					<!-- Folder Name -->
 					<label class="label">
-						<span>Nama folder</span>
+						<span>Folder name</span>
 						<input
 							type="text"
 							class="variant-form-material input"
 							bind:value={name}
-							placeholder="Misalnya: Matematika, Bahasa Inggris"
+							placeholder="For example: Mathematics, English"
 							required
 						/>
 					</label>
 
 					<!-- Description -->
 					<label class="label">
-						<span>Deskripsi (opsional)</span>
+						<span>Description (optional)</span>
 						<textarea
 							class="variant-form-material textarea"
 							bind:value={description}
-							placeholder="Tambahkan deskripsi untuk folder ini"
+							placeholder="Add a description for this folder"
 							rows="3"
 						></textarea>
 					</label>
 
 					<!-- Color Picker -->
 					<div>
-						<span class="label">Pilih warna</span>
+						<span class="label">Choose color</span>
 						<div class="mt-2 grid grid-cols-4 gap-2">
 							{#each colors as color}
 								<!-- svelte-ignore a11y_consider_explicit_label -->
@@ -126,9 +126,9 @@
 								<Folder class="h-6 w-6 text-white" />
 							</div>
 							<div>
-								<p class="font-semibold">{name || 'Nama folder'}</p>
+								<p class="font-semibold">{name || 'Folder name'}</p>
 								<p class="text-surface-600-300-token text-sm">
-									{description || 'Deskripsi folder'}
+									{description || 'Folder description'}
 								</p>
 							</div>
 						</div>
