@@ -57,13 +57,13 @@
 			{:else}
 				<div class="variant-ghost-surface card p-8 text-center">
 					<Book class="mx-auto mb-4 h-12 w-12 opacity-30" />
-					<h4 class="mb-2 font-semibold">Belum ada aktivitas terbaru</h4>
+					<h4 class="mb-2 font-semibold">There are no recent activities</h4>
 					<p class="mb-4 text-sm opacity-75">
-						Mulai buat atau pelajari flashcard untuk melihat aktivitas terbaru
+						Start creating or studying flashcards to see recent activities
 					</p>
 					<a href="/create" class="variant-filled-primary btn">
 						<Plus class="h-4 w-4" />
-						<span>Buat Flashcard</span>
+						<span>Create Flashcards</span>
 					</a>
 				</div>
 			{/if}
