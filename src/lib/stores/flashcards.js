@@ -2,9 +2,11 @@ import { writable, derived } from 'svelte/store';
 import { supabase } from '$lib/supabase.js';
 
 export const flashcardSets = writable([]);
+export const folders = writable([]);
 
 // Store untuk flashcard set yang sedang aktif
 export const currentFlashcardSet = writable(null);
+export const currentFolder = writable(null);
 
 // Store untuk recent activities
 export const recentActivities = writable([]);
@@ -238,6 +240,134 @@ export const flashcardActions = {
         } catch (error) {
             console.error('Error loading flashcard set:', error);
             return null;
+        }
+    }
+};
+
+// Folder actions dengan Supabase
+export const folderActions = {
+    // Load semua folders
+    loadFolders: async (userId) => {
+        try {
+            const { data, error } = await supabase
+                .from('folders')
+                .select(`
+                    *,
+                    flashcard_sets (
+                        id,
+                        title,
+                        total_cards,
+                        created_at
+                    )
+                `)
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            folders.set(data || []);
+            return data;
+        } catch (error) {
+            console.error('Error loading folders:', error);
+            return [];
+        }
+    },
+
+    // Create new folder
+    createFolder: async (folderData, userId) => {
+        try {
+            const { data, error } = await supabase
+                .from('folders')
+                .insert({
+                    user_id: userId,
+                    name: folderData.name,
+                    description: folderData.description,
+                    icon: folderData.icon || 'folder',
+                    color: folderData.color || '#3B82F6'
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Reload folders
+            await folderActions.loadFolders(userId);
+
+            return data;
+        } catch (error) {
+            console.error('Error creating folder:', error);
+            throw error;
+        }
+    },
+
+    // Update folder
+    updateFolder: async (folderId, updates) => {
+        try {
+            const { error } = await supabase
+                .from('folders')
+                .update({
+                    ...updates,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', folderId);
+
+            if (error) throw error;
+
+            // Reload folders
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await folderActions.loadFolders(user.id);
+            }
+        } catch (error) {
+            console.error('Error updating folder:', error);
+            throw error;
+        }
+    },
+
+    // Delete folder
+    deleteFolder: async (folderId) => {
+        try {
+            const { error } = await supabase
+                .from('folders')
+                .delete()
+                .eq('id', folderId);
+
+            if (error) throw error;
+
+            folders.update(items => items.filter(f => f.id !== folderId));
+        } catch (error) {
+            console.error('Error deleting folder:', error);
+            throw error;
+        }
+    },
+
+    // Add flashcard set to folder
+    addSetToFolder: async (setId, folderId) => {
+        try {
+            const { error } = await supabase
+                .from('flashcard_sets')
+                .update({ folder_id: folderId })
+                .eq('id', setId);
+
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error adding set to folder:', error);
+            throw error;
+        }
+    },
+
+    // Remove flashcard set from folder
+    removeSetFromFolder: async (setId) => {
+        try {
+            const { error } = await supabase
+                .from('flashcard_sets')
+                .update({ folder_id: null })
+                .eq('id', setId);
+
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error removing set from folder:', error);
+            throw error;
         }
     }
 };
