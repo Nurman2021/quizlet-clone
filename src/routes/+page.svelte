@@ -16,12 +16,6 @@
 	let selectedSetId = null;
 	let selectedFolderId = null;
 
-	// Debug function untuk test toast
-	function testToast() {
-		console.log('Testing toast...');
-		toast.success('Test Toast', 'This is a test toast message');
-	}
-
 	onMount(async () => {
 		// Load recent activities when page loads
 		await flashcardActions.loadRecentActivities();
@@ -77,11 +71,6 @@
 
 <div class="bg-surface-50-900-token p-6">
 	<div class="mx-auto max-w-5xl">
-		<!-- Debug Toast Button -->
-		<div class="mb-4">
-			<button class="variant-filled-primary btn" on:click={testToast}> Test Toast </button>
-		</div>
-
 		<!-- Popular Content Section -->
 		<div class="mt-12">
 			<h3 class="mb-6 text-xl font-semibold">Recents</h3>
