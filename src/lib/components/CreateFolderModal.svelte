@@ -1,6 +1,7 @@
 <script>
 	import { X, Folder } from 'lucide-svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { toast } from '$lib/stores/toast.js';
 
 	export let show = false;
 
@@ -34,7 +35,7 @@
 
 	function handleSubmit() {
 		if (!name.trim()) {
-			alert('Folder name must be filled!');
+			toast.error('Folder name must be filled!');
 			return;
 		}
 

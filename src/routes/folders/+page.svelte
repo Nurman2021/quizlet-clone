@@ -5,6 +5,7 @@
 	import { folders, folderActions } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import CreateFolderModal from '$lib/components/CreateFolderModal.svelte';
+	import { toast } from '$lib/stores/toast.js';
 
 	let showCreateModal = false;
 	let isLoading = true;
@@ -35,14 +36,14 @@
 				data: { user }
 			} = await supabase.auth.getUser();
 			if (!user) {
-				alert('Please login first!');
+				toast.error('Please login first!');
 				return;
 			}
 
 			await folderActions.createFolder(folderData, user.id);
 			showCreateModal = false;
 		} catch (error) {
-			alert('Failed to create folder: ' + error.message);
+			toast.error('Failed to create folder: ' + error.message);
 		}
 	}
 
@@ -54,7 +55,7 @@
 		try {
 			await folderActions.deleteFolder(folderId);
 		} catch (error) {
-			alert('Failed to delete folder: ' + error.message);
+			toast.error('Failed to delete folder: ' + error.message);
 		}
 	}
 

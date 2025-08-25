@@ -9,11 +9,18 @@
 	} from '$lib/stores/flashcards.js';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
+	import { toast } from '$lib/stores/toast.js';
 
 	let showDropdown = null;
 	let showMoveToFolderModal = false;
 	let selectedSetId = null;
 	let selectedFolderId = null;
+
+	// Debug function untuk test toast
+	function testToast() {
+		console.log('Testing toast...');
+		toast.success('Test Toast', 'This is a test toast message');
+	}
 
 	onMount(async () => {
 		// Load recent activities when page loads
@@ -40,18 +47,25 @@
 	}
 
 	async function moveToFolder() {
+		console.log('Move to folder function called'); // Debug log
+
 		if (!selectedSetId || !selectedFolderId) {
-			alert('Select destination folder!');
+			console.log('Missing selection, showing error toast'); // Debug log
+			toast.error('Selection Required', 'Please select a destination folder');
 			return;
 		}
 
 		try {
+			console.log('Attempting to move to folder...'); // Debug log
 			await folderActions.addSetToFolder(selectedSetId, selectedFolderId);
 			await flashcardActions.loadRecentActivities();
-			alert('Flashcard set successfully moved to folder!');
+
+			console.log('Move successful, showing success toast'); // Debug log
+			toast.success('Moved Successfully', 'Flashcard set moved to folder');
 			showMoveToFolderModal = false;
 		} catch (error) {
-			alert('Failed to move set: ' + error.message);
+			console.log('Move failed, showing error toast'); // Debug log
+			toast.error('Move Failed', 'Failed to move set: ' + error.message);
 		}
 	}
 </script>
@@ -63,6 +77,11 @@
 
 <div class="bg-surface-50-900-token p-6">
 	<div class="mx-auto max-w-5xl">
+		<!-- Debug Toast Button -->
+		<div class="mb-4">
+			<button class="variant-filled-primary btn" on:click={testToast}> Test Toast </button>
+		</div>
+
 		<!-- Popular Content Section -->
 		<div class="mt-12">
 			<h3 class="mb-6 text-xl font-semibold">Recents</h3>

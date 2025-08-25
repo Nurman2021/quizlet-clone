@@ -5,6 +5,7 @@
 	import { ArrowLeft, Plus, MoreVertical, Edit, Trash2, Play } from 'lucide-svelte';
 	import { folderActions, currentFolder } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
+	import { toast } from '$lib/stores/toast.js';
 
 	let folderId;
 	let isLoading = true;
@@ -79,7 +80,7 @@
 			// Reload folder to refresh data
 			location.reload();
 		} catch (error) {
-			alert('Failed to remove set from folder: ' + error.message);
+			toast.error('Failed to remove set from folder: ' + error.message);
 		}
 	}
 </script>

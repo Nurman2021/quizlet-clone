@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { Mail, Lock, Loader2 } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { toast } from '$lib/stores/toast.js';
 
 	let email = '';
 	let password = '';
@@ -28,7 +29,7 @@
 
 	async function handleLogin() {
 		if (!email || !password) {
-			errorMessage = 'Email and password must be filled';
+			toast.error('Validation Error', 'Email and password must be filled');
 			return;
 		}
 
@@ -37,19 +38,20 @@
 
 		try {
 			const { data, error } = await supabase.auth.signInWithPassword({
-				email: email.trim(),
-				password: password
+				email,
+				password
 			});
 
 			if (error) throw error;
 
-			// Redirect to main page after successful login
-			goto('/');
+			if (data.user) {
+				toast.success('Welcome back!', 'Successfully signed in');
+				goto('/');
+			}
 		} catch (error) {
-			errorMessage =
-				error.message === 'Invalid login credentials'
-					? 'Email or password is incorrect'
-					: error.message;
+			errorMessage = 'Email or password is incorrect';
+			toast.error('Login Failed', 'Email or password is incorrect');
+			console.error('Login error:', error);
 		} finally {
 			isLoading = false;
 		}
@@ -57,16 +59,31 @@
 
 	async function handleGoogleLogin() {
 		try {
-			const { error } = await supabase.auth.signInWithOAuth({
+			isLoading = true;
+			errorMessage = '';
+
+			const { data, error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/auth/callback`
+					redirectTo: `${window.location.origin}/auth/callback`,
+					queryParams: {
+						access_type: 'offline',
+						prompt: 'consent'
+					}
 				}
 			});
 
-			if (error) throw error;
+			if (error) {
+				console.error('Google OAuth error:', error);
+				throw error;
+			}
+
+			toast.info('Redirecting...', 'Opening Google authentication');
 		} catch (error) {
 			errorMessage = 'Failed to login with Google: ' + error.message;
+			toast.error('Google Login Failed', error.message);
+			console.error('Google login error:', error);
+			isLoading = false;
 		}
 	}
 </script>

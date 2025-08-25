@@ -9,6 +9,7 @@
 		quizActions
 	} from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
+	import { toast } from '$lib/stores/toast.js';
 	import {
 		ChevronLeft,
 		ChevronRight,
@@ -98,7 +99,7 @@
 
 	async function saveEdit() {
 		if (!currentCard || !editTerm.trim() || !editDefinition.trim()) {
-			alert('Term and definition cannot be empty');
+			toast.error('Validation Error', 'Term and definition cannot be empty');
 			return;
 		}
 
@@ -135,10 +136,10 @@
 			}));
 
 			isEditMode = false;
-			alert('Flashcard updated successfully!');
+			toast.success('Success!', 'Flashcard updated successfully');
 		} catch (error) {
 			console.error('Error updating flashcard:', error);
-			alert('Failed to update flashcard: ' + error.message);
+			toast.error('Update Failed', 'Failed to update flashcard: ' + error.message);
 		} finally {
 			isSaving = false;
 		}
@@ -238,11 +239,10 @@
 
 	function generateTestQuestions() {
 		console.log('Generating test questions...');
-		console.log('Current flashcard set:', $currentFlashcardSet);
-		console.log('Test config:', testConfig);
 
 		if (!$currentFlashcardSet || !testConfig) {
 			console.error('Missing flashcard set or test config');
+			toast.error('Test Setup Error', 'Missing flashcard set or test configuration');
 			return;
 		}
 
@@ -340,6 +340,8 @@
 		currentTestQuestion = 0;
 		testAnswers = {};
 		showTestResults = false;
+
+		toast.info('Test Ready', `Generated ${questions.length} questions`);
 	}
 
 	function generateMultipleChoiceOptions(correctAnswer, allCards, type) {
@@ -373,7 +375,6 @@
 			if (question.type === 'multiple_choice' || question.type === 'true_false') {
 				question.isCorrect = userAnswer === question.correctAnswer;
 			} else if (question.type === 'written') {
-				// Simple string matching for written answers (could be improved with fuzzy matching)
 				const userAnswerLower = (userAnswer || '').toLowerCase().trim();
 				const correctAnswerLower = question.correctAnswer.toLowerCase().trim();
 				question.isCorrect = userAnswerLower === correctAnswerLower;
@@ -386,6 +387,15 @@
 
 		testScore = (correctAnswers / testQuestions.length) * 100;
 		showTestResults = true;
+
+		// Show results toast
+		if (testScore >= 80) {
+			toast.success('Excellent!', `You scored ${testScore.toFixed(1)}%`);
+		} else if (testScore >= 60) {
+			toast.info('Good Job!', `You scored ${testScore.toFixed(1)}%`);
+		} else {
+			toast.warning('Keep Practicing!', `You scored ${testScore.toFixed(1)}%`);
+		}
 	}
 
 	function handleRetakeTest() {
@@ -395,6 +405,7 @@
 		testAnswers = {};
 		currentTestQuestion = 0;
 		startTest();
+		toast.info('Test Reset', 'Starting new test attempt');
 	}
 
 	function handleBackToSetup() {

@@ -5,6 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { toast } from '$lib/stores/toast.js';
 
 	let title = '';
 	let description = '';
@@ -45,7 +46,7 @@
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Add at least one card with term and definition!');
+			toast.error('Validation Error', 'Add at least one card with term and definition');
 			return;
 		}
 
@@ -58,7 +59,7 @@
 			} = await supabase.auth.getUser();
 
 			if (!user) {
-				alert('Please login first!');
+				toast.error('Authentication Required', 'Please login first');
 				goto('/login');
 				return;
 			}
@@ -68,12 +69,12 @@
 					title: title.trim(),
 					description: description.trim(),
 					cards: validCards,
-					folderId: selectedFolderId // Include folder ID
+					folderId: selectedFolderId
 				},
 				user.id
 			);
 
-			alert('Flashcard set saved successfully!');
+			toast.success('Success!', 'Flashcard set saved successfully');
 
 			// Reset form after successful save
 			title = '';
@@ -85,7 +86,7 @@
 			selectedFolderId = null;
 		} catch (error) {
 			console.error('Failed to save flashcard set:', error);
-			alert('An error occurred while saving. Please try again.');
+			toast.error('Save Failed', 'An error occurred while saving. Please try again.');
 		} finally {
 			isLoading = false;
 		}
@@ -95,7 +96,7 @@
 		const validCards = cards.filter((card) => card.term.trim() && card.definition.trim());
 
 		if (validCards.length === 0) {
-			alert('Add at least one card with term and definition!');
+			toast.error('Validation Error', 'Add at least one card with term and definition');
 			return;
 		}
 
@@ -107,7 +108,7 @@
 			} = await supabase.auth.getUser();
 
 			if (!user) {
-				alert('Please login first!');
+				toast.error('Authentication Required', 'Please login first');
 				goto('/login');
 				return;
 			}
@@ -117,16 +118,18 @@
 					title: title.trim(),
 					description: description.trim(),
 					cards: validCards,
-					folderId: selectedFolderId // Include folder ID
+					folderId: selectedFolderId
 				},
 				user.id
 			);
+
+			toast.success('Success!', 'Flashcard set created. Starting practice...');
 
 			// Redirect to quiz page
 			goto(`/quiz/${newSet.id}`);
 		} catch (error) {
 			console.error('Failed to save flashcard set:', error);
-			alert('An error occurred while saving. Please try again.');
+			toast.error('Save Failed', 'An error occurred while saving. Please try again.');
 		} finally {
 			isLoading = false;
 		}
