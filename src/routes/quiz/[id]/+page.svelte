@@ -83,7 +83,7 @@
 	// Edit mode functions
 	function enterEditMode() {
 		if (!currentCard) return;
-		
+
 		isEditMode = true;
 		editTerm = currentCard.term;
 		editDefinition = currentCard.definition;
@@ -117,7 +117,7 @@
 			if (error) throw error;
 
 			// Update local state
-			const updatedCards = $currentFlashcardSet.flashcards.map(card => {
+			const updatedCards = $currentFlashcardSet.flashcards.map((card) => {
 				if (card.id === currentCard.id) {
 					return {
 						...card,
@@ -129,7 +129,7 @@
 			});
 
 			// Update store
-			currentFlashcardSet.update(set => ({
+			currentFlashcardSet.update((set) => ({
 				...set,
 				flashcards: updatedCards
 			}));
@@ -152,7 +152,7 @@
 
 	function nextCard() {
 		if (isEditMode) return;
-		
+
 		if (
 			$currentFlashcardSet &&
 			$quizState.currentCardIndex < $currentFlashcardSet.flashcards.length - 1
@@ -165,7 +165,7 @@
 
 	function previousCard() {
 		if (isEditMode) return;
-		
+
 		if ($quizState.currentCardIndex > 0) {
 			quizActions.previousCard();
 			showAnswer = false;
@@ -189,7 +189,7 @@
 	// Keyboard shortcuts
 	function handleKeydown(event) {
 		if (isEditMode) return;
-		
+
 		switch (event.key) {
 			case 'ArrowLeft':
 				event.preventDefault();
@@ -475,15 +475,15 @@
 													<Play class="h-5 w-5" />
 												{/if}
 											</button>
-											<button 
-												class="variant-ghost-surface btn-icon btn-icon-sm" 
+											<button
+												class="variant-ghost-surface btn-icon btn-icon-sm"
 												title="Shuffle"
 												disabled={isEditMode}
 											>
 												<Shuffle class="h-5 w-5" />
 											</button>
-											<button 
-												class="variant-ghost-surface btn-icon btn-icon-sm" 
+											<button
+												class="variant-ghost-surface btn-icon btn-icon-sm"
 												title="Settings"
 												disabled={isEditMode}
 											>
@@ -491,17 +491,17 @@
 											</button>
 										</div>
 										<div class="flex items-center space-x-4">
-											<button 
-												class="variant-ghost-surface btn-icon btn-icon-sm" 
+											<button
+												class="variant-ghost-surface btn-icon btn-icon-sm"
 												title="Star"
 												disabled={isEditMode}
 											>
 												<Star class="h-5 w-5" />
 											</button>
-											
+
 											{#if !isEditMode}
-												<button 
-													class="variant-ghost-surface btn-icon btn-icon-sm" 
+												<button
+													class="variant-ghost-surface btn-icon btn-icon-sm"
 													title="Edit (Press E)"
 													on:click={enterEditMode}
 												>
@@ -509,20 +509,22 @@
 												</button>
 											{:else}
 												<div class="flex items-center space-x-1">
-													<button 
-														class="variant-filled-success btn-icon btn-icon-sm" 
+													<button
+														class="variant-filled-success btn-icon btn-icon-sm"
 														title="Save changes"
 														on:click={saveEdit}
 														disabled={isSaving}
 													>
 														{#if isSaving}
-															<div class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+															<div
+																class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+															></div>
 														{:else}
 															<Check class="h-5 w-5" />
 														{/if}
 													</button>
-													<button 
-														class="variant-filled-error btn-icon btn-icon-sm" 
+													<button
+														class="variant-filled-error btn-icon btn-icon-sm"
 														title="Cancel edit"
 														on:click={cancelEdit}
 														disabled={isSaving}
@@ -531,7 +533,7 @@
 													</button>
 												</div>
 											{/if}
-											
+
 											<div class="text-surface-600-300-token text-sm">
 												{$quizState.currentCardIndex + 1} / {$currentFlashcardSet.flashcards.length}
 											</div>
@@ -548,48 +550,58 @@
 										</div>
 										<p class="text-surface-600-300-token mt-1 text-center text-xs">
 											{#if isEditMode}
-											 Edit mode - Click save or cancel when done
+												Edit mode - Click save or cancel when done
 											{:else}
-											 Click card to flip • Press E to edit • Use arrow keys to navigate
+												Click card to flip • Press E to edit • Use arrow keys to navigate
 											{/if}
 										</p>
 									</div>
 
 									<!-- Flashcard -->
+									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 									<div
-										class="bg-surface-100-800-token rounded-lg p-8 text-center transition-all duration-300 {isEditMode ? 'border-2 border-primary-500' : 'hover:bg-surface-200-700-token cursor-pointer'} min-h-[300px] flex items-center justify-center"
+										class="bg-surface-100-800-token rounded-lg preset-outlined-primary-700-300 p-8 text-center transition-all duration-300 {isEditMode
+											? 'border-2 border-primary-500'
+											: 'hover:bg-surface-200-700-token cursor-pointer'} flex min-h-[300px] items-center justify-center"
 										on:click={toggleAnswer}
 										on:keydown={(e) => e.key === 'Enter' && toggleAnswer()}
 										role={isEditMode ? 'form' : 'button'}
-										tabindex={isEditMode ? -1 : 0}
+										tabindex={isEditMode ? -1 : null}
 									>
 										<div class="w-full">
 											{#if isEditMode}
-												<!-- Edit Mode -->
 												<div class="space-y-4">
 													<div>
-														<label class="text-surface-600-300-token mb-2 block text-sm font-medium">
+														<label
+															for="edit-term"
+															class="text-surface-600-300-token mb-2 block text-sm font-medium"
+														>
 															Term
 														</label>
 														<input
+															id="edit-term"
 															type="text"
 															bind:value={editTerm}
-															class="input variant-form-material w-full text-center text-xl"
+															class="variant-form-material input w-full text-center text-xl"
 															placeholder="Enter term"
 															disabled={isSaving}
 														/>
-													</div>
-													<div>
-														<label class="text-surface-600-300-token mb-2 block text-sm font-medium">
-															Definition
-														</label>
-														<textarea
-															bind:value={editDefinition}
-															class="textarea variant-form-material w-full text-center"
-															placeholder="Enter definition"
-															rows="3"
-															disabled={isSaving}
-														></textarea>
+														<div>
+															<label
+																for="edit-definition"
+																class="text-surface-600-300-token mb-2 block text-sm font-medium"
+															>
+																Definition
+															</label>
+															<textarea
+																id="edit-definition"
+																bind:value={editDefinition}
+																class="variant-form-material textarea w-full text-center"
+																placeholder="Enter definition"
+																rows="3"
+																disabled={isSaving}
+															></textarea>
+														</div>
 													</div>
 												</div>
 											{:else}
@@ -606,7 +618,7 @@
 									<!-- Navigation -->
 									<div class="mt-6 flex items-center justify-between">
 										<button
-											class="variant-ghost-surface btn"
+											class=" btn"
 											on:click={previousCard}
 											disabled={isFirstCard || isEditMode}
 										>
@@ -626,7 +638,7 @@
 
 							<Tabs.Panel value="test">
 								<!-- Test Mode -->
-								<div class="variant-ghost-surface card p-6">
+								<div class=" card p-6">
 									<h3 class="mb-4 text-xl font-semibold">Test Mode</h3>
 
 									{#if !testStarted}
