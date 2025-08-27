@@ -69,7 +69,7 @@
 				<!-- Header -->
 				<div class="border-surface-300-600-token flex items-center justify-between border-b p-6">
 					<h2 class="text-xl font-bold">Create a new folder</h2>
-					<button class="variant-ghost-surface btn-icon" on:click={closeModal}>
+					<button class="btn-icon preset-tonal" on:click={closeModal}>
 						<X class="h-5 w-5" />
 					</button>
 				</div>
@@ -81,7 +81,7 @@
 						<span>Folder name</span>
 						<input
 							type="text"
-							class="variant-form-material input"
+							class="input"
 							bind:value={name}
 							placeholder="For example: Mathematics, English"
 							required
@@ -92,7 +92,7 @@
 					<label class="label">
 						<span>Description (optional)</span>
 						<textarea
-							class="variant-form-material textarea"
+							class="textarea"
 							bind:value={description}
 							placeholder="Add a description for this folder"
 							rows="3"
@@ -118,7 +118,7 @@
 					</div>
 
 					<!-- Preview -->
-					<div class="variant-ghost-surface card p-4">
+					<div class="card preset-tonal p-4">
 						<div class="flex items-center space-x-3">
 							<div
 								class="flex h-12 w-12 items-center justify-center rounded-lg"
@@ -137,10 +137,8 @@
 
 					<!-- Actions -->
 					<div class="flex justify-end space-x-2 pt-4">
-						<button type="button" class="variant-ghost-surface btn" on:click={closeModal}>
-							Cancel
-						</button>
-						<button type="submit" class="variant-filled-primary btn"> Create folder </button>
+						<button type="button" class="btn preset-tonal" on:click={closeModal}> Cancel </button>
+						<button type="submit" class="btn preset-filled-primary-300-700"> Create folder </button>
 					</div>
 				</form>
 			</div>

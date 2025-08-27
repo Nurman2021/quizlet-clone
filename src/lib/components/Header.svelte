@@ -46,7 +46,7 @@
 		<div class="flex items-center space-x-3">
 			<!-- Sidebar Toggle Button -->
 			<button
-				class="variant-ghost-surface btn btn-lg"
+				class="btn preset-tonal-surface btn-lg"
 				on:click={toggleSidebar}
 				aria-label="Toggle sidebar"
 			>
@@ -80,12 +80,12 @@
 		<!-- User Actions -->
 		<div class="flex items-center space-x-2">
 			{#if user}
-				<a href="/create" class="variant-ghost-surface btn btn-sm" aria-label="Add content">
+				<a href="/create" class="btn preset-tonal-surface btn-sm" aria-label="Add content">
 					<Plus class="h-5 w-5" />
 				</a>
 
 				<div class="relative">
-					<button class="variant-ghost-surface btn btn-sm" aria-label="User profile">
+					<button class="btn preset-tonal-surface btn-sm" aria-label="User profile">
 						{#if avatarUrl}
 							<img
 								src={avatarUrl}
@@ -105,16 +105,12 @@
 					<!-- Dropdown menu (you can add this later) -->
 				</div>
 
-				<button
-					class="variant-ghost-surface btn btn-sm"
-					on:click={handleLogout}
-					aria-label="Logout"
-				>
+				<button class="btn preset-tonal-surface btn-sm" on:click={handleLogout} aria-label="Logout">
 					<LogOut class="h-5 w-5" />
 				</button>
 			{:else}
-				<a href="/login" class="variant-ghost-surface btn btn-sm"> Sign In </a>
-				<a href="/signup" class="variant-filled-primary btn btn-sm"> Register </a>
+				<a href="/login" class="btn preset-tonal-surface btn-sm"> Sign In </a>
+				<a href="/signup" class="btn preset-tonal-success btn-sm"> Register </a>
 			{/if}
 		</div>
 	</div>

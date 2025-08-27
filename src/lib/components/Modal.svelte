@@ -94,7 +94,7 @@
 				<!-- Close button -->
 				<button
 					onclick={closeModal}
-					class="variant-ghost-surface absolute top-4 right-4 btn-icon btn-icon-sm"
+					class="absolute top-4 right-4 btn-icon btn-icon-sm preset-tonal-surface"
 					aria-label="Close modal"
 				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
