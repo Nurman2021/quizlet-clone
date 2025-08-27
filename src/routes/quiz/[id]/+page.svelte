@@ -467,12 +467,12 @@
 					{#snippet content()}
 						<Tabs.Panel value="flashcard">
 							<!-- Flashcard Mode -->
-							<div class="variant-ghost-surface card p-6">
+							<div class="card preset-tonal p-6">
 								<!-- Controls -->
 								<div class="mb-4 flex items-center justify-between">
 									<div class="flex items-center space-x-2">
 										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm"
+											class="btn-icon btn-icon-sm preset-tonal"
 											on:click={togglePlay}
 											title={isPlaying ? 'Pause' : 'Play'}
 											disabled={isEditMode}
@@ -486,14 +486,14 @@
 											{/if}
 										</button>
 										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm"
+											class="btn-icon btn-icon-sm preset-tonal"
 											title="Shuffle"
 											disabled={isEditMode}
 										>
 											<Shuffle class="h-5 w-5" />
 										</button>
 										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm"
+											class="btn-icon btn-icon-sm preset-tonal"
 											title="Settings"
 											disabled={isEditMode}
 										>
@@ -502,7 +502,7 @@
 									</div>
 									<div class="flex items-center space-x-4">
 										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm"
+											class="btn-icon btn-icon-sm preset-tonal"
 											title="Star"
 											disabled={isEditMode}
 										>
@@ -511,7 +511,7 @@
 
 										{#if !isEditMode}
 											<button
-												class="variant-ghost-surface btn-icon btn-icon-sm"
+												class="btn-icon btn-icon-sm preset-tonal"
 												title="Edit (Press E)"
 												on:click={enterEditMode}
 											>
@@ -520,7 +520,7 @@
 										{:else}
 											<div class="flex items-center space-x-1">
 												<button
-													class="variant-filled-success btn-icon btn-icon-sm"
+													class="btn-icon btn-icon-sm preset-tonal-success"
 													title="Save changes"
 													on:click={saveEdit}
 													disabled={isSaving}
@@ -534,7 +534,7 @@
 													{/if}
 												</button>
 												<button
-													class="variant-filled-error btn-icon btn-icon-sm"
+													class="btn-icon btn-icon-sm preset-tonal-error"
 													title="Cancel edit"
 													on:click={cancelEdit}
 													disabled={isSaving}
@@ -592,7 +592,7 @@
 														id="edit-term"
 														type="text"
 														bind:value={editTerm}
-														class="variant-form-material input w-full text-center text-xl"
+														class="input w-full text-center text-xl"
 														placeholder="Enter term"
 														disabled={isSaving}
 													/>
@@ -606,7 +606,7 @@
 														<textarea
 															id="edit-definition"
 															bind:value={editDefinition}
-															class="variant-form-material textarea w-full text-center"
+															class="textarea w-full text-center"
 															placeholder="Enter definition"
 															rows="3"
 															disabled={isSaving}
@@ -627,12 +627,16 @@
 
 								<!-- Navigation -->
 								<div class="mt-6 flex items-center justify-between">
-									<button class=" btn" on:click={previousCard} disabled={isFirstCard || isEditMode}>
+									<button
+										class="btn preset-filled-primary-300-700"
+										on:click={previousCard}
+										disabled={isFirstCard || isEditMode}
+									>
 										<ChevronLeft class="h-5 w-5" />
 									</button>
 
 									<button
-										class="variant-filled-primary btn"
+										class="btn preset-filled-primary-300-700"
 										on:click={nextCard}
 										disabled={isLastCard || isEditMode}
 									>
@@ -671,7 +675,7 @@
 
 										{#if testQuestions[currentTestQuestion]}
 											{@const question = testQuestions[currentTestQuestion]}
-											<div class="variant-ghost-surface card p-6">
+											<div class="card preset-tonal p-6">
 												<h4 class="mb-4 text-lg font-medium">{question.question}</h4>
 
 												{#if question.type === 'multiple_choice'}
@@ -718,7 +722,7 @@
 
 											<div class="flex justify-between">
 												<button
-													class="variant-ghost-surface btn"
+													class="btn preset-tonal"
 													on:click={() =>
 														(currentTestQuestion = Math.max(0, currentTestQuestion - 1))}
 													disabled={currentTestQuestion === 0}
@@ -727,12 +731,12 @@
 												</button>
 
 												{#if currentTestQuestion === testQuestions.length - 1}
-													<button class="variant-filled-primary btn" on:click={submitTest}>
+													<button class="btn preset-filled-primary-300-700" on:click={submitTest}>
 														Submit Test
 													</button>
 												{:else}
 													<button
-														class="variant-filled-primary btn"
+														class="btn preset-filled-primary-300-700"
 														on:click={() =>
 															(currentTestQuestion = Math.min(
 																testQuestions.length - 1,

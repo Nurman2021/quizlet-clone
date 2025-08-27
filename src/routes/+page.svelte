@@ -78,7 +78,7 @@
 			{#if $recentActivities && $recentActivities.length > 0}
 				<div class="space-y-4">
 					{#each $recentActivities as activity}
-						<div class="variant-ghost-surface card p-4">
+						<div class="card preset-tonal-surface p-4">
 							<div class="flex items-center space-x-4">
 								<div class="flex h-12 w-12 items-center justify-center rounded bg-primary-500">
 									<Book class="h-6 w-6 text-white" />
