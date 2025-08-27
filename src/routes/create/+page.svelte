@@ -146,8 +146,8 @@
 		<div class="mb-8 flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Create new flashcard set</h1>
 			<div class="flex items-center space-x-4">
-				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Create </button>
-				<button class="variant-filled-primary btn" on:click={saveAndPractice}>
+				<button class="btn preset-tonal" on:click={saveFlashcardSet}> Create </button>
+				<button class="btn preset-filled-primary-300-700" on:click={saveAndPractice}>
 					Create and practice
 				</button>
 			</div>
@@ -179,13 +179,13 @@
 			<!-- Cards Section -->
 			<div class="space-y-4">
 				{#each cards as card, index (card.id)}
-					<div class="variant-ghost-surface card p-6">
+					<div class="card preset-tonal p-6">
 						<div class="mb-4 flex items-center justify-between">
-							<span class="variant-filled-primary badge">{index + 1}</span>
+							<span class="badge preset-filled">{index + 1}</span>
 							<div class="flex items-center space-x-2">
 								{#if cards.length > 2}
 									<button
-										class="variant-ghost-surface btn-icon btn btn-icon-sm"
+										class="btn-icon btn btn-icon-sm preset-tonal"
 										on:click={() => removeCard(card.id)}
 									>
 										<Trash2 class="h-4 w-4" />
@@ -230,7 +230,7 @@
 			<!-- Add Card Button -->
 			<button
 				on:click={addCard}
-				class="variant-ghost-surface !border-surface-300-600-token btn w-full border-2 border-dashed"
+				class="!border-surface-300-600-token btn w-full border-2 border-dashed preset-tonal"
 			>
 				Add card
 			</button>
@@ -243,11 +243,7 @@
 						Select a folder to group this flashcard set
 					</p>
 				</label>
-				<select
-					id="folder-select"
-					class="variant-form-material select"
-					bind:value={selectedFolderId}
-				>
+				<select id="folder-select" class="select" bind:value={selectedFolderId}>
 					<option value={null}>-- No folder --</option>
 					{#each $folders as folder}
 						<option value={folder.id}>
@@ -267,8 +263,8 @@
 
 			<!-- Bottom Actions -->
 			<div class="flex items-center justify-between pt-8">
-				<button class="variant-ghost-surface btn" on:click={saveFlashcardSet}> Create </button>
-				<button class="variant-filled-primary btn" on:click={saveAndPractice}>
+				<button class="btn preset-tonal" on:click={saveFlashcardSet}> Create </button>
+				<button class="btn preset-filled-primary-300-700" on:click={saveAndPractice}>
 					Create and practice
 				</button>
 			</div>
