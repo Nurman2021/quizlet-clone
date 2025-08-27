@@ -6,10 +6,13 @@
 	import { folderActions, currentFolder } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
+	import Modal from '$lib/components/Modal.svelte';
 
 	let folderId;
 	let isLoading = true;
 	let folderSets = [];
+	let showRemoveModal = false;
+	let setToRemove = null;
 
 	onMount(async () => {
 		folderId = $page.params.id;
@@ -73,14 +76,24 @@
 	}
 
 	async function removeSetFromFolder(setId) {
-		if (!confirm('Remove set from this folder?')) return;
+		// Show remove modal instead of confirm
+		setToRemove = folderSets.find((s) => s.id === setId);
+		showRemoveModal = true;
+	}
+
+	async function confirmRemoveSet() {
+		if (!setToRemove) return;
 
 		try {
-			await folderActions.removeSetFromFolder(setId);
+			await folderActions.removeSetFromFolder(setToRemove.id);
+			toast.success('Set removed from folder successfully');
 			// Reload folder to refresh data
 			location.reload();
 		} catch (error) {
 			toast.error('Failed to remove set from folder: ' + error.message);
+		} finally {
+			showRemoveModal = false;
+			setToRemove = null;
 		}
 	}
 </script>
@@ -100,7 +113,7 @@
 		{:else if $currentFolder}
 			<!-- Header -->
 			<div class="mb-8">
-				<button class="variant-ghost-surface mb-4 btn btn-sm" on:click={() => goto('/folders')}>
+				<button class="variant-ghost-surface mb-4 btn btn-sm" onclick={() => goto('/folders')}>
 					<ArrowLeft class="h-4 w-4" />
 					<span>Back to Folders</span>
 				</button>
@@ -160,7 +173,7 @@
 									<h3 class="mr-2 flex-1 font-semibold">{set.title}</h3>
 									<button
 										class="variant-ghost-surface btn-icon btn-icon-sm"
-										on:click={() => removeSetFromFolder(set.id)}
+										onclick={() => removeSetFromFolder(set.id)}
 									>
 										<Trash2 class="h-4 w-4" />
 									</button>
@@ -184,13 +197,13 @@
 								<div class="flex space-x-2">
 									<button
 										class="variant-ghost-surface btn flex-1 btn-sm"
-										on:click={() => goToSet(set.id)}
+										onclick={() => goToSet(set.id)}
 									>
 										View
 									</button>
 									<button
 										class="variant-filled-primary btn flex-1 btn-sm"
-										on:click={() => startQuiz(set.id)}
+										onclick={() => startQuiz(set.id)}
 									>
 										<Play class="h-4 w-4" />
 										<span>Start</span>
@@ -204,3 +217,31 @@
 		{/if}
 	</div>
 </div>
+
+<!-- Remove Set Confirmation Modal -->
+<Modal bind:showModal={showRemoveModal} size="sm" title="Remove Set from Folder">
+	{#snippet children()}
+		<div class="space-y-4">
+			<p class="text-center">
+				Are you sure you want to remove
+				<span class="font-semibold text-primary-500">"{setToRemove?.title}"</span>
+				from this folder?
+			</p>
+			<p class="text-surface-600-300-token text-center text-sm">
+				The flashcard set will be moved to "No folder" but won't be deleted.
+			</p>
+
+			<div class="flex space-x-3 pt-4">
+				<button
+					class="preset-ghost-neutral-500-900 btn flex-1"
+					onclick={() => (showRemoveModal = false)}
+				>
+					Cancel
+				</button>
+				<button class="preset-filled-warning-500-900 btn flex-1" onclick={confirmRemoveSet}>
+					Remove
+				</button>
+			</div>
+		</div>
+	{/snippet}
+</Modal>

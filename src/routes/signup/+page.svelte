@@ -129,7 +129,13 @@
 		{/if}
 
 		<!-- Signup Form -->
-		<form on:submit|preventDefault={handleSignup} class="space-y-4">
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				handleSignup();
+			}}
+			class="space-y-4"
+		>
 			<!-- Full Name Input -->
 			<label class="label">
 				<span>Full Name</span>
@@ -232,7 +238,7 @@
 
 		<!-- Social Signup -->
 		<div class="space-y-3">
-			<button type="button" on:click={handleGoogleSignup} class="variant-ghost-surface btn w-full">
+			<button type="button" onclick={handleGoogleSignup} class="variant-ghost-surface btn w-full">
 				<svg class="h-5 w-5" viewBox="0 0 24 24">
 					<path
 						fill="#4285F4"

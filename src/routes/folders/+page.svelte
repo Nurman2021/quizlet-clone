@@ -4,10 +4,13 @@
 	import { goto } from '$app/navigation';
 	import { folders, folderActions } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
-	import CreateFolderModal from '$lib/components/CreateFolderModal.svelte';
+	import CreateFolder from '$lib/components/CreateFolder.svelte';
+	import Modal from '$lib/components/Modal.svelte';
 	import { toast } from '$lib/stores/toast.js';
 
 	let showCreateModal = false;
+	let showDeleteModal = false;
+	let folderToDelete = null;
 	let isLoading = true;
 	let selectedFolder = null;
 	let showDropdown = null;
@@ -48,14 +51,22 @@
 	}
 
 	async function deleteFolder(folderId) {
-		if (!confirm('Are you sure you want to delete this folder?')) {
-			return;
-		}
+		// Show delete modal instead of confirm
+		folderToDelete = $folders.find((f) => f.id === folderId);
+		showDeleteModal = true;
+	}
+
+	async function confirmDeleteFolder() {
+		if (!folderToDelete) return;
 
 		try {
-			await folderActions.deleteFolder(folderId);
+			await folderActions.deleteFolder(folderToDelete.id);
+			toast.success('Folder deleted successfully');
 		} catch (error) {
 			toast.error('Failed to delete folder: ' + error.message);
+		} finally {
+			showDeleteModal = false;
+			folderToDelete = null;
 		}
 	}
 
@@ -77,7 +88,7 @@
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
 			<h1 class="text-3xl font-bold">Folders</h1>
-			<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
+			<button class="preset-filled-primary-500-900 btn" onclick={() => (showCreateModal = true)}>
 				<FolderPlus class="h-5 w-5" />
 				<span>Create folder</span>
 			</button>
@@ -106,7 +117,7 @@
 					Folders help you organize flashcard sets and practice tests
 				</p>
 
-				<button class="variant-filled-primary btn" on:click={() => (showCreateModal = true)}>
+				<button class="preset-filled-primary-500-900 btn" onclick={() => (showCreateModal = true)}>
 					<FolderPlus class="h-5 w-5" />
 					<span>Create folder</span>
 				</button>
@@ -115,13 +126,15 @@
 			<!-- Folders Grid -->
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each $folders as folder}
-					<div class="variant-ghost-surface hover:variant-soft-surface card transition-all">
+					<div
+						class="preset-ghost-neutral-500-900 hover:preset-soft-neutral-500-900 card transition-all"
+					>
 						<div class="p-6">
 							<!-- Folder Header -->
 							<div class="mb-4 flex items-start justify-between">
 								<button
 									class="flex flex-1 items-center space-x-3 text-left"
-									on:click={() => openFolder(folder.id)}
+									onclick={() => openFolder(folder.id)}
 								>
 									<div
 										class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg"
@@ -142,20 +155,23 @@
 								<!-- Dropdown Menu -->
 								<div class="relative">
 									<button
-										class="variant-ghost-surface btn-icon btn-icon-sm"
-										on:click|stopPropagation={() => toggleDropdown(folder.id)}
+										class="preset-ghost-neutral-500-900 btn-icon btn-icon-sm"
+										onclick={(e) => {
+											e.stopPropagation();
+											toggleDropdown(folder.id);
+										}}
 									>
 										<MoreVertical class="h-4 w-4" />
 									</button>
 
 									{#if showDropdown === folder.id}
 										<div
-											class="variant-filled-surface absolute right-0 z-10 mt-2 w-48 card shadow-xl"
+											class="preset-filled-neutral-500-900 absolute right-0 z-10 mt-2 w-48 card shadow-xl"
 										>
 											<nav class="list-nav p-2">
 												<button
-													class="variant-ghost-surface btn w-full justify-start btn-sm"
-													on:click={() => {
+													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm"
+													onclick={() => {
 														// TODO: Implement edit
 														showDropdown = null;
 													}}
@@ -164,8 +180,8 @@
 													<span>Edit</span>
 												</button>
 												<button
-													class="variant-ghost-surface btn w-full justify-start btn-sm text-error-500"
-													on:click={() => {
+													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm text-error-500"
+													onclick={() => {
 														deleteFolder(folder.id);
 														showDropdown = null;
 													}}
@@ -198,14 +214,42 @@
 </div>
 
 <!-- Create Folder Modal -->
-<CreateFolderModal bind:show={showCreateModal} on:create={handleCreateFolder} />
+<CreateFolder bind:show={showCreateModal} on:create={handleCreateFolder} />
+
+<!-- Delete Confirmation Modal -->
+<Modal bind:showModal={showDeleteModal} size="sm" title="Delete Folder">
+	{#snippet children()}
+		<div class="space-y-4">
+			<p class="text-center">
+				Are you sure you want to delete the folder
+				<span class="font-semibold text-primary-500">"{folderToDelete?.name}"</span>?
+			</p>
+			<p class="text-surface-600-300-token text-center text-sm">
+				This action cannot be undone. All flashcard sets in this folder will be moved to "No
+				folder".
+			</p>
+
+			<div class="flex space-x-3 pt-4">
+				<button
+					class="preset-ghost-neutral-500-900 btn flex-1"
+					onclick={() => (showDeleteModal = false)}
+				>
+					Cancel
+				</button>
+				<button class="preset-filled-error-500-900 btn flex-1" onclick={confirmDeleteFolder}>
+					Delete
+				</button>
+			</div>
+		</div>
+	{/snippet}
+</Modal>
 
 <!-- Click outside to close dropdown -->
 {#if showDropdown}
 	<div
 		class="fixed inset-0 z-0"
-		on:click={() => (showDropdown = null)}
-		on:keydown={() => {}}
+		onclick={() => (showDropdown = null)}
+		onkeydown={() => {}}
 		role="button"
 		tabindex="-1"
 	></div>

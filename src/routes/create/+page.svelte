@@ -146,8 +146,8 @@
 		<div class="mb-8 flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Create new flashcard set</h1>
 			<div class="flex items-center space-x-4">
-				<button class="btn preset-tonal" on:click={saveFlashcardSet}> Create </button>
-				<button class="btn preset-filled-primary-300-700" on:click={saveAndPractice}>
+				<button class="btn preset-tonal" onclick={saveFlashcardSet}> Create </button>
+				<button class="btn preset-filled-primary-300-700" onclick={saveAndPractice}>
 					Create and practice
 				</button>
 			</div>
@@ -186,7 +186,7 @@
 								{#if cards.length > 2}
 									<button
 										class="btn-icon btn btn-icon-sm preset-tonal"
-										on:click={() => removeCard(card.id)}
+										onclick={() => removeCard(card.id)}
 									>
 										<Trash2 class="h-4 w-4" />
 									</button>
@@ -229,7 +229,7 @@
 
 			<!-- Add Card Button -->
 			<button
-				on:click={addCard}
+				onclick={addCard}
 				class="!border-surface-300-600-token btn w-full border-2 border-dashed preset-tonal"
 			>
 				Add card
@@ -263,8 +263,8 @@
 
 			<!-- Bottom Actions -->
 			<div class="flex items-center justify-between pt-8">
-				<button class="btn preset-tonal" on:click={saveFlashcardSet}> Create </button>
-				<button class="btn preset-filled-primary-300-700" on:click={saveAndPractice}>
+				<button class="btn preset-tonal" onclick={saveFlashcardSet}> Create </button>
+				<button class="btn preset-filled-primary-300-700" onclick={saveAndPractice}>
 					Create and practice
 				</button>
 			</div>

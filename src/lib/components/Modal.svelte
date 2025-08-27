@@ -1,59 +1,59 @@
 <script>
+	import { quintOut } from 'svelte/easing';
+	import { XIcon } from 'lucide-svelte';
+
 	let {
 		showModal = $bindable(),
-		size = 'md', // xs, sm, md, lg, xl
-		fullscreen = false, // boolean untuk fullscreen
-		position = 'center', // center, top-center
-		title = '', // judul modal
-		onClose = null, // callback saat modal ditutup
+		size = 'md',
+		fullscreen = false,
+		position = 'center',
+		title = '',
+		onClose = null,
 		header,
 		children
 	} = $props();
 
-	let dialog = $state(); // HTMLDialogElement
-
 	// Size mappings
 	const sizeClasses = {
-		xs: 'max-w-xs w-full', // ~20rem (320px)
-		sm: 'max-w-sm w-full', // ~24rem (384px)
-		md: 'max-w-md w-full', // ~28rem (448px)
-		lg: 'max-w-lg w-full', // ~32rem (512px)
-		xl: 'max-w-xl w-full' // ~36rem (576px)
+		xs: 'max-w-xs w-full',
+		sm: 'max-w-sm w-full',
+		md: 'max-w-md w-full',
+		lg: 'max-w-lg w-full',
+		xl: 'max-w-xl w-full'
 	};
 
-	// Position mappings - untuk styling dialog
-	const positionClasses = {
-		center: 'items-center justify-center',
-		'top-center': 'items-start justify-center pt-16'
+	// Simple modal transition seperti kode internet
+	const modalTransition = (node, { duration = 300 } = {}) => {
+		const transform = getComputedStyle(node).transform;
+
+		return {
+			duration,
+			easing: quintOut,
+			css: (t, u) => {
+				return `transform: ${transform} scale(${t}) translateY(${u * -50}px)`;
+			}
+		};
 	};
 
-	// Computed classes
-	const modalClasses = $derived(
-		fullscreen
-			? 'w-screen h-screen max-w-none max-h-none m-0 rounded-none'
-			: `${sizeClasses[size]} max-h-[90vh] rounded-lg`
-	);
-
-	// Position styles untuk dialog
 	const positionStyles = $derived(() => {
-		if (fullscreen) return '';
-
+		if (fullscreen) {
+			return 'top: 0; left: 0; right: 0; bottom: 0; transform: none;';
+		}
 		switch (position) {
 			case 'top-center':
-				return 'top: 10%; transform: translateX(-50%); left: 50%; position: fixed;';
+				return 'top: 10%; left: 50%; transform: translateX(-50%);';
 			case 'center':
 			default:
-				return 'top: 50%; left: 50%; transform: translate(-50%, -50%); position: fixed;';
+				return 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
 		}
 	});
 
-	$effect(() => {
-		if (showModal) {
-			dialog?.showModal();
-		}
-	});
+	const modalClasses = $derived(
+		fullscreen
+			? 'w-screen h-screen max-w-none max-h-none rounded-none'
+			: `${sizeClasses[size]} max-h-[calc(100vh-4rem)] rounded-lg`
+	);
 
-	// Handle ESC key
 	function handleKeydown(event) {
 		if (event.key === 'Escape') {
 			closeModal();
@@ -63,71 +63,75 @@
 	function closeModal() {
 		showModal = false;
 		onClose?.();
-		dialog?.close();
 	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-<dialog
-	bind:this={dialog}
-	onclose={() => (showModal = false)}
-	onclick={(e) => {
-		if (e.target === dialog) closeModal();
-	}}
-	class="modal-dialog {modalClasses}"
-	class:fullscreen
-	style={positionStyles()}
->
-	<!-- Modal Content -->
-	<div class="modal-content bg-surface-100-800-token text-surface-900-50-token shadow-xl">
-		<!-- Header -->
-		{#if header || title}
-			<div class="modal-header border-surface-300-600-token border-b px-6 py-4">
-				{#if header}
-					{@render header()}
-				{:else if title}
-					<h2 class="text-xl font-semibold">{title}</h2>
-				{/if}
+<!-- Backdrop - Always rendered, visibility controlled by showModal -->
+<div
+	class="modal-background fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+	class:visible={showModal}
+	onclick={closeModal}
+	onkeydown={() => {}}
+	role="button"
+	tabindex="-1"
+></div>
 
-				<!-- Close button -->
-				<button
-					onclick={closeModal}
-					class="absolute top-4 right-4 btn-icon btn-icon-sm preset-tonal-surface"
-					aria-label="Close modal"
-				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
-				</button>
+<!-- Modal - Always rendered, transition controlled by showModal -->
+{#if showModal}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div
+		class="modal fixed z-50 {modalClasses}"
+		class:fullscreen
+		style={positionStyles()}
+		transition:modalTransition={{ duration: 300 }}
+		onclick={(e) => e.stopPropagation()}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+	>
+		<div class="modal-content bg-surface-100-800-token text-surface-900-50-token shadow-xl">
+			{#if header || title}
+				<div class="modal-header border-surface-300-600-token border-b px-6 py-4">
+					{#if header}
+						{@render header()}
+					{:else if title}
+						<h2 class="text-xl font-semibold">{title}</h2>
+					{/if}
+
+					<button
+						onclick={closeModal}
+						class="absolute top-4 right-4 btn-icon btn-icon-sm preset-tonal-surface"
+						aria-label="Close modal"
+					>
+						<XIcon class="h-4 w-4" />
+					</button>
+				</div>
+			{/if}
+
+			<div class="modal-body flex-1 overflow-y-auto px-6 py-4">
+				{@render children?.()}
 			</div>
-		{/if}
-
-		<!-- Body -->
-		<div class="modal-body flex-1 overflow-y-auto px-6 py-4">
-			{@render children?.()}
 		</div>
 	</div>
-</dialog>
+{/if}
 
 <style>
-	.modal-dialog {
-		border: none;
-		padding: 0;
-		background: transparent;
-		overflow: visible;
-		margin: 0; /* Remove default margin */
+	.modal-background {
+		cursor: pointer;
+		opacity: 0;
+		visibility: hidden;
+		transition: all 0.2s ease;
 	}
 
-	.modal-dialog::backdrop {
-		background: rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(4px);
+	.modal-background.visible {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.modal {
+		cursor: default;
 	}
 
 	.modal-content {
@@ -136,6 +140,8 @@
 		width: 100%;
 		height: 100%;
 		max-height: inherit;
+		border-radius: inherit;
+		overflow: hidden;
 	}
 
 	.modal-header {
@@ -148,60 +154,17 @@
 		min-height: 0;
 	}
 
-	/* Fullscreen styles */
-	.modal-dialog.fullscreen {
+	.fullscreen {
 		position: fixed !important;
-		top: 0 !important;
-		left: 0 !important;
-		right: 0;
-		bottom: 0;
-		transform: none !important;
 		width: 100vw !important;
 		height: 100vh !important;
 		max-width: none !important;
 		max-height: none !important;
-		display: flex;
-		align-items: stretch;
+		border-radius: 0 !important;
 	}
 
-	/* Animations */
-	.modal-dialog[open] {
-		animation: modalZoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-	}
-
-	.modal-dialog.fullscreen[open] {
-		animation: modalSlide 0.3s ease-out;
-	}
-
-	/* Position-specific animations */
-	@keyframes modalZoom {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes modalSlide {
-		from {
-			transform: translateY(-100%);
-		}
-		to {
-			transform: translateY(0);
-		}
-	}
-
-	.modal-dialog[open]::backdrop {
-		animation: fadeIn 0.2s ease-out;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
+	.fullscreen .modal-content {
+		border-radius: 0;
+		height: 100vh;
 	}
 </style>

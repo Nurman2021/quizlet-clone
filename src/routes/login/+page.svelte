@@ -116,7 +116,13 @@
 		{/if}
 
 		<!-- Login Form -->
-		<form on:submit|preventDefault={handleLogin} class="space-y-4">
+		<form
+			onsubmit={(e) => {
+				e.preventDefault();
+				handleLogin();
+			}}
+			class="space-y-4"
+		>
 			<!-- Email Input -->
 			<label class="label">
 				<span>Email</span>
@@ -183,7 +189,7 @@
 		</p>
 		<!-- Social Login -->
 		<div class="space-y-3">
-			<button type="button" on:click={handleGoogleLogin} class="variant-ghost-surface btn w-full">
+			<button type="button" onclick={handleGoogleLogin} class="variant-ghost-surface btn w-full">
 				<svg class="h-5 w-5" viewBox="0 0 24 24">
 					<path
 						fill="#4285F4"

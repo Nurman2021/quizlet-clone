@@ -473,7 +473,7 @@
 									<div class="flex items-center space-x-2">
 										<button
 											class="btn-icon btn-icon-sm preset-tonal"
-											on:click={togglePlay}
+											onclick={togglePlay}
 											title={isPlaying ? 'Pause' : 'Play'}
 											disabled={isEditMode}
 										>
@@ -513,7 +513,7 @@
 											<button
 												class="btn-icon btn-icon-sm preset-tonal"
 												title="Edit (Press E)"
-												on:click={enterEditMode}
+												onclick={enterEditMode}
 											>
 												<Edit class="h-5 w-5" />
 											</button>
@@ -522,7 +522,7 @@
 												<button
 													class="btn-icon btn-icon-sm preset-tonal-success"
 													title="Save changes"
-													on:click={saveEdit}
+													onclick={saveEdit}
 													disabled={isSaving}
 												>
 													{#if isSaving}
@@ -536,7 +536,7 @@
 												<button
 													class="btn-icon btn-icon-sm preset-tonal-error"
 													title="Cancel edit"
-													on:click={cancelEdit}
+													onclick={cancelEdit}
 													disabled={isSaving}
 												>
 													<X class="h-5 w-5" />
@@ -573,8 +573,8 @@
 									class="bg-surface-100-800-token rounded-lg preset-outlined-primary-700-300 p-8 text-center transition-all duration-300 {isEditMode
 										? 'border-2 border-primary-500'
 										: 'hover:bg-surface-200-700-token cursor-pointer'} flex min-h-[300px] items-center justify-center"
-									on:click={toggleAnswer}
-									on:keydown={(e) => e.key === 'Enter' && toggleAnswer()}
+									onclick={toggleAnswer}
+									onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
 									role={isEditMode ? 'form' : 'button'}
 									tabindex={isEditMode ? -1 : null}
 								>
@@ -629,7 +629,7 @@
 								<div class="mt-6 flex items-center justify-between">
 									<button
 										class="btn preset-filled-primary-300-700"
-										on:click={previousCard}
+										onclick={previousCard}
 										disabled={isFirstCard || isEditMode}
 									>
 										<ChevronLeft class="h-5 w-5" />
@@ -637,7 +637,7 @@
 
 									<button
 										class="btn preset-filled-primary-300-700"
-										on:click={nextCard}
+										onclick={nextCard}
 										disabled={isLastCard || isEditMode}
 									>
 										<ChevronRight class="h-5 w-5" />
@@ -657,7 +657,7 @@
 										<p class="text-surface-600-300-token mb-4">
 											Click the button below to set up and start the test
 										</p>
-										<button class="btn preset-filled-primary-500" on:click={startTest}>
+										<button class="btn preset-filled-primary-500" onclick={startTest}>
 											Setup Test
 										</button>
 									</div>
@@ -723,7 +723,7 @@
 											<div class="flex justify-between">
 												<button
 													class="btn preset-tonal"
-													on:click={() =>
+													onclick={() =>
 														(currentTestQuestion = Math.max(0, currentTestQuestion - 1))}
 													disabled={currentTestQuestion === 0}
 												>
@@ -731,13 +731,13 @@
 												</button>
 
 												{#if currentTestQuestion === testQuestions.length - 1}
-													<button class="btn preset-filled-primary-300-700" on:click={submitTest}>
+													<button class="btn preset-filled-primary-300-700" onclick={submitTest}>
 														Submit Test
 													</button>
 												{:else}
 													<button
 														class="btn preset-filled-primary-300-700"
-														on:click={() =>
+														onclick={() =>
 															(currentTestQuestion = Math.min(
 																testQuestions.length - 1,
 																currentTestQuestion + 1
