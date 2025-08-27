@@ -458,317 +458,309 @@
 
 			<!-- Main Content Area -->
 			<div class="flex justify-center">
-				<div class="w-full max-w-4xl">
-					<!-- Tab Navigation -->
-					<Tabs value={tabSet} onValueChange={(e) => (tabSet = e.value)}>
-						{#snippet list()}
-							<Tabs.Control value="flashcard">Flashcard</Tabs.Control>
-							<Tabs.Control value="test">Test</Tabs.Control>
-						{/snippet}
-						{#snippet content()}
-							<Tabs.Panel value="flashcard">
-								<!-- Flashcard Mode -->
-								<div class="variant-ghost-surface card p-6">
-									<!-- Controls -->
-									<div class="mb-4 flex items-center justify-between">
-										<div class="flex items-center space-x-2">
-											<button
-												class="variant-ghost-surface btn-icon btn-icon-sm"
-												on:click={togglePlay}
-												title={isPlaying ? 'Pause' : 'Play'}
-												disabled={isEditMode}
-											>
-												{#if isPlaying}
-													<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-														<path d="M6 4h4v16H6zm8 0h4v16h-4z" />
-													</svg>
-												{:else}
-													<Play class="h-5 w-5" />
-												{/if}
-											</button>
-											<button
-												class="variant-ghost-surface btn-icon btn-icon-sm"
-												title="Shuffle"
-												disabled={isEditMode}
-											>
-												<Shuffle class="h-5 w-5" />
-											</button>
-											<button
-												class="variant-ghost-surface btn-icon btn-icon-sm"
-												title="Settings"
-												disabled={isEditMode}
-											>
-												<Settings class="h-5 w-5" />
-											</button>
-										</div>
-										<div class="flex items-center space-x-4">
-											<button
-												class="variant-ghost-surface btn-icon btn-icon-sm"
-												title="Star"
-												disabled={isEditMode}
-											>
-												<Star class="h-5 w-5" />
-											</button>
+				<!-- Tab Navigation -->
+				<Tabs value={tabSet} onValueChange={(e) => (tabSet = e.value)}>
+					{#snippet list()}
+						<Tabs.Control value="flashcard">Flashcard</Tabs.Control>
+						<Tabs.Control value="test">Test</Tabs.Control>
+					{/snippet}
+					{#snippet content()}
+						<Tabs.Panel value="flashcard">
+							<!-- Flashcard Mode -->
+							<div class="variant-ghost-surface card p-6">
+								<!-- Controls -->
+								<div class="mb-4 flex items-center justify-between">
+									<div class="flex items-center space-x-2">
+										<button
+											class="variant-ghost-surface btn-icon btn-icon-sm"
+											on:click={togglePlay}
+											title={isPlaying ? 'Pause' : 'Play'}
+											disabled={isEditMode}
+										>
+											{#if isPlaying}
+												<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+													<path d="M6 4h4v16H6zm8 0h4v16h-4z" />
+												</svg>
+											{:else}
+												<Play class="h-5 w-5" />
+											{/if}
+										</button>
+										<button
+											class="variant-ghost-surface btn-icon btn-icon-sm"
+											title="Shuffle"
+											disabled={isEditMode}
+										>
+											<Shuffle class="h-5 w-5" />
+										</button>
+										<button
+											class="variant-ghost-surface btn-icon btn-icon-sm"
+											title="Settings"
+											disabled={isEditMode}
+										>
+											<Settings class="h-5 w-5" />
+										</button>
+									</div>
+									<div class="flex items-center space-x-4">
+										<button
+											class="variant-ghost-surface btn-icon btn-icon-sm"
+											title="Star"
+											disabled={isEditMode}
+										>
+											<Star class="h-5 w-5" />
+										</button>
 
-											{#if !isEditMode}
+										{#if !isEditMode}
+											<button
+												class="variant-ghost-surface btn-icon btn-icon-sm"
+												title="Edit (Press E)"
+												on:click={enterEditMode}
+											>
+												<Edit class="h-5 w-5" />
+											</button>
+										{:else}
+											<div class="flex items-center space-x-1">
 												<button
-													class="variant-ghost-surface btn-icon btn-icon-sm"
-													title="Edit (Press E)"
-													on:click={enterEditMode}
+													class="variant-filled-success btn-icon btn-icon-sm"
+													title="Save changes"
+													on:click={saveEdit}
+													disabled={isSaving}
 												>
-													<Edit class="h-5 w-5" />
+													{#if isSaving}
+														<div
+															class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+														></div>
+													{:else}
+														<Check class="h-5 w-5" />
+													{/if}
 												</button>
-											{:else}
-												<div class="flex items-center space-x-1">
-													<button
-														class="variant-filled-success btn-icon btn-icon-sm"
-														title="Save changes"
-														on:click={saveEdit}
-														disabled={isSaving}
-													>
-														{#if isSaving}
-															<div
-																class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
-															></div>
-														{:else}
-															<Check class="h-5 w-5" />
-														{/if}
-													</button>
-													<button
-														class="variant-filled-error btn-icon btn-icon-sm"
-														title="Cancel edit"
-														on:click={cancelEdit}
-														disabled={isSaving}
-													>
-														<X class="h-5 w-5" />
-													</button>
-												</div>
-											{/if}
-
-											<div class="text-surface-600-300-token text-sm">
-												{$quizState.currentCardIndex + 1} / {$currentFlashcardSet.flashcards.length}
+												<button
+													class="variant-filled-error btn-icon btn-icon-sm"
+													title="Cancel edit"
+													on:click={cancelEdit}
+													disabled={isSaving}
+												>
+													<X class="h-5 w-5" />
+												</button>
 											</div>
+										{/if}
+
+										<div class="text-surface-600-300-token text-sm">
+											{$quizState.currentCardIndex + 1} / {$currentFlashcardSet.flashcards.length}
 										</div>
 									</div>
+								</div>
 
-									<!-- Progress Bar -->
-									<div class="mb-6">
-										<div class="bg-surface-300-600-token h-2 w-full overflow-hidden rounded-full">
-											<div
-												class="h-2 bg-primary-500 transition-all duration-300"
-												style="width: {progress}%"
-											></div>
-										</div>
-										<p class="text-surface-600-300-token mt-1 text-center text-xs">
-											{#if isEditMode}
-												Edit mode - Click save or cancel when done
-											{:else}
-												Click card to flip • Press E to edit • Use arrow keys to navigate
-											{/if}
-										</p>
+								<!-- Progress Bar -->
+								<div class="mb-6">
+									<div class="bg-surface-300-600-token h-2 w-full overflow-hidden rounded-full">
+										<div
+											class="h-2 bg-primary-500 transition-all duration-300"
+											style="width: {progress}%"
+										></div>
 									</div>
+									<p class="text-surface-600-300-token mt-1 text-center text-xs">
+										{#if isEditMode}
+											Edit mode - Click save or cancel when done
+										{:else}
+											Click card to flip • Press E to edit • Use arrow keys to navigate
+										{/if}
+									</p>
+								</div>
 
-									<!-- Flashcard -->
-									<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-									<div
-										class="bg-surface-100-800-token rounded-lg preset-outlined-primary-700-300 p-8 text-center transition-all duration-300 {isEditMode
-											? 'border-2 border-primary-500'
-											: 'hover:bg-surface-200-700-token cursor-pointer'} flex min-h-[300px] items-center justify-center"
-										on:click={toggleAnswer}
-										on:keydown={(e) => e.key === 'Enter' && toggleAnswer()}
-										role={isEditMode ? 'form' : 'button'}
-										tabindex={isEditMode ? -1 : null}
-									>
-										<div class="w-full">
-											{#if isEditMode}
-												<div class="space-y-4">
+								<!-- Flashcard -->
+								<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+								<div
+									class="bg-surface-100-800-token rounded-lg preset-outlined-primary-700-300 p-8 text-center transition-all duration-300 {isEditMode
+										? 'border-2 border-primary-500'
+										: 'hover:bg-surface-200-700-token cursor-pointer'} flex min-h-[300px] items-center justify-center"
+									on:click={toggleAnswer}
+									on:keydown={(e) => e.key === 'Enter' && toggleAnswer()}
+									role={isEditMode ? 'form' : 'button'}
+									tabindex={isEditMode ? -1 : null}
+								>
+									<div class="w-full">
+										{#if isEditMode}
+											<div class="space-y-4">
+												<div>
+													<label
+														for="edit-term"
+														class="text-surface-600-300-token mb-2 block text-sm font-medium"
+													>
+														Term
+													</label>
+													<input
+														id="edit-term"
+														type="text"
+														bind:value={editTerm}
+														class="variant-form-material input w-full text-center text-xl"
+														placeholder="Enter term"
+														disabled={isSaving}
+													/>
 													<div>
 														<label
-															for="edit-term"
+															for="edit-definition"
 															class="text-surface-600-300-token mb-2 block text-sm font-medium"
 														>
-															Term
+															Definition
 														</label>
-														<input
-															id="edit-term"
-															type="text"
-															bind:value={editTerm}
-															class="variant-form-material input w-full text-center text-xl"
-															placeholder="Enter term"
+														<textarea
+															id="edit-definition"
+															bind:value={editDefinition}
+															class="variant-form-material textarea w-full text-center"
+															placeholder="Enter definition"
+															rows="3"
 															disabled={isSaving}
-														/>
-														<div>
-															<label
-																for="edit-definition"
-																class="text-surface-600-300-token mb-2 block text-sm font-medium"
-															>
-																Definition
-															</label>
-															<textarea
-																id="edit-definition"
-																bind:value={editDefinition}
-																class="variant-form-material textarea w-full text-center"
-																placeholder="Enter definition"
-																rows="3"
-																disabled={isSaving}
-															></textarea>
-														</div>
+														></textarea>
 													</div>
 												</div>
+											</div>
+										{:else}
+											<!-- View Mode -->
+											{#if !showAnswer}
+												<h2 class="text-2xl font-semibold">{currentCard.term}</h2>
 											{:else}
-												<!-- View Mode -->
-												{#if !showAnswer}
-													<h2 class="text-2xl font-semibold">{currentCard.term}</h2>
-												{:else}
-													<h2 class="text-xl">{currentCard.definition}</h2>
-												{/if}
+												<h2 class="text-xl">{currentCard.definition}</h2>
 											{/if}
-										</div>
-									</div>
-
-									<!-- Navigation -->
-									<div class="mt-6 flex items-center justify-between">
-										<button
-											class=" btn"
-											on:click={previousCard}
-											disabled={isFirstCard || isEditMode}
-										>
-											<ChevronLeft class="h-5 w-5" />
-										</button>
-
-										<button
-											class="variant-filled-primary btn"
-											on:click={nextCard}
-											disabled={isLastCard || isEditMode}
-										>
-											<ChevronRight class="h-5 w-5" />
-										</button>
+										{/if}
 									</div>
 								</div>
-							</Tabs.Panel>
 
-							<Tabs.Panel value="test">
-								<!-- Test Mode -->
-								<div class=" card p-6">
-									<h3 class="mb-4 text-xl font-semibold">Test Mode</h3>
+								<!-- Navigation -->
+								<div class="mt-6 flex items-center justify-between">
+									<button class=" btn" on:click={previousCard} disabled={isFirstCard || isEditMode}>
+										<ChevronLeft class="h-5 w-5" />
+									</button>
 
-									{#if !testStarted}
-										<!-- Button to open modal -->
-										<div class="py-8 text-center">
-											<p class="text-surface-600-300-token mb-4">
-												Click the button below to set up and start the test
-											</p>
-											<button class="btn preset-filled-primary-500" on:click={startTest}>
-												Setup Test
-											</button>
+									<button
+										class="variant-filled-primary btn"
+										on:click={nextCard}
+										disabled={isLastCard || isEditMode}
+									>
+										<ChevronRight class="h-5 w-5" />
+									</button>
+								</div>
+							</div>
+						</Tabs.Panel>
+
+						<Tabs.Panel value="test">
+							<!-- Test Mode -->
+							<div class=" card p-6">
+								<h3 class="mb-4 text-xl font-semibold">Test Mode</h3>
+
+								{#if !testStarted}
+									<!-- Button to open modal -->
+									<div class="py-8 text-center">
+										<p class="text-surface-600-300-token mb-4">
+											Click the button below to set up and start the test
+										</p>
+										<button class="btn preset-filled-primary-500" on:click={startTest}>
+											Setup Test
+										</button>
+									</div>
+								{:else if !showTestResults}
+									<!-- Test questions -->
+									<div class="space-y-6">
+										<div class="flex items-center justify-between">
+											<h3 class="text-xl font-semibold">
+												Question {currentTestQuestion + 1} of {testQuestions.length}
+											</h3>
+											<div class="text-surface-600-300-token text-sm">
+												Progress: {Math.round((currentTestQuestion / testQuestions.length) * 100)}%
+											</div>
 										</div>
-									{:else if !showTestResults}
-										<!-- Test questions -->
-										<div class="space-y-6">
-											<div class="flex items-center justify-between">
-												<h3 class="text-xl font-semibold">
-													Question {currentTestQuestion + 1} of {testQuestions.length}
-												</h3>
-												<div class="text-surface-600-300-token text-sm">
-													Progress: {Math.round(
-														(currentTestQuestion / testQuestions.length) * 100
-													)}%
-												</div>
+
+										{#if testQuestions[currentTestQuestion]}
+											{@const question = testQuestions[currentTestQuestion]}
+											<div class="variant-ghost-surface card p-6">
+												<h4 class="mb-4 text-lg font-medium">{question.question}</h4>
+
+												{#if question.type === 'multiple_choice'}
+													<div class="space-y-2">
+														{#each question.options as option}
+															<label
+																class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
+															>
+																<input
+																	type="radio"
+																	bind:group={testAnswers[question.id]}
+																	value={option}
+																	class="radio"
+																/>
+																<span>{option}</span>
+															</label>
+														{/each}
+													</div>
+												{:else if question.type === 'true_false'}
+													<div class="space-y-2">
+														{#each question.options as option}
+															<label
+																class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
+															>
+																<input
+																	type="radio"
+																	bind:group={testAnswers[question.id]}
+																	value={option.toLowerCase()}
+																	class="radio"
+																/>
+																<span>{option}</span>
+															</label>
+														{/each}
+													</div>
+												{:else if question.type === 'written'}
+													<textarea
+														class="textarea w-full"
+														placeholder="Type your answer here..."
+														bind:value={testAnswers[question.id]}
+														rows="3"
+													></textarea>
+												{/if}
 											</div>
 
-											{#if testQuestions[currentTestQuestion]}
-												{@const question = testQuestions[currentTestQuestion]}
-												<div class="variant-ghost-surface card p-6">
-													<h4 class="mb-4 text-lg font-medium">{question.question}</h4>
+											<div class="flex justify-between">
+												<button
+													class="variant-ghost-surface btn"
+													on:click={() =>
+														(currentTestQuestion = Math.max(0, currentTestQuestion - 1))}
+													disabled={currentTestQuestion === 0}
+												>
+													Previous
+												</button>
 
-													{#if question.type === 'multiple_choice'}
-														<div class="space-y-2">
-															{#each question.options as option}
-																<label
-																	class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
-																>
-																	<input
-																		type="radio"
-																		bind:group={testAnswers[question.id]}
-																		value={option}
-																		class="radio"
-																	/>
-																	<span>{option}</span>
-																</label>
-															{/each}
-														</div>
-													{:else if question.type === 'true_false'}
-														<div class="space-y-2">
-															{#each question.options as option}
-																<label
-																	class="hover:bg-surface-200-700-token flex cursor-pointer items-center space-x-3 rounded-lg p-3"
-																>
-																	<input
-																		type="radio"
-																		bind:group={testAnswers[question.id]}
-																		value={option.toLowerCase()}
-																		class="radio"
-																	/>
-																	<span>{option}</span>
-																</label>
-															{/each}
-														</div>
-													{:else if question.type === 'written'}
-														<textarea
-															class="textarea w-full"
-															placeholder="Type your answer here..."
-															bind:value={testAnswers[question.id]}
-															rows="3"
-														></textarea>
-													{/if}
-												</div>
-
-												<div class="flex justify-between">
-													<button
-														class="variant-ghost-surface btn"
-														on:click={() =>
-															(currentTestQuestion = Math.max(0, currentTestQuestion - 1))}
-														disabled={currentTestQuestion === 0}
-													>
-														Previous
+												{#if currentTestQuestion === testQuestions.length - 1}
+													<button class="variant-filled-primary btn" on:click={submitTest}>
+														Submit Test
 													</button>
-
-													{#if currentTestQuestion === testQuestions.length - 1}
-														<button class="variant-filled-primary btn" on:click={submitTest}>
-															Submit Test
-														</button>
-													{:else}
-														<button
-															class="variant-filled-primary btn"
-															on:click={() =>
-																(currentTestQuestion = Math.min(
-																	testQuestions.length - 1,
-																	currentTestQuestion + 1
-																))}
-														>
-															Next
-														</button>
-													{/if}
-												</div>
-											{/if}
-										</div>
-									{:else if showTestResults}
-										<!-- Test Results Component -->
-										<TestResults
-											{testQuestions}
-											{testAnswers}
-											{testScore}
-											{correctAnswers}
-											on:retake-test={handleRetakeTest}
-											on:back-to-setup={handleBackToSetup}
-											on:go-home={handleGoHome}
-										/>
-									{/if}
-								</div>
-							</Tabs.Panel>
-						{/snippet}
-					</Tabs>
-				</div>
+												{:else}
+													<button
+														class="variant-filled-primary btn"
+														on:click={() =>
+															(currentTestQuestion = Math.min(
+																testQuestions.length - 1,
+																currentTestQuestion + 1
+															))}
+													>
+														Next
+													</button>
+												{/if}
+											</div>
+										{/if}
+									</div>
+								{:else if showTestResults}
+									<!-- Test Results Component -->
+									<TestResults
+										{testQuestions}
+										{testAnswers}
+										{testScore}
+										{correctAnswers}
+										on:retake-test={handleRetakeTest}
+										on:back-to-setup={handleBackToSetup}
+										on:go-home={handleGoHome}
+									/>
+								{/if}
+							</div>
+						</Tabs.Panel>
+					{/snippet}
+				</Tabs>
 			</div>
 		</div>
 	</div>
