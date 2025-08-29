@@ -73,8 +73,8 @@
 				<RotateCcw class="h-4 w-4" />
 				<span>Retake Test</span>
 			</button>
-			<button class="variant-ghost-surface btn" on:click={backToSetup}> Back to Setup </button>
-			<button class="variant-ghost-surface btn" on:click={goHome}>
+			<button class="btn preset-tonal-surface" on:click={backToSetup}> Back to Setup </button>
+			<button class="btn preset-tonal-surface" on:click={goHome}>
 				<Home class="h-4 w-4" />
 				<span>Home</span>
 			</button>

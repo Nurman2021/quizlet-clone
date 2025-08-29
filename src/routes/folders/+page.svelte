@@ -126,7 +126,7 @@
 			<!-- Folders Grid -->
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each $folders as folder}
-					<div class="card preset-tonal transition-all hover:preset-outlined-primary-500">
+					<div class="card preset-tonal transition-all hover:preset-tonal-primary">
 						<div class="p-6">
 							<!-- Folder Header -->
 							<div class="mb-4 flex items-start justify-between">
