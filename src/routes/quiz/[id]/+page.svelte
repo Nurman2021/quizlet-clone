@@ -24,7 +24,7 @@
 		X
 	} from 'lucide-svelte';
 	import { Tabs } from '@skeletonlabs/skeleton-svelte';
-	import TestSetupModal from '$lib/components/TestSetupModal.svelte';
+	import TestSetup from '$lib/components/TestSetup.svelte';
 	import TestResults from '$lib/components/TestResults.svelte';
 
 	let setId;
@@ -771,7 +771,7 @@
 
 	<!-- Test Setup Modal -->
 	{#if $currentFlashcardSet}
-		<TestSetupModal bind:show={showTestSetupModal} on:start-test={handleStartTest} />
+		<TestSetup bind:show={showTestSetupModal} on:start-test={handleStartTest} />
 	{/if}
 {:else}
 	<div class="flex min-h-screen items-center justify-center">

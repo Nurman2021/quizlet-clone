@@ -41,24 +41,18 @@
 	}
 
 	async function moveToFolder() {
-		console.log('Move to folder function called'); // Debug log
-
 		if (!selectedSetId || !selectedFolderId) {
-			console.log('Missing selection, showing error toast'); // Debug log
 			toast.error('Selection Required', 'Please select a destination folder');
 			return;
 		}
 
 		try {
-			console.log('Attempting to move to folder...'); // Debug log
 			await folderActions.addSetToFolder(selectedSetId, selectedFolderId);
 			await flashcardActions.loadRecentActivities();
 
-			console.log('Move successful, showing success toast'); // Debug log
 			toast.success('Moved Successfully', 'Flashcard set moved to folder');
 			showMoveToFolderModal = false;
 		} catch (error) {
-			console.log('Move failed, showing error toast'); // Debug log
 			toast.error('Move Failed', 'Failed to move set: ' + error.message);
 		}
 	}

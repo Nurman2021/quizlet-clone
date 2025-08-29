@@ -126,9 +126,7 @@
 			<!-- Folders Grid -->
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each $folders as folder}
-					<div
-						class="preset-ghost-neutral-500-900 hover:preset-soft-neutral-500-900 card transition-all"
-					>
+					<div class="card preset-tonal transition-all hover:preset-outlined-primary-500">
 						<div class="p-6">
 							<!-- Folder Header -->
 							<div class="mb-4 flex items-start justify-between">
@@ -155,7 +153,7 @@
 								<!-- Dropdown Menu -->
 								<div class="relative">
 									<button
-										class="preset-ghost-neutral-500-900 btn-icon btn-icon-sm"
+										class="btn-icon btn-icon-sm"
 										onclick={(e) => {
 											e.stopPropagation();
 											toggleDropdown(folder.id);
@@ -166,11 +164,11 @@
 
 									{#if showDropdown === folder.id}
 										<div
-											class="preset-filled-neutral-500-900 absolute right-0 z-10 mt-2 w-48 card shadow-xl"
+											class="absolute right-0 z-10 mt-2 w-48 card preset-tonal-surface shadow-xl"
 										>
 											<nav class="list-nav p-2">
 												<button
-													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm"
+													class="btn w-full justify-start btn-sm"
 													onclick={() => {
 														// TODO: Implement edit
 														showDropdown = null;
@@ -180,7 +178,7 @@
 													<span>Edit</span>
 												</button>
 												<button
-													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm text-error-500"
+													class="btn w-full justify-start btn-sm text-error-500"
 													onclick={() => {
 														deleteFolder(folder.id);
 														showDropdown = null;
@@ -230,10 +228,7 @@
 			</p>
 
 			<div class="flex space-x-3 pt-4">
-				<button
-					class="preset-ghost-neutral-500-900 btn flex-1"
-					onclick={() => (showDeleteModal = false)}
-				>
+				<button class="btn flex-1 preset-tonal" onclick={() => (showDeleteModal = false)}>
 					Cancel
 				</button>
 				<button class="preset-filled-error-500-900 btn flex-1" onclick={confirmDeleteFolder}>

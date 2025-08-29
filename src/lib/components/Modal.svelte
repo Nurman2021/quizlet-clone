@@ -91,7 +91,7 @@
 		aria-modal="true"
 		tabindex="-1"
 	>
-		<div class="modal-content bg-surface-100-800-token text-surface-900-50-token shadow-xl">
+		<div class="modal-content text-surface-900-50-token bg-surface-100-900 shadow-xl">
 			{#if header || title}
 				<div class="modal-header border-surface-300-600-token border-b px-6 py-4">
 					{#if header}
