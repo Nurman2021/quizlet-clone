@@ -98,7 +98,7 @@
 </svelte:head>
 
 <div class="bg-surface-50-900-token flex min-h-screen items-center justify-center p-4">
-	<div class="variant-ghost-surface w-full max-w-md card p-8">
+	<div class="w-full max-w-md card preset-tonal-surface p-8">
 		<!-- Logo -->
 		<div class="mb-8 text-center">
 			<div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-lg bg-primary-500">
@@ -113,7 +113,7 @@
 
 		<!-- Messages -->
 		{#if errorMessage}
-			<div class="alert variant-filled-error mb-4">
+			<div class="alert mb-4 preset-tonal-error">
 				<div class="alert-message">
 					<p>{errorMessage}</p>
 				</div>
@@ -121,7 +121,7 @@
 		{/if}
 
 		{#if successMessage}
-			<div class="alert variant-filled-success mb-4">
+			<div class="alert mb-4 preset-tonal-success">
 				<div class="alert-message">
 					<p>{successMessage}</p>
 				</div>
@@ -220,7 +220,7 @@
 			</label> -->
 
 			<!-- Submit Button -->
-			<button type="submit" class="variant-filled-primary btn w-full" disabled={isLoading}>
+			<button type="submit" class="btn w-full preset-tonal-primary" disabled={isLoading}>
 				{#if isLoading}
 					<Loader2 class="h-4 w-4 animate-spin" />
 					<span>Signing up...</span>
@@ -238,7 +238,7 @@
 
 		<!-- Social Signup -->
 		<div class="space-y-3">
-			<button type="button" onclick={handleGoogleSignup} class="variant-ghost-surface btn w-full">
+			<button type="button" onclick={handleGoogleSignup} class="btn w-full preset-tonal-surface">
 				<svg class="h-5 w-5" viewBox="0 0 24 24">
 					<path
 						fill="#4285F4"

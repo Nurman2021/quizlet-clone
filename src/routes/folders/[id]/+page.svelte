@@ -113,7 +113,7 @@
 		{:else if $currentFolder}
 			<!-- Header -->
 			<div class="mb-8">
-				<button class="variant-ghost-surface mb-4 btn btn-sm" onclick={() => goto('/folders')}>
+				<button class="mb-4 btn preset-tonal-surface btn-sm" onclick={() => goto('/folders')}>
 					<ArrowLeft class="h-4 w-4" />
 					<span>Back to Folders</span>
 				</button>
@@ -138,11 +138,11 @@
 					</div>
 
 					<div class="flex items-center space-x-2">
-						<button class="variant-ghost-surface btn">
+						<button class="btn preset-tonal-surface">
 							<Edit class="h-4 w-4" />
 							<span>Edit</span>
 						</button>
-						<a href="/create?folder={folderId}" class="variant-filled-primary btn">
+						<a href="/create?folder={folderId}" class="btn preset-tonal">
 							<Plus class="h-4 w-4" />
 							<span>Add Set</span>
 						</a>
@@ -152,12 +152,12 @@
 
 			<!-- Flashcard Sets -->
 			{#if folderSets.length === 0}
-				<div class="variant-ghost-surface card p-16 text-center">
+				<div class="card preset-tonal-surface p-16 text-center">
 					<h3 class="mb-2 text-xl font-semibold">This folder is empty</h3>
 					<p class="text-surface-600-300-token mb-6">
 						Add flashcard sets to this folder to organize them better
 					</p>
-					<a href="/create?folder={folderId}" class="variant-filled-primary btn">
+					<a href="/create?folder={folderId}" class="btn preset-tonal">
 						<Plus class="h-4 w-4" />
 						<span>Create flashcard set</span>
 					</a>
@@ -172,7 +172,7 @@
 								<div class="mb-4 flex items-start justify-between">
 									<h3 class="mr-2 flex-1 font-semibold">{set.title}</h3>
 									<button
-										class="variant-ghost-surface btn-icon btn-icon-sm"
+										class="btn-icon btn-icon-sm preset-tonal-surface"
 										onclick={() => removeSetFromFolder(set.id)}
 									>
 										<Trash2 class="h-4 w-4" />
@@ -196,15 +196,12 @@
 
 								<div class="flex space-x-2">
 									<button
-										class="variant-ghost-surface btn flex-1 btn-sm"
+										class="btn flex-1 preset-tonal-surface btn-sm"
 										onclick={() => goToSet(set.id)}
 									>
 										View
 									</button>
-									<button
-										class="variant-filled-primary btn flex-1 btn-sm"
-										onclick={() => startQuiz(set.id)}
-									>
+									<button class="btn flex-1 preset-tonal btn-sm" onclick={() => startQuiz(set.id)}>
 										<Play class="h-4 w-4" />
 										<span>Start</span>
 									</button>

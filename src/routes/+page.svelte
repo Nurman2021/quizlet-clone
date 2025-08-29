@@ -104,7 +104,7 @@
 									<!-- Dropdown Menu -->
 									<div class="relative">
 										<button
-											class="variant-ghost-surface btn-icon btn-icon-sm"
+											class="btn-icon btn-icon-sm preset-tonal-surface"
 											on:click={() => toggleDropdown(activity.id)}
 										>
 											<MoreVertical class="h-4 w-4" />
@@ -112,18 +112,18 @@
 
 										{#if showDropdown === activity.id}
 											<div
-												class="variant-filled-surface absolute right-0 z-10 mt-2 w-48 card shadow-xl"
+												class="absolute right-0 z-10 mt-2 w-48 card preset-tonal-surface shadow-xl"
 											>
 												<nav class="list-nav p-2">
 													<button
-														class="variant-ghost-surface btn w-full justify-start btn-sm"
+														class="btn w-full justify-start preset-tonal-surface btn-sm"
 														on:click={() => goto(`/quiz/${activity.id}`)}
 													>
 														<Eye class="h-4 w-4" />
 														<span>View</span>
 													</button>
 													<button
-														class="variant-ghost-surface btn w-full justify-start btn-sm"
+														class="btn w-full justify-start preset-tonal-surface btn-sm"
 														on:click={() => openMoveToFolder(activity.id)}
 													>
 														<Folder class="h-4 w-4" />
@@ -139,13 +139,13 @@
 					{/each}
 				</div>
 			{:else}
-				<div class="variant-ghost-surface card p-8 text-center">
+				<div class="card preset-tonal-surface p-8 text-center">
 					<Book class="mx-auto mb-4 h-12 w-12 opacity-30" />
 					<h4 class="mb-2 font-semibold">There are no recent activities</h4>
 					<p class="mb-4 text-sm opacity-75">
 						Start creating or studying flashcards to see recent activities
 					</p>
-					<a href="/create" class="variant-filled-primary btn">
+					<a href="/create" class="btn preset-tonal">
 						<Plus class="h-4 w-4" />
 						<span>Create Flashcards</span>
 					</a>
@@ -176,7 +176,7 @@
 
 					<label class="label">
 						<span>Select destination folder</span>
-						<select class="variant-form-material select" bind:value={selectedFolderId}>
+						<select class="select" bind:value={selectedFolderId}>
 							<option value={null}>-- Select Folder --</option>
 							{#each $folders as folder}
 								<option value={folder.id}>{folder.name}</option>
@@ -192,16 +192,12 @@
 
 					<div class="mt-6 flex justify-end space-x-2">
 						<button
-							class="variant-ghost-surface btn"
+							class="btn preset-tonal-surface"
 							on:click={() => (showMoveToFolderModal = false)}
 						>
 							Cancel
 						</button>
-						<button
-							class="variant-filled-primary btn"
-							on:click={moveToFolder}
-							disabled={!selectedFolderId}
-						>
+						<button class="btn preset-tonal" on:click={moveToFolder} disabled={!selectedFolderId}>
 							Move
 						</button>
 					</div>
