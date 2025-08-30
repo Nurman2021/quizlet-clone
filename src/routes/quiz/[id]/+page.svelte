@@ -338,7 +338,7 @@
 					<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
 						<a
 							href="/quiz/{setId}/flashcard"
-							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
+							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
 						>
 							<img src={flascardIcon} alt="flashcard" class="mx-auto mb-1 h-9 w-9 object-contain" />
 							<span class="text-sm font-semibold">Flashcards</span>
@@ -346,7 +346,7 @@
 
 						<a
 							href="/quiz/{setId}/learn"
-							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
+							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
 						>
 							<img src={learnIcon} alt="learn" class="mx-auto mb-1 h-9 w-9 object-contain" />
 							<span class="text-sm font-semibold">Learn</span>
@@ -354,7 +354,7 @@
 
 						<a
 							href="/quiz/{setId}/test"
-							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
+							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
 						>
 							<img src={testIcon} alt="test" class="mx-auto mb-1 h-9 w-9 object-contain" />
 							<span class="text-sm font-semibold">Test</span>
@@ -362,7 +362,7 @@
 
 						<a
 							href="/quiz/{setId}/match"
-							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
+							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
 						>
 							<img src={matchIcon} alt="matchmaking" class="mx-auto mb-1 h-9 w-9 object-contain" />
 							<span class="text-sm font-semibold">Match</span>
@@ -372,7 +372,7 @@
 			</div>
 		</header>
 
-		<main class="mx-auto max-w-6xl py-8">
+		<main class="mx-auto max-w-6xl">
 			<section>
 				<Flashcard
 					{flashcardSet}

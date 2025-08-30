@@ -10,8 +10,11 @@
 		Volume2,
 		ArrowRight,
 		ArrowLeft,
-		Pause
+		Pause,
+		Lightbulb,
+		Scan
 	} from 'lucide-svelte';
+	import { Switch } from '@skeletonlabs/skeleton-svelte';
 	import { toast } from '$lib/stores/toast.js';
 	import { supabase } from '$lib/supabase.js';
 	import Modal from './Modal.svelte';
@@ -27,6 +30,7 @@
 		onStarToggle = () => {}
 	} = $props();
 
+	let state = $state(false);
 	let showAnswer = $state(false);
 	let showEditModal = $state(false);
 	let editTerm = $state('');
@@ -174,9 +178,78 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if currentCard}
-	<div class="flex h-full flex-col p-6">
-		<!-- Controls -->
-		<div class="mb-4 flex items-center justify-between">
+	<div class="flex h-full flex-col">
+		<div
+			class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal p-12 card-hover transition-all duration-300"
+			onclick={toggleAnswer}
+			onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
+			role="button"
+			tabindex="0"
+		>
+			<!-- Card Controls -->
+			<div class="absolute top-12 flex w-full items-center justify-between px-12">
+				<button class="flex gap-2">
+					<Lightbulb class="h-5 w-5" />
+					Get a hint
+				</button>
+
+				<div class="text-surface-600-300-token text-lg font-medium">
+					{currentIndex + 1} / {flashcardSet.flashcards.length}
+				</div>
+				<div class="flex items-center space-x-2">
+					<button
+						class="btn-icon btn-icon-sm"
+						onclick={toggleCurrentCardStar}
+						class:text-yellow-500={currentCard.is_starred}
+						title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+					>
+						<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
+					</button>
+
+					<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
+						<Edit class="h-5 w-5" />
+					</button>
+
+					<button
+						class="btn-icon btn-icon-sm"
+						onclick={() => speakText(currentCard.term)}
+						title="Listen to pronunciation"
+					>
+						<Volume2 class="h-5 w-5" />
+					</button>
+				</div>
+			</div>
+			<!-- Large Flashcard -->
+
+			<!-- View Mode -->
+			{#if !showAnswer}
+				<h2 class="mb-4 text-4xl font-bold">{currentCard.term}</h2>
+			{:else}
+				<h2 class="mb-4 text-3xl font-medium">{currentCard.definition}</h2>
+			{/if}
+		</div>
+
+		<!-- Navigation Controls -->
+		<div class="mt-6 flex items-center justify-between">
+			<Switch name="example" checked={state} onCheckedChange={(e) => (state = e.checked)} />
+			<div>
+				<button
+					class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
+					onclick={previousCard}
+					disabled={isFirstCard}
+				>
+					<ArrowLeft class="h-7 w-7" size={20} />
+				</button>
+
+				<button
+					class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
+					onclick={nextCard}
+					disabled={isLastCard}
+				>
+					<ArrowRight class="h-7 w-7" />
+				</button>
+			</div>
+
 			<div class="flex items-center space-x-2">
 				<button
 					class="btn-icon btn-icon-sm preset-tonal-surface"
@@ -198,97 +271,19 @@
 					<Shuffle class="h-5 w-5" />
 				</button>
 
-				<button
-					class="btn-icon btn-icon-sm preset-tonal-surface"
-					onclick={() => speakText(currentCard.term)}
-					title="Listen to pronunciation"
-				>
-					<Volume2 class="h-5 w-5" />
-				</button>
-			</div>
-
-			<div class="flex items-center space-x-2">
-				<button
-					class="btn-icon btn-icon-sm preset-tonal-surface"
-					onclick={toggleCurrentCardStar}
-					class:text-yellow-500={currentCard.is_starred}
-					title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
-				>
-					<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
-				</button>
-
-				<button
-					class="btn-icon btn-icon-sm preset-tonal-surface"
-					title="Edit (Press E)"
-					onclick={enterEditMode}
-				>
-					<Edit class="h-5 w-5" />
-				</button>
-
-				<div class="text-surface-600-300-token text-lg font-medium">
-					{currentIndex + 1} / {flashcardSet.flashcards.length}
-				</div>
+				<a href="/"><Scan class="h-5 w-5" /></a>
 			</div>
 		</div>
 
 		<!-- Progress Bar -->
-		<div class="mb-6">
+		<div class="mt-6">
 			<div class="bg-surface-300-600-token h-2 w-full overflow-hidden rounded-full">
 				<div
-					class="h-2 bg-primary-500 transition-all duration-300"
+					class=" h-1 bg-primary-950-50 transition-all duration-300"
 					style="width: {progress}%"
 				></div>
 			</div>
 		</div>
-
-		<!-- Large Flashcard -->
-		<div class="flex flex-1 items-center justify-center">
-			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-			<div
-				class="bg-surface-100-800-token hover:bg-surface-200-700-token flex min-h-[400px] w-full max-w-4xl cursor-pointer items-center justify-center rounded-xl preset-outlined-primary-700-300 p-12 text-center transition-all duration-300"
-				onclick={toggleAnswer}
-				onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
-				role="button"
-				tabindex="0"
-			>
-				<div class="w-full">
-					<!-- View Mode -->
-					{#if !showAnswer}
-						<h2 class="mb-4 text-4xl font-bold">{currentCard.term}</h2>
-						<p class="text-surface-600-300-token">Click to reveal definition</p>
-					{:else}
-						<h2 class="mb-4 text-3xl font-medium">{currentCard.definition}</h2>
-						<p class="text-surface-600-300-token">Click to show term</p>
-					{/if}
-				</div>
-			</div>
-		</div>
-
-		<!-- Navigation Controls -->
-		<div class="mt-6 flex items-center justify-between">
-			<button
-				class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
-				onclick={previousCard}
-				disabled={isFirstCard}
-			>
-				<ArrowLeft class="h-7 w-7" size={20} />
-			</button>
-
-			<button
-				class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
-				onclick={nextCard}
-				disabled={isLastCard}
-			>
-				<ArrowRight class="h-7 w-7" />
-			</button>
-		</div>
-
-		<!-- Help Text -->
-		<!-- <div class="mt-4 text-center">
-			<p class="text-surface-600-300-token text-sm">
-				Use arrow keys to navigate • Press E to edit • Press space to flip
-			</p>
-		</div> -->
 	</div>
 
 	<!-- Edit Modal -->
