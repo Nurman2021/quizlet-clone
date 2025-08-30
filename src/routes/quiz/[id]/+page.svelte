@@ -6,10 +6,6 @@
 	import { toast } from '$lib/stores/toast.js';
 	import {
 		ArrowLeft,
-		Trophy,
-		BookOpen,
-		Target,
-		Brain,
 		Zap,
 		Users,
 		Settings,
@@ -25,6 +21,12 @@
 	import Learn from '$lib/components/Learn.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import ProgressSummary from '$lib/components/ProgressSumary.svelte';
+
+	// image
+	import flascardIcon from '$lib/images/flashcard-img.png';
+	import learnIcon from '$lib/images/learn-img.png';
+	import testIcon from '$lib/images/terst-img.png';
+	import matchIcon from '$lib/images/match-img.png';
 
 	let setId = $page.params.id;
 	let flashcardSet = $state(null);
@@ -86,11 +88,6 @@
 		}
 	}
 
-	function exitQuiz() {
-		goto('/');
-	}
-
-	// Flashcard navigation
 	function nextCard() {
 		if (currentCardIndex < flashcardSet.flashcards.length - 1) {
 			currentCardIndex++;
@@ -274,14 +271,6 @@
 			<div class="mx-auto max-w-6xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
-						<button
-							onclick={exitQuiz}
-							class="btn-icon btn-icon-sm preset-tonal-surface"
-							title="Back to Dashboard"
-						>
-							<ArrowLeft class="h-5 w-5" />
-						</button>
-
 						<div>
 							<h1 class="mb-2 text-3xl font-bold">{flashcardSet.title}</h1>
 
@@ -347,49 +336,43 @@
 
 				<div class="mt-6">
 					<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-						<!-- Flashcards -->
 						<a
 							href="/quiz/{setId}/flashcard"
-							class="btn flex-col preset-tonal-surface px-4 py-3 text-center no-underline"
+							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
 						>
-							<Brain class="mx-auto mb-1 h-5 w-5" />
-							<span class="text-sm">Flashcards</span>
+							<img src={flascardIcon} alt="flashcard" class="mx-auto mb-1 h-9 w-9 object-contain" />
+							<span class="text-sm font-semibold">Flashcards</span>
 						</a>
 
-						<!-- Learn -->
 						<a
 							href="/quiz/{setId}/learn"
-							class="btn flex-col preset-tonal-surface px-4 py-3 text-center no-underline"
+							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
 						>
-							<BookOpen class="mx-auto mb-1 h-5 w-5" />
-							<span class="text-sm">Learn</span>
+							<img src={learnIcon} alt="learn" class="mx-auto mb-1 h-9 w-9 object-contain" />
+							<span class="text-sm font-semibold">Learn</span>
 						</a>
 
-						<!-- Test -->
 						<a
 							href="/quiz/{setId}/test"
-							class="btn flex-col preset-tonal-surface px-4 py-3 text-center no-underline"
+							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
 						>
-							<Target class="mx-auto mb-1 h-5 w-5" />
-							<span class="text-sm">Test</span>
+							<img src={testIcon} alt="test" class="mx-auto mb-1 h-9 w-9 object-contain" />
+							<span class="text-sm font-semibold">Test</span>
 						</a>
 
-						<!-- Match -->
 						<a
 							href="/quiz/{setId}/match"
-							class="btn flex-col preset-tonal-surface px-4 py-3 text-center no-underline"
+							class="btn flex-col preset-tonal px-4 py-3 text-center no-underline"
 						>
-							<Users class="mx-auto mb-1 h-5 w-5" />
-							<span class="text-sm">Match</span>
+							<img src={matchIcon} alt="matchmaking" class="mx-auto mb-1 h-9 w-9 object-contain" />
+							<span class="text-sm font-semibold">Match</span>
 						</a>
 					</div>
 				</div>
 			</div>
 		</header>
 
-		<!-- Content Section -->
-		<main class="mx-auto max-w-6xl px-6 py-8">
-			<!-- Flashcard Component -->
+		<main class="mx-auto max-w-6xl py-8">
 			<section>
 				<Flashcard
 					{flashcardSet}
@@ -411,7 +394,6 @@
 		</main>
 	</div>
 
-	<!-- Delete Confirmation Modal -->
 	<Modal bind:showModal={showDeleteModal} title="Delete Flashcard Set">
 		{#snippet children()}
 			<p class="mb-4">

@@ -1,7 +1,5 @@
 <script>
 	import {
-		ChevronLeft,
-		ChevronRight,
 		Play,
 		Shuffle,
 		Settings,
@@ -9,7 +7,10 @@
 		Edit,
 		Check,
 		X,
-		Volume2
+		Volume2,
+		ArrowRight,
+		ArrowLeft,
+		Pause
 	} from 'lucide-svelte';
 	import { toast } from '$lib/stores/toast.js';
 	import { supabase } from '$lib/supabase.js';
@@ -23,7 +24,7 @@
 		onPrevious,
 		onShuffle,
 		onEdit,
-		onStarToggle = () => {} // Callback untuk star toggle
+		onStarToggle = () => {}
 	} = $props();
 
 	let showAnswer = $state(false);
@@ -183,9 +184,7 @@
 					title={isPlaying ? 'Pause' : 'Play'}
 				>
 					{#if isPlaying}
-						<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M6 4h4v16H6zm8 0h4v16h-4z" />
-						</svg>
+						<Pause class="h-5 w-5" />
 					{:else}
 						<Play class="h-5 w-5" />
 					{/if}
@@ -268,30 +267,28 @@
 		<!-- Navigation Controls -->
 		<div class="mt-6 flex items-center justify-between">
 			<button
-				class="btn preset-filled-primary-500 px-8 py-3"
+				class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
 				onclick={previousCard}
 				disabled={isFirstCard}
 			>
-				<ChevronLeft class="mr-2 h-5 w-5" />
-				Previous
+				<ArrowLeft class="h-7 w-7" size={20} />
 			</button>
 
 			<button
-				class="btn preset-filled-primary-500 px-8 py-3"
+				class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
 				onclick={nextCard}
 				disabled={isLastCard}
 			>
-				Next
-				<ChevronRight class="ml-2 h-5 w-5" />
+				<ArrowRight class="h-7 w-7" />
 			</button>
 		</div>
 
 		<!-- Help Text -->
-		<div class="mt-4 text-center">
+		<!-- <div class="mt-4 text-center">
 			<p class="text-surface-600-300-token text-sm">
 				Use arrow keys to navigate • Press E to edit • Press space to flip
 			</p>
-		</div>
+		</div> -->
 	</div>
 
 	<!-- Edit Modal -->
