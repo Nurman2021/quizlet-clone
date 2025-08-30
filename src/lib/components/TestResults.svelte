@@ -69,12 +69,12 @@
 
 		<!-- Action Buttons -->
 		<div class="mb-8 flex justify-center space-x-4">
-			<button class="variant-filled-primary btn" on:click={retakeTest}>
+			<button class="variant-filled-primary btn" onclick={retakeTest}>
 				<RotateCcw class="h-4 w-4" />
 				<span>Retake Test</span>
 			</button>
-			<button class="btn preset-tonal-surface" on:click={backToSetup}> Back to Setup </button>
-			<button class="btn preset-tonal-surface" on:click={goHome}>
+			<button class="btn preset-tonal-surface" onclick={backToSetup}> Back to Setup </button>
+			<button class="btn preset-tonal-surface" onclick={goHome}>
 				<Home class="h-4 w-4" />
 				<span>Home</span>
 			</button>

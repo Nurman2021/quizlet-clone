@@ -1,17 +1,6 @@
 <script>
 	import { Navigation } from '@skeletonlabs/skeleton-svelte';
-	import {
-		MenuIcon,
-		HomeIcon,
-		LibraryIcon,
-		BellIcon,
-		BookIcon,
-		FolderPlusIcon,
-		ZapIcon,
-		BookOpenIcon,
-		SettingsIcon,
-		FolderSearchIcon
-	} from 'lucide-svelte';
+	import { MenuIcon, HomeIcon, ZapIcon, FolderOpenIcon, SettingsIcon } from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
 
 	function toggleExpanded() {
@@ -37,7 +26,7 @@
 			{/if}
 
 			<Navigation.Tile labelExpanded="Your Folders" href="/folders">
-				<BookIcon />
+				<FolderOpenIcon />
 			</Navigation.Tile>
 
 			<!-- Separator -->

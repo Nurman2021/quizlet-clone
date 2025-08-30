@@ -56,6 +56,14 @@
 			toast.error('Move Failed', 'Failed to move set: ' + error.message);
 		}
 	}
+
+	function closeModal() {
+		showMoveToFolderModal = false;
+	}
+
+	function closeDropdown() {
+		showDropdown = null;
+	}
 </script>
 
 <svelte:head>
@@ -99,7 +107,7 @@
 									<div class="relative">
 										<button
 											class="btn-icon btn-icon-sm preset-tonal-surface"
-											on:click={() => toggleDropdown(activity.id)}
+											onclick={() => toggleDropdown(activity.id)}
 										>
 											<MoreVertical class="h-4 w-4" />
 										</button>
@@ -111,14 +119,14 @@
 												<nav class="list-nav p-2">
 													<button
 														class="btn w-full justify-start preset-tonal-surface btn-sm"
-														on:click={() => goto(`/quiz/${activity.id}`)}
+														onclick={() => goto(`/quiz/${activity.id}`)}
 													>
 														<Eye class="h-4 w-4" />
 														<span>View</span>
 													</button>
 													<button
 														class="btn w-full justify-start preset-tonal-surface btn-sm"
-														on:click={() => openMoveToFolder(activity.id)}
+														onclick={() => openMoveToFolder(activity.id)}
 													>
 														<Folder class="h-4 w-4" />
 														<span>Move to Folder</span>
@@ -152,17 +160,17 @@
 <!-- Move to Folder Modal -->
 {#if showMoveToFolderModal}
 	<div
-		class="bg-surface-backdrop-token fixed inset-0 z-40"
-		on:click={() => (showMoveToFolderModal = false)}
+		class="fixed inset-0 z-40 bg-surface-50-950"
+		onclick={closeModal}
 		role="button"
 		tabindex="-1"
-		on:keydown={(e) => e.key === 'Escape' && (showMoveToFolderModal = false)}
+		onkeydown={(e) => e.key === 'Escape' && closeModal()}
 	>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
-			on:click|stopPropagation
+			onclick={(e) => e.stopPropagation()}
 		>
 			<div class="bg-surface-100-800-token rounded-container-token shadow-xl">
 				<div class="p-6">
@@ -185,13 +193,8 @@
 					{/if}
 
 					<div class="mt-6 flex justify-end space-x-2">
-						<button
-							class="btn preset-tonal-surface"
-							on:click={() => (showMoveToFolderModal = false)}
-						>
-							Cancel
-						</button>
-						<button class="btn preset-tonal" on:click={moveToFolder} disabled={!selectedFolderId}>
+						<button class="btn preset-tonal-surface" onclick={closeModal}> Cancel </button>
+						<button class="btn preset-tonal" onclick={moveToFolder} disabled={!selectedFolderId}>
 							Move
 						</button>
 					</div>
@@ -205,8 +208,8 @@
 {#if showDropdown}
 	<div
 		class="fixed inset-0 z-0"
-		on:click={() => (showDropdown = null)}
-		on:keydown={() => {}}
+		onclick={closeDropdown}
+		onkeydown={() => {}}
 		role="button"
 		tabindex="-1"
 	></div>

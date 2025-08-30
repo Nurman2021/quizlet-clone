@@ -47,7 +47,7 @@
 			<!-- Sidebar Toggle Button -->
 			<button
 				class="btn preset-tonal-surface btn-lg"
-				on:click={toggleSidebar}
+				onclick={toggleSidebar}
 				aria-label="Toggle sidebar"
 			>
 				<Menu class="h-8 w-8" />
@@ -91,7 +91,7 @@
 								src={avatarUrl}
 								alt="User avatar"
 								class="h-8 w-8 rounded-full object-cover"
-								on:error={(e) => (e.target.style.display = 'none')}
+								onerror={(e) => (e.target.style.display = 'none')}
 							/>
 						{:else}
 							<div
@@ -105,7 +105,7 @@
 					<!-- Dropdown menu (you can add this later) -->
 				</div>
 
-				<button class="btn preset-tonal-surface btn-sm" on:click={handleLogout} aria-label="Logout">
+				<button class="btn preset-tonal-surface btn-sm" onclick={handleLogout} aria-label="Logout">
 					<LogOut class="h-5 w-5" />
 				</button>
 			{:else}
