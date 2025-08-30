@@ -1,7 +1,8 @@
 <script>
 	import { Navigation } from '@skeletonlabs/skeleton-svelte';
-	import { MenuIcon, HomeIcon, ZapIcon, FolderOpenIcon, SettingsIcon } from 'lucide-svelte';
+	import { MenuIcon, HomeIcon, FolderOpenIcon, SettingsIcon } from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
+	import CardIcon from './CardIcon.svelte';
 
 	function toggleExpanded() {
 		sidebarExpanded.update((expanded) => !expanded);
@@ -40,7 +41,7 @@
 
 			<!-- Start here Section -->
 			<Navigation.Tile labelExpanded="Flashcard" href="/create">
-				<ZapIcon />
+				<CardIcon size="auto" className="h-6 w-6" />
 			</Navigation.Tile>
 		{/snippet}
 
