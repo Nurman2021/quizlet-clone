@@ -2,8 +2,9 @@
 	import { createEventDispatcher } from 'svelte';
 	import { BookOpen } from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
+	import { toast } from '$lib/stores/toast.js';
 
-	let { flashcardSet } = $props();
+	let { flashcardSet, filterStarred = false } = $props();
 
 	const dispatch = createEventDispatcher();
 
@@ -15,6 +16,11 @@
 	let correctCount = $state(0);
 	let totalAnswered = $state(0);
 
+	// Calculate starred count
+	let starredCount = $derived(
+		flashcardSet?.flashcards?.filter((card) => card.is_starred)?.length || 0
+	);
+
 	// Generate questions when component loads
 	$effect(() => {
 		if (flashcardSet?.flashcards?.length > 0) {
@@ -23,7 +29,21 @@
 	});
 
 	function generateQuestions() {
-		const shuffledCards = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
+		if (!flashcardSet?.flashcards) return;
+
+		let availableCards = flashcardSet.flashcards;
+
+		// Filter starred cards jika diminta
+		if (filterStarred) {
+			availableCards = availableCards.filter((card) => card.is_starred);
+
+			if (availableCards.length === 0) {
+				toast.warning('No starred cards found in this set');
+				return;
+			}
+		}
+
+		const shuffledCards = [...availableCards].sort(() => Math.random() - 0.5);
 
 		currentQuestions = shuffledCards.map((card, index) => {
 			// Generate multiple choice options
@@ -174,6 +194,23 @@
 			</div>
 
 			<button class="btn preset-tonal-surface" onclick={studyWithLearn}> Study with Learn </button>
+		</div>
+
+		<!-- Filter Toggle -->
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-xl font-semibold">Learn Mode</h2>
+
+			<div class="flex items-center space-x-4">
+				<label class="flex items-center space-x-2">
+					<input
+						type="checkbox"
+						bind:checked={filterStarred}
+						onchange={generateQuestions}
+						class="checkbox"
+					/>
+					<span class="text-sm">Starred only ({starredCount})</span>
+				</label>
+			</div>
 		</div>
 
 		<!-- Question Card -->

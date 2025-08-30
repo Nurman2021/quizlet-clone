@@ -84,13 +84,32 @@
 		toast.info('Test started!');
 	}
 
+	function cancelSetup() {
+		// Redirect back to quiz page when user cancels setup
+		goto(`/quiz/${setId}`);
+	}
+
 	function generateQuestions() {
 		if (!flashcardSet?.flashcards || !testConfig) return;
 
-		const shuffledCards = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
+		let availableCards = flashcardSet.flashcards;
+
+		// Filter starred cards jika diminta
+		if (testConfig.useStarredOnly) {
+			availableCards = availableCards.filter((card) => card.is_starred);
+
+			if (availableCards.length === 0) {
+				toast.error('No starred cards available for test');
+				resetTest();
+				return;
+			}
+		}
+
+		// Shuffle dan pilih cards
+		const shuffledCards = [...availableCards].sort(() => Math.random() - 0.5);
 		const selectedCards = shuffledCards.slice(
 			0,
-			Math.min(testConfig.questionCount, flashcardSet.flashcards.length)
+			Math.min(testConfig.questionCount, availableCards.length)
 		);
 
 		let questions = [];
@@ -191,6 +210,11 @@
 			wrongOptions.push(isAskingForTerm ? shuffledOthers[i].term : shuffledOthers[i].definition);
 		}
 
+		// Fill with placeholder options if we don't have enough
+		while (wrongOptions.length < 3) {
+			wrongOptions.push(`Option ${wrongOptions.length + 1}`);
+		}
+
 		const allOptions = [correctAnswer, ...wrongOptions].sort(() => Math.random() - 0.5);
 
 		return {
@@ -217,6 +241,11 @@
 		let options = [correctAnswer];
 		for (let i = 0; i < Math.min(3, shuffledOthers.length); i++) {
 			options.push(isAskingForTerm ? shuffledOthers[i].term : shuffledOthers[i].definition);
+		}
+
+		// Fill with placeholder options if we don't have enough
+		while (options.length < 4) {
+			options.push(`Option ${options.length}`);
 		}
 
 		return options.sort(() => Math.random() - 0.5);
@@ -363,7 +392,12 @@
 	</div>
 {:else if flashcardSet}
 	<!-- Test Setup Modal -->
-	<TestSetup bind:show={showSetup} on:start-test={startTest} />
+	<TestSetup
+		bind:show={showSetup}
+		maxQuestions={flashcardSet?.flashcards?.length || 20}
+		on:start-test={startTest}
+		on:close={cancelSetup}
+	/>
 
 	{#if testInProgress}
 		<!-- Test Interface with Navigation Sidebar -->

@@ -22,7 +22,8 @@
 		onNext,
 		onPrevious,
 		onShuffle,
-		onEdit
+		onEdit,
+		onStarToggle = () => {} // Callback untuk star toggle
 	} = $props();
 
 	let showAnswer = $state(false);
@@ -160,6 +161,13 @@
 			await ProgressService.recordAttempt(currentCard.id, flashcardSet.id, 'flashcard', isCorrect);
 		}
 	}
+
+	// Function untuk toggle star current card
+	async function toggleCurrentCardStar() {
+		if (currentCard) {
+			await onStarToggle(currentCard.id);
+		}
+	}
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -203,7 +211,7 @@
 			<div class="flex items-center space-x-2">
 				<button
 					class="btn-icon btn-icon-sm preset-tonal-surface"
-					onclick={toggleStar}
+					onclick={toggleCurrentCardStar}
 					class:text-yellow-500={currentCard.is_starred}
 					title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
 				>

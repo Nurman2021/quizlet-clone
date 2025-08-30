@@ -2,29 +2,76 @@
 	import Modal from './Modal.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	let { show = $bindable() } = $props();
+	let { show = $bindable(), maxQuestions = 20 } = $props();
 
 	const dispatch = createEventDispatcher();
 
-	let questionCount = $state(5);
+	let questionCount = $state(Math.min(5, maxQuestions));
 	let answerWith = $state('both');
 	let trueFalse = $state(true);
 	let multipleChoice = $state(true);
 	let matching = $state(false);
 	let written = $state(false);
+	let useStarredOnly = $state(false);
+	let starredCount = $state(0);
+
+	// Update questionCount when maxQuestions changes
+	$effect(() => {
+		if (questionCount > maxQuestions) {
+			questionCount = maxQuestions;
+		}
+	});
+
+	// Update starredCount when maxQuestions changes
+	$effect(() => {
+		if (maxQuestions !== undefined) {
+			starredCount = flashcardSet?.flashcards?.filter((card) => card.is_starred)?.length || 0;
+		}
+	});
 
 	function closeModal() {
 		show = false;
+		dispatch('close');
 	}
 
 	function startTest() {
+		// Auto-enable True/False and Written if no question types selected and maxQuestions is limited
+		if (!trueFalse && !multipleChoice && !matching && !written) {
+			if (maxQuestions >= 1) {
+				trueFalse = true;
+				written = true;
+			} else {
+				alert('No flashcards available for test.');
+				return;
+			}
+		}
+
+		// Disable invalid question types for small flashcard sets
+		if (maxQuestions < 4) {
+			if (multipleChoice || matching) {
+				console.warn('Disabling multiple choice and matching due to insufficient flashcards');
+				multipleChoice = false;
+				matching = false;
+
+				// Ensure at least True/False or Written is enabled
+				if (!trueFalse && !written) {
+					trueFalse = true;
+					written = true;
+				}
+			}
+		}
+
+		// Ensure questionCount doesn't exceed available flashcards
+		const validQuestionCount = Math.min(questionCount, maxQuestions);
+
 		const config = {
-			questionCount,
+			questionCount: validQuestionCount,
 			answerWith,
 			trueFalse,
 			multipleChoice,
 			matching,
-			written
+			written,
+			useStarredOnly // Tambahan untuk starred filter
 		};
 
 		console.log('Dispatching start-test event with config:', config);
@@ -37,16 +84,35 @@
 	{#snippet children()}
 		<!-- Configuration Options -->
 		<div class="space-y-6">
+			<!-- Warning for limited flashcards -->
+			{#if maxQuestions < 5}
+				<div class="bg-warning-50-900-token border-warning-200-700-token rounded-lg border p-4">
+					<div class="flex items-start space-x-3">
+						<div class="mt-0.5 text-warning-500">⚠️</div>
+						<div>
+							<h4 class="text-warning-800-100-token font-medium">Limited Flashcards</h4>
+							<p class="text-warning-700-200-token text-sm">
+								Only {maxQuestions} flashcard{maxQuestions === 1 ? '' : 's'} available. Consider adding
+								more flashcards for a better test experience.
+							</p>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Questions Count -->
 			<div class="flex items-center justify-between">
 				<label for="maxQuestions" class="font-medium">
-					Questions <span class="text-surface-500">({questionCount} questions)</span>
+					Questions
+					<span class="text-surface-500">
+						({questionCount} of {maxQuestions} available)
+					</span>
 				</label>
 				<input
 					id="maxQuestions"
 					type="number"
 					min="1"
-					max="20"
+					max={maxQuestions}
 					bind:value={questionCount}
 					class="input w-20"
 				/>
@@ -74,19 +140,40 @@
 
 				<!-- Multiple Choice -->
 				<div class="flex items-center justify-between">
-					<label for="multipleChoice" class="font-medium">Multiple choice</label>
+					<div class="flex-1">
+						<label for="multipleChoice" class="font-medium">Multiple choice</label>
+						{#if maxQuestions < 4}
+							<p class="text-warning-600-300-token text-xs">
+								Need at least 4 flashcards for good multiple choice options
+							</p>
+						{/if}
+					</div>
 					<input
 						id="multipleChoice"
 						type="checkbox"
 						bind:checked={multipleChoice}
 						class="checkbox"
+						disabled={maxQuestions < 2}
 					/>
 				</div>
 
 				<!-- Matching -->
 				<div class="flex items-center justify-between">
-					<label for="matching" class="font-medium">Matching</label>
-					<input id="matching" type="checkbox" bind:checked={matching} class="checkbox" />
+					<div class="flex-1">
+						<label for="matching" class="font-medium">Matching</label>
+						{#if maxQuestions < 4}
+							<p class="text-warning-600-300-token text-xs">
+								Need at least 4 flashcards for good matching options
+							</p>
+						{/if}
+					</div>
+					<input
+						id="matching"
+						type="checkbox"
+						bind:checked={matching}
+						class="checkbox"
+						disabled={maxQuestions < 2}
+					/>
 				</div>
 
 				<!-- Written -->
@@ -94,6 +181,32 @@
 					<label for="written" class="font-medium">Written</label>
 					<input id="written" type="checkbox" bind:checked={written} class="checkbox" />
 				</div>
+			</div>
+
+			<!-- Starred Filter Option -->
+			<div class="space-y-3">
+				<h3 class="text-lg font-semibold">Card Selection</h3>
+
+				<label class="flex items-center space-x-3">
+					<input
+						type="checkbox"
+						bind:checked={useStarredOnly}
+						disabled={starredCount === 0}
+						class="checkbox"
+					/>
+					<span class="text-sm">
+						Use starred cards only
+						<span class="text-surface-500-400-token">
+							({starredCount} available)
+						</span>
+					</span>
+				</label>
+
+				{#if useStarredOnly && starredCount === 0}
+					<p class="text-sm text-warning-500">
+						No starred cards available. Please star some cards first.
+					</p>
+				{/if}
 			</div>
 
 			<!-- Actions -->

@@ -36,9 +36,20 @@
 	let showDeleteModal = $state(false);
 	let isDeleting = $state(false);
 
+	// Star functionality
+	let starredCards = $state([]);
+
+	function updateStarredCards() {
+		if (flashcardSet?.flashcards) {
+			starredCards = flashcardSet.flashcards.filter((card) => card.is_starred) || [];
+		} else {
+			starredCards = [];
+		}
+	}
+
 	// Learning progress tracking
-	let stillLearning = $state([]); // Cards that were answered incorrectly
-	let mastered = $state([]); // Cards that were answered correctly
+	let stillLearning = $state([]);
+	let mastered = $state([]);
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -58,13 +69,14 @@
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
-				.select('*')
+				.select('id, term, definition, is_starred, created_at, updated_at, set_id')
 				.eq('set_id', setId)
 				.order('created_at');
 
 			if (cardsError) throw cardsError;
 
-			flashcardSet = { ...set, flashcards: cards };
+			flashcardSet = { ...set, flashcards: cards || [] };
+			updateStarredCards();
 		} catch (error) {
 			console.error('Error loading flashcard set:', error);
 			toast.error('Failed to load flashcard set', error.message);
@@ -105,7 +117,6 @@
 		);
 	}
 
-	// Handle learning progress from Learn component (for future use)
 	function handleLearningProgress(event) {
 		const { stillLearning: newStillLearning, mastered: newMastered } = event.detail;
 		stillLearning = newStillLearning || [];
@@ -168,6 +179,78 @@
 			showDeleteModal = false;
 		}
 	}
+
+	// Function untuk toggle star pada flashcard
+	async function toggleCardStar(cardId) {
+		try {
+			if (!flashcardSet?.flashcards) {
+				toast.error('Flashcard set not loaded');
+				return;
+			}
+
+			const card = flashcardSet.flashcards.find((c) => c.id === cardId);
+			if (!card) {
+				toast.error('Card not found');
+				return;
+			}
+
+			const newStarredState = !card.is_starred;
+
+			// Update di database
+			const { error } = await supabase
+				.from('flashcards')
+				.update({ is_starred: newStarredState })
+				.eq('id', cardId);
+
+			if (error) throw error;
+
+			// Update local state
+			flashcardSet.flashcards = flashcardSet.flashcards.map((c) =>
+				c.id === cardId ? { ...c, is_starred: newStarredState } : c
+			);
+
+			// Update starred cards array
+			updateStarredCards();
+
+			toast.success(newStarredState ? 'Card starred!' : 'Star removed');
+		} catch (error) {
+			console.error('Error toggling star:', error);
+			toast.error('Failed to update star');
+		}
+	}
+
+	async function toggleSetStar() {
+		try {
+			if (!flashcardSet?.flashcards?.length) {
+				toast.error('No flashcards available');
+				return;
+			}
+
+			const isCurrentlyStarred = starredCards.length > 0;
+			const newStarredState = !isCurrentlyStarred;
+
+			// Update semua cards di set
+			const { error } = await supabase
+				.from('flashcards')
+				.update({ is_starred: newStarredState })
+				.eq('set_id', setId);
+
+			if (error) throw error;
+
+			// Update local state
+			flashcardSet.flashcards = flashcardSet.flashcards.map((card) => ({
+				...card,
+				is_starred: newStarredState
+			}));
+
+			updateStarredCards();
+
+			toast.success(newStarredState ? 'All cards starred!' : 'All stars removed');
+		} catch (error) {
+			console.error('Error toggling set star:', error);
+			toast.error('Failed to update stars');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -187,11 +270,10 @@
 	<!-- Main Quiz Container -->
 	<div class="bg-surface-50-900-token min-h-screen">
 		<!-- Header Section -->
-		<header class="bg-surface-100-800-token border-surface-300-600-token border-b px-6 py-8">
+		<header class="bg-surface-100-800-token px-6 py-4">
 			<div class="mx-auto max-w-6xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
-						<!-- Back Button -->
 						<button
 							onclick={exitQuiz}
 							class="btn-icon btn-icon-sm preset-tonal-surface"
@@ -201,7 +283,6 @@
 						</button>
 
 						<div>
-							<!-- Quiz Title -->
 							<h1 class="mb-2 text-3xl font-bold">{flashcardSet.title}</h1>
 
 							<div class="mt-3 flex items-center space-x-4">
@@ -221,16 +302,20 @@
 							<Settings class="mr-2 h-5 w-5" />
 							Settings
 						</button>
-						<button class="btn preset-tonal-surface" title="Star">
-							<Star class="mr-2 h-5 w-5" />
-							Star
+						<button
+							onclick={toggleSetStar}
+							class="btn preset-tonal-surface {starredCards.length > 0 ? 'text-yellow-500' : ''}"
+							title={starredCards.length > 0 ? 'Remove all stars' : 'Star all cards'}
+						>
+							<Star class="mr-2 h-5 w-5 {starredCards.length > 0 ? 'fill-current' : ''}" />
+							Star {starredCards.length > 0 ? `(${starredCards.length})` : ''}
 						</button>
 
 						<!-- Actions Dropdown -->
 						<div class="relative">
 							<button
 								onclick={toggleDropdown}
-								class="btn preset-filled-primary-500"
+								class="btn-icon btn preset-tonal-surface"
 								title="More actions"
 							>
 								<MoreVertical class="h-5 w-5" />
@@ -260,7 +345,6 @@
 					</div>
 				</div>
 
-				<!-- Mode Selection Buttons (Like Quizlet) -->
 				<div class="mt-6">
 					<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
 						<!-- Flashcards -->
@@ -314,6 +398,7 @@
 					onPrevious={previousCard}
 					onShuffle={shuffleCards}
 					onEdit={handleCardEdit}
+					onStarToggle={toggleCardStar}
 				/>
 			</section>
 			<section>
@@ -321,7 +406,7 @@
 			</section>
 
 			<section class="mt-12">
-				<ProgressSummary {flashcardSet} />
+				<ProgressSummary {flashcardSet} onStarToggle={toggleCardStar} />
 			</section>
 		</main>
 	</div>

@@ -1,15 +1,22 @@
-<!-- src/lib/components/ProgressSummary.svelte -->
 <script>
 	import { onMount } from 'svelte';
 	import { Star, Volume2, Edit, Sparkles } from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
 
-	let { flashcardSet } = $props();
+	let { flashcardSet, onStarToggle } = $props();
 
 	let stillLearning = $state([]);
 	let mastered = $state([]);
 	let isLoading = $state(true);
 	let selectedTab = $state('all'); // 'all', 'starred', 'stats'
+
+	// Starred terms dari progress
+	let starredTerms = $state([]);
+
+	// Calculate starred count from flashcard set
+	let starredCount = $derived(
+		flashcardSet?.flashcards?.filter((card) => card.is_starred)?.length || 0
+	);
 
 	onMount(async () => {
 		await loadProgress();
@@ -23,6 +30,9 @@
 			);
 			stillLearning = sl;
 			mastered = m;
+
+			// Filter starred terms
+			starredTerms = [...sl, ...m].filter((item) => item.flashcards?.is_starred);
 		} catch (error) {
 			console.error('Error loading progress:', error);
 		} finally {
@@ -47,6 +57,15 @@
 			speechSynthesis.speak(utterance);
 		}
 	}
+
+	// Handle star toggle for progress items
+	async function handleStarToggle(cardId) {
+		if (onStarToggle) {
+			await onStarToggle(cardId);
+			// Reload progress to get updated starred status
+			await loadProgress();
+		}
+	}
 </script>
 
 {#if !isLoading}
@@ -68,7 +87,7 @@
 						: 'preset-tonal-surface'}"
 					onclick={() => (selectedTab = 'starred')}
 				>
-					Starred ({stillLearning.filter((item) => item.flashcards?.is_starred).length})
+					Starred ({starredCount})
 				</button>
 				<button
 					class="btn {selectedTab === 'stats'
@@ -135,7 +154,8 @@
 										<button
 											class="btn-icon btn-icon-sm preset-tonal-surface"
 											class:text-yellow-500={item.flashcards.is_starred}
-											title="Star"
+											title={item.flashcards.is_starred ? 'Remove star' : 'Add star'}
+											onclick={() => handleStarToggle(item.flashcards.id)}
 										>
 											<span class:fill-current={item.flashcards.is_starred}>
 												<Star class="h-4 w-4" />
@@ -198,7 +218,8 @@
 										<button
 											class="btn-icon btn-icon-sm preset-tonal-surface"
 											class:text-yellow-500={item.flashcards.is_starred}
-											title="Star"
+											title={item.flashcards.is_starred ? 'Remove star' : 'Add star'}
+											onclick={() => handleStarToggle(item.flashcards.id)}
 										>
 											<span class:fill-current={item.flashcards.is_starred}>
 												<Star class="h-4 w-4" />
@@ -234,7 +255,62 @@
 		{:else if selectedTab === 'starred'}
 			<!-- Starred Terms -->
 			<div class="py-12 text-center">
-				<p class="text-surface-600-300-token">Starred terms feature coming soon...</p>
+				{#if starredTerms.length > 0}
+					<div class="space-y-3">
+						{#each starredTerms as item}
+							<!-- Display starred terms with their progress -->
+							<div class="bg-surface-100-800-token rounded-lg border-l-4 border-yellow-500 p-4">
+								<div class="flex-1">
+									<div class="flex items-start space-x-4">
+										<div class="flex-1">
+											<h4 class="text-lg font-medium">{item.flashcards.term}</h4>
+											<p class="text-surface-600-300-token mt-1">{item.flashcards.definition}</p>
+
+											<!-- Progress Info -->
+											<div class="text-surface-500-400-token mt-2 text-xs">
+												Confidence: {item.confidence_level}/5 •
+												{item.correct_attempts}/{item.total_attempts} correct • Last seen: {new Date(
+													item.last_attempt_at
+												).toLocaleDateString()}
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="flex items-center space-x-2">
+									<button
+										class="btn-icon btn-icon-sm preset-tonal-surface"
+										onclick={() => playAudio(item.flashcards.term)}
+										title="Play audio"
+									>
+										<Volume2 class="h-4 w-4" />
+									</button>
+									<button class="btn-icon btn-icon-sm preset-tonal-surface" title="Edit">
+										<Edit class="h-4 w-4" />
+									</button>
+									<button
+										class="btn-icon btn-icon-sm preset-tonal-surface"
+										class:text-yellow-500={item.flashcards.is_starred}
+										title={item.flashcards.is_starred ? 'Remove star' : 'Add star'}
+										onclick={() => handleStarToggle(item.flashcards.id)}
+									>
+										<span class:fill-current={item.flashcards.is_starred}>
+											<Star class="h-4 w-4" />
+										</span>
+									</button>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="py-12 text-center">
+						<Star class="text-surface-400-500-token mx-auto mb-4 h-12 w-12" />
+						<h3 class="mb-2 text-lg font-semibold">No starred terms yet</h3>
+						<p class="text-surface-600-300-token">
+							Star important terms to track their progress separately.
+						</p>
+					</div>
+				{/if}
 			</div>
 		{:else if selectedTab === 'stats'}
 			<!-- Statistics -->
