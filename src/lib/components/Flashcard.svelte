@@ -180,14 +180,14 @@
 {#if currentCard}
 	<div class="flex h-full flex-col">
 		<div
-			class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal p-12 card-hover transition-all duration-300"
+			class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
 			onclick={toggleAnswer}
 			onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
 			role="button"
 			tabindex="0"
 		>
 			<!-- Card Controls -->
-			<div class="absolute top-12 flex w-full items-center justify-between px-12">
+			<div class="absolute top-10 flex w-full items-center justify-between px-10">
 				<button class="flex gap-2">
 					<Lightbulb class="h-5 w-5" />
 					Get a hint
@@ -277,7 +277,7 @@
 
 		<!-- Progress Bar -->
 		<div class="mt-6">
-			<div class="bg-surface-300-600-token h-2 w-full overflow-hidden rounded-full">
+			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
 				<div
 					class=" h-1 bg-primary-950-50 transition-all duration-300"
 					style="width: {progress}%"

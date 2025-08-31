@@ -63,11 +63,24 @@
 
 			const { data: set, error: setError } = await supabase
 				.from('flashcard_sets')
-				.select('*')
+				.select(
+					`
+                *,
+                users (
+                    id,
+                    full_name,
+                    email
+                )
+            `
+				)
 				.eq('id', setId)
 				.single();
 
 			if (setError) throw setError;
+
+			// Debug: Lihat struktur data
+			console.log('Flashcard set data:', set);
+			console.log('User data:', set.users);
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
@@ -273,15 +286,6 @@
 					<div class="flex items-center space-x-4">
 						<div>
 							<h1 class="mb-2 text-3xl font-bold">{flashcardSet.title}</h1>
-
-							<div class="mt-3 flex items-center space-x-4">
-								<span class="text-surface-600-300-token text-sm">
-									{flashcardSet.flashcards.length} terms
-								</span>
-								<span class="text-surface-600-300-token text-sm">
-									Created by {flashcardSet.user_email || 'Unknown'}
-								</span>
-							</div>
 						</div>
 					</div>
 
@@ -383,6 +387,17 @@
 					onEdit={handleCardEdit}
 					onStarToggle={toggleCardStar}
 				/>
+			</section>
+			<section class="my-12">
+				<p class="text-surface-700-200-token mb-3 text-base leading-relaxed">
+					{flashcardSet.description}
+				</p>
+				<span class="text-surface-600-300-token text-sm">
+					{flashcardSet.flashcards.length} terms
+				</span>
+				<span class="text-surface-600-300-token text-sm">
+					Created by {flashcardSet.users?.full_name || 'Unknown'}
+				</span>
 			</section>
 			<section>
 				<Learn {flashcardSet} on:learning-progress={handleLearningProgress} />
