@@ -3,6 +3,7 @@
 	import { BookOpen } from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
 	import { toast } from '$lib/stores/toast.js';
+	import learnIcon from '$lib/images/learn-img.png';
 
 	let { flashcardSet, filterStarred = false } = $props();
 
@@ -175,27 +176,12 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Generating questions...</p>
+			<p class="text-surface-600-400">Generating questions...</p>
 		</div>
 	</div>
 {:else if currentQuestion}
 	<!-- Learn Interface -->
 	<div class="space-y-6">
-		<!-- Header with Progress -->
-		<div class="flex items-center justify-between">
-			<div class="flex items-center space-x-3">
-				<div class="rounded-full bg-blue-500 p-2">
-					<BookOpen class="h-5 w-5 text-white" />
-				</div>
-				<div>
-					<h3 class="text-lg font-semibold">Learn</h3>
-					<p class="text-surface-600-300-token text-sm">{progress}</p>
-				</div>
-			</div>
-
-			<button class="btn preset-tonal-surface" onclick={studyWithLearn}> Study with Learn </button>
-		</div>
-
 		<!-- Filter Toggle -->
 		<div class="mb-4 flex items-center justify-between">
 			<h2 class="text-xl font-semibold">Learn Mode</h2>
@@ -214,14 +200,34 @@
 		</div>
 
 		<!-- Question Card -->
-		<div class="bg-surface-100-800-token rounded-lg p-8">
+		<div class="rounded-lg preset-tonal p-8">
+			<!-- Header with Progress -->
+			<div class="flex items-center justify-between">
+				<div class="flex gap-4">
+					<img src={learnIcon} alt="learn" class="mx-auto mb-1 h-9 w-9 object-contain" />
+					<h3 class="text-lg font-semibold">Learn</h3>
+				</div>
+				<div>
+					<p class="text-sm text-surface-600-400">{progress}</p>
+				</div>
+
+				<button
+					class="btn rounded-full preset-outlined-surface-500 font-semibold"
+					onclick={studyWithLearn}
+				>
+					Study with Learn
+				</button>
+			</div>
+
 			<div class="mb-8">
-				<h2 class="mb-4 text-2xl font-medium">{currentQuestion.term}</h2>
+				<div class="my-8 flex h-40 items-center">
+					<h2 class="mb-4 text-2xl font-medium">{currentQuestion.term}</h2>
+				</div>
 
 				{#if !showFeedback}
-					<p class="text-surface-600-300-token mb-6">Choose an answer</p>
+					<p class="mb-6 text-surface-600-400">Choose an answer</p>
 				{:else}
-					<p class="text-surface-600-300-token mb-6">
+					<p class="mb-6 text-surface-600-400">
 						{#if currentQuestion.isCorrect}
 							<span class="font-medium text-green-600">Correct!</span>
 						{:else}
@@ -233,7 +239,7 @@
 			</div>
 
 			<!-- Answer Options -->
-			<div class="mb-8 grid gap-3">
+			<div class="mb-8 grid grid-cols-2 gap-3">
 				{#each currentQuestion.options as option, index}
 					<button
 						class="rounded-lg border p-4 text-left transition-all duration-200 {showFeedback
@@ -282,7 +288,7 @@
 		{#if !showFeedback}
 			<div class="text-center">
 				<button
-					class="text-surface-600-300-token hover:text-surface-900-50-token text-sm underline"
+					class="hover:text-surface-900-50-token text-sm text-surface-600-400 underline"
 					onclick={() => selectAnswer('') && submitAnswer()}
 				>
 					Don't know?
@@ -293,9 +299,9 @@
 {:else}
 	<!-- End State -->
 	<div class="py-12 text-center">
-		<div class="bg-surface-100-800-token rounded-lg p-8">
+		<div class="rounded-lg preset-tonal p-8">
 			<h3 class="mb-4 text-2xl font-semibold">Great job!</h3>
-			<p class="text-surface-600-300-token mb-6">
+			<p class="mb-6 text-surface-600-400">
 				You completed all {currentQuestions.length} questions.
 				<br />
 				Score: {correctCount} out of {currentQuestions.length} correct
