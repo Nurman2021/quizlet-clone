@@ -1,145 +1,153 @@
 <script>
-	import { ProgressService } from '$lib/services/progressService.js';
+	import { QuestionService } from '$lib/services/questionService.js';
+	import { FeedbackService } from '$lib/services/feedbackService.js';
 	import { toast } from '$lib/stores/toast.js';
 	import learnIcon from '$lib/images/learn-img.png';
 
 	let { flashcardSet, filterStarred = false, mode = 'inline' } = $props();
 
 	let currentQuestionIndex = $state(0);
-	let userAnswers = $state({});
-	let showFeedback = $state(false);
 	let selectedAnswer = $state('');
 	let currentQuestions = $state([]);
-	let correctCount = $state(0);
-	let totalAnswered = $state(0);
+	let currentFeedback = $state(null);
+	let sessionResults = $state({});
 
 	// Calculate starred count
 	let starredCount = $derived(
 		flashcardSet?.flashcards?.filter((card) => card.is_starred)?.length || 0
 	);
 
-	// Generate questions when component loads
+	// Generate questions when component loads or when filter changes
 	$effect(() => {
 		if (flashcardSet?.flashcards?.length > 0) {
-			generateQuestions();
+			// Access filterStarred here to make it a dependency
+			const shouldFilterStarred = filterStarred;
+
+			console.log('Generating questions with filterStarred:', shouldFilterStarred);
+
+			// Use centralized question service
+			const newQuestions = QuestionService.generateMultipleChoice(flashcardSet.flashcards, {
+				maxOptions: 4,
+				questionType: 'definition',
+				filterStarred: shouldFilterStarred,
+				shuffleQuestions: true,
+				dynamicOptions: true
+			});
+
+			if (newQuestions.length === 0) {
+				toast.warning('No cards available for questions');
+				currentQuestions = [];
+				currentQuestionIndex = 0;
+				selectedAnswer = '';
+				currentFeedback = null;
+				sessionResults = {};
+				return;
+			}
+
+			// Update state
+			currentQuestions = newQuestions;
+			currentQuestionIndex = 0;
+			selectedAnswer = '';
+			currentFeedback = null;
+			sessionResults = {};
 		}
 	});
 
 	function generateQuestions() {
+		// This function now just triggers the effect by accessing reactive state
+		// The actual generation logic is in the effect above
 		if (!flashcardSet?.flashcards) return;
 
-		let availableCards = flashcardSet.flashcards;
+		// Force re-generation by updating a dummy reactive variable or just call the logic directly
+		const newQuestions = QuestionService.generateMultipleChoice(flashcardSet.flashcards, {
+			maxOptions: 4,
+			questionType: 'definition',
+			filterStarred: filterStarred,
+			shuffleQuestions: true,
+			dynamicOptions: true
+		});
 
-		// Filter starred cards jika diminta
-		if (filterStarred) {
-			availableCards = availableCards.filter((card) => card.is_starred);
-
-			if (availableCards.length === 0) {
-				toast.warning('No starred cards found in this set');
-				return;
-			}
+		if (newQuestions.length === 0) {
+			toast.warning('No cards available for questions');
+			currentQuestions = [];
+			return;
 		}
 
-		const shuffledCards = [...availableCards].sort(() => Math.random() - 0.5);
-
-		currentQuestions = shuffledCards.map((card, index) => {
-			// Generate multiple choice options
-			const correctAnswer = card.definition;
-			let options = [correctAnswer];
-
-			// Get random wrong answers from other cards
-			const otherCards = flashcardSet.flashcards.filter((c) => c.id !== card.id);
-			while (options.length < 4 && otherCards.length > 0) {
-				const randomCard = otherCards[Math.floor(Math.random() * otherCards.length)];
-				if (!options.includes(randomCard.definition)) {
-					options.push(randomCard.definition);
-				}
-				otherCards.splice(
-					otherCards.findIndex((c) => c.id === randomCard.id),
-					1
-				);
-			}
-
-			// Fill with dummy options if needed
-			while (options.length < 4) {
-				options.push(`Option ${options.length}`);
-			}
-
-			// Shuffle options
-			options = options.sort(() => Math.random() - 0.5);
-
-			return {
-				id: index,
-				term: card.term,
-				definition: card.definition,
-				options: options,
-				correctAnswer: correctAnswer,
-				flashcard_id: card.id,
-				userAnswer: null,
-				isCorrect: false
-			};
-		});
+		currentQuestions = newQuestions;
+		currentQuestionIndex = 0;
+		selectedAnswer = '';
+		currentFeedback = null;
+		sessionResults = {};
 	}
 
 	function selectAnswer(answer) {
-		if (showFeedback) return;
+		if (currentFeedback) return;
 		selectedAnswer = answer;
-	}
 
-	function submitAnswer() {
-		if (!selectedAnswer) return;
-
+		// Use centralized feedback service
 		const currentQuestion = currentQuestions[currentQuestionIndex];
-		const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+		currentQuestion.startTime = currentQuestion.startTime || Date.now();
 
-		currentQuestion.userAnswer = selectedAnswer;
-		currentQuestion.isCorrect = isCorrect;
+		const feedbackResult = FeedbackService.processAnswer(
+			currentQuestion,
+			answer,
+			flashcardSet.id,
+			'learn',
+			{
+				autoProgress: true,
+				progressDelay: 1500,
+				recordProgress: true,
+				showCorrectAnswer: true
+			}
+		);
 
-		userAnswers[currentQuestionIndex] = {
-			answer: selectedAnswer,
-			isCorrect: isCorrect
-		};
+		currentFeedback = feedbackResult;
 
-		totalAnswered++;
-		if (isCorrect) {
-			correctCount++;
-		}
-
-		// Record progress for the current flashcard
-		if (currentQuestion.flashcard_id && flashcardSet?.id) {
-			ProgressService.recordAttempt(
-				currentQuestion.flashcard_id,
-				flashcardSet.id,
-				'learn',
-				isCorrect,
-				null,
-				selectedAnswer
-			);
-		}
-
-		showFeedback = true;
+		// Show feedback and handle auto-progress
+		FeedbackService.showFeedback(feedbackResult, (result) => {
+			if (result.isCorrect) {
+				continueToNext();
+			}
+		});
 	}
 
 	function continueToNext() {
 		if (currentQuestionIndex < currentQuestions.length - 1) {
 			currentQuestionIndex++;
 			selectedAnswer = '';
-			showFeedback = false;
+			currentFeedback = null;
 		} else {
-			// End of questions - bisa ditambahkan toast notification jika diperlukan
-			toast.success(`Quiz completed! Score: ${correctCount}/${currentQuestions.length}`);
+			// Calculate final results using centralized service
+			sessionResults = FeedbackService.calculateSessionResults(currentQuestions);
+			toast.success(
+				`Quiz completed! Score: ${sessionResults.correctAnswers}/${sessionResults.totalQuestions}`
+			);
 		}
 	}
 
+	function showHint() {
+		// Use centralized feedback service for hint
+		const currentQuestion = currentQuestions[currentQuestionIndex];
+		currentQuestion.startTime = currentQuestion.startTime || Date.now();
+
+		const feedbackResult = FeedbackService.processAnswer(
+			currentQuestion,
+			'', // Empty answer for hint
+			flashcardSet.id,
+			'learn',
+			{
+				autoProgress: false,
+				recordProgress: true,
+				showCorrectAnswer: true
+			}
+		);
+
+		selectedAnswer = '';
+		currentFeedback = feedbackResult;
+	}
 	function studyWithLearn() {
 		// Reset everything and start over
 		generateQuestions();
-		currentQuestionIndex = 0;
-		selectedAnswer = '';
-		showFeedback = false;
-		userAnswers = {};
-		correctCount = 0;
-		totalAnswered = 0;
 	}
 
 	let currentQuestion = $derived(currentQuestions[currentQuestionIndex]);
@@ -169,12 +177,7 @@
 
 			<div class="flex items-center space-x-4">
 				<label class="flex items-center space-x-2">
-					<input
-						type="checkbox"
-						bind:checked={filterStarred}
-						onchange={generateQuestions}
-						class="checkbox"
-					/>
+					<input type="checkbox" bind:checked={filterStarred} class="checkbox" />
 					<span class="text-sm">Starred only ({starredCount})</span>
 				</label>
 			</div>
@@ -191,25 +194,24 @@
 				<div>
 					<p class="text-sm text-surface-600-400">{progress}</p>
 				</div>
-
-				<button
+				<a
+					href="/quiz/{flashcardSet.id}/learn"
 					class="btn rounded-full preset-outlined-surface-500 font-semibold"
-					onclick={studyWithLearn}
 				>
 					Study with Learn
-				</button>
+				</a>
 			</div>
 
 			<div class="mb-8">
 				<div class="my-8 flex {mode === 'fullpage' ? 'h-48' : 'h-40'} items-center justify-center">
-					<h2 class="mb-4 text-xl font-semibold">{currentQuestion.term}</h2>
+					<h2 class="mb-4 text-xl font-semibold">{currentQuestion.question}</h2>
 				</div>
 
-				{#if !showFeedback}
+				{#if !currentFeedback}
 					<p class="mb-6 text-surface-600-400">Choose an answer</p>
 				{:else}
 					<p class="mb-6 text-surface-600-400">
-						{#if currentQuestion.isCorrect}
+						{#if currentFeedback.isCorrect}
 							<span class="font-medium text-green-600">Correct!</span>
 						{:else}
 							<span class="font-medium text-red-600">Incorrect.</span> The correct answer is:
@@ -223,7 +225,7 @@
 			<div class="mb-8 grid grid-cols-2 gap-3">
 				{#each currentQuestion.options as option, index}
 					<button
-						class="rounded-lg border p-4 text-left transition-all duration-200 {showFeedback
+						class="rounded-lg border p-4 text-left transition-all duration-200 {currentFeedback
 							? option === currentQuestion.correctAnswer
 								? 'border-green-500 bg-green-100 text-green-800 dark:border-green-400 dark:bg-green-900 dark:text-green-200'
 								: option === selectedAnswer && option !== currentQuestion.correctAnswer
@@ -233,7 +235,7 @@
 								? 'border-primary-500 bg-primary-100 text-primary-800 dark:border-primary-400 dark:bg-primary-900 dark:text-primary-200'
 								: 'bg-surface-200-700-token border-surface-300-600-token hover:bg-surface-300-600-token'}"
 						onclick={() => selectAnswer(option)}
-						disabled={showFeedback}
+						disabled={currentFeedback}
 					>
 						<div class="flex items-center space-x-3">
 							<span
@@ -246,36 +248,23 @@
 					</button>
 				{/each}
 			</div>
-
-			<!-- Action Button -->
-			<div class="flex justify-center">
-				{#if !showFeedback}
-					<button
-						class="btn preset-filled-primary-500 px-8 py-3"
-						onclick={submitAnswer}
-						disabled={!selectedAnswer}
-					>
-						Submit
-					</button>
-				{:else}
-					<button class="btn preset-filled-primary-500 px-8 py-3" onclick={continueToNext}>
-						{currentQuestionIndex < currentQuestions.length - 1 ? 'Continue' : 'Finish'}
-					</button>
-				{/if}
-			</div>
 		</div>
 
-		<!-- Don't know section -->
-		{#if !showFeedback}
-			<div class="text-center">
+		<!-- Don't know / Continue section -->
+		<div class="text-center">
+			{#if !currentFeedback}
 				<button
 					class="hover:text-surface-900-50-token text-sm text-surface-600-400 underline"
-					onclick={() => selectAnswer('') && submitAnswer()}
+					onclick={showHint}
 				>
 					Don't know?
 				</button>
-			</div>
-		{/if}
+			{:else if !currentFeedback.isCorrect}
+				<button class="btn preset-filled-primary-500 px-6 py-2" onclick={continueToNext}>
+					{currentQuestionIndex < currentQuestions.length - 1 ? 'Continue' : 'Finish'}
+				</button>
+			{/if}
+		</div>
 	</div>
 {:else}
 	<!-- End State -->
@@ -285,7 +274,7 @@
 			<p class="mb-6 text-surface-600-400">
 				You completed all {currentQuestions.length} questions.
 				<br />
-				Score: {correctCount} out of {currentQuestions.length} correct
+				Score: {sessionResults?.correctAnswers || 0} out of {currentQuestions.length} correct
 			</p>
 			<button class="btn preset-filled-primary-500" onclick={studyWithLearn}> Study Again </button>
 		</div>
