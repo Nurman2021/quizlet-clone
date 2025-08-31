@@ -116,8 +116,8 @@
 				flashcardSet.id,
 				'learn',
 				isCorrect,
-				null, // responseTime
-				selectedAnswer // answerText
+				null,
+				selectedAnswer
 			);
 		}
 
@@ -220,8 +220,8 @@
 			</div>
 
 			<div class="mb-8">
-				<div class="my-8 flex h-40 items-center">
-					<h2 class="mb-4 text-2xl font-medium">{currentQuestion.term}</h2>
+				<div class="my-8 flex h-40 items-center justify-center">
+					<h2 class="mb-4 text-xl font-semibold">{currentQuestion.term}</h2>
 				</div>
 
 				{#if !showFeedback}

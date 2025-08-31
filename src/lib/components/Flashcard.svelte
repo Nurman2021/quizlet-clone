@@ -47,8 +47,16 @@
 			: 0
 	);
 
+	// Tambahan untuk flip animation
+	let cardContainer = $state();
+	let flipTransition = $state(false);
+
 	function toggleAnswer() {
-		showAnswer = !showAnswer;
+		flipTransition = true;
+		setTimeout(() => {
+			showAnswer = !showAnswer;
+			flipTransition = false;
+		}, 150); // Half of transition duration
 	}
 
 	function nextCard() {
@@ -179,57 +187,120 @@
 
 {#if currentCard}
 	<div class="flex h-full flex-col">
-		<div
-			class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
-			onclick={toggleAnswer}
-			onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
-			role="button"
-			tabindex="0"
-		>
-			<!-- Card Controls -->
-			<div class="absolute top-10 flex w-full items-center justify-between px-10">
-				<button class="flex gap-2">
-					<Lightbulb class="h-5 w-5" />
-					Get a hint
-				</button>
+		<!-- Flip Container -->
+		<div class="flip-container perspective-1000 min-h-[400px] w-full">
+			<div
+				bind:this={cardContainer}
+				class="flip-card preserve-3d relative h-full w-full transition-transform duration-300"
+				class:flipped={showAnswer}
+			>
+				<!-- Front Side (Term) -->
+				<div class="flip-card-face flip-card-front">
+					<div
+						class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
+						onclick={toggleAnswer}
+						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
+						role="button"
+						tabindex="0"
+					>
+						<!-- Card Controls (existing) -->
+						<div class="absolute top-10 flex w-full items-center justify-between px-10">
+							<button class="flex gap-2">
+								<Lightbulb class="h-5 w-5" />
+								Get a hint
+							</button>
 
-				<div class="text-surface-600-300-token text-lg font-medium">
-					{currentIndex + 1} / {flashcardSet.flashcards.length}
+							<div class="text-lg font-medium text-surface-600-400">
+								{currentIndex + 1} / {flashcardSet.flashcards.length}
+							</div>
+
+							<div class="flex items-center space-x-2">
+								<button
+									class="btn-icon btn-icon-sm"
+									onclick={toggleCurrentCardStar}
+									class:text-yellow-500={currentCard.is_starred}
+									title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+								>
+									<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
+								</button>
+
+								<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
+									<Edit class="h-5 w-5" />
+								</button>
+
+								<button
+									class="btn-icon btn-icon-sm"
+									onclick={() => speakText(currentCard.term)}
+									title="Listen to pronunciation"
+								>
+									<Volume2 class="h-5 w-5" />
+								</button>
+							</div>
+						</div>
+
+						<!-- Term Content -->
+						<div class="text-center">
+							<h2 class="mb-4 text-4xl font-bold">{currentCard.term}</h2>
+						</div>
+					</div>
 				</div>
-				<div class="flex items-center space-x-2">
-					<button
-						class="btn-icon btn-icon-sm"
-						onclick={toggleCurrentCardStar}
-						class:text-yellow-500={currentCard.is_starred}
-						title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
-					>
-						<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
-					</button>
 
-					<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
-						<Edit class="h-5 w-5" />
-					</button>
-
-					<button
-						class="btn-icon btn-icon-sm"
-						onclick={() => speakText(currentCard.term)}
-						title="Listen to pronunciation"
+				<!-- Back Side (Definition) -->
+				<div class="flip-card-face flip-card-back">
+					<div
+						class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
+						onclick={toggleAnswer}
+						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
+						role="button"
+						tabindex="0"
 					>
-						<Volume2 class="h-5 w-5" />
-					</button>
+						<!-- Card Controls (duplicated for back side) -->
+						<div class="absolute top-10 flex w-full items-center justify-between px-10">
+							<button class="flex gap-2">
+								<Lightbulb class="h-5 w-5" />
+								Get a hint
+							</button>
+
+							<div class="text-lg font-medium text-surface-600-400">
+								{currentIndex + 1} / {flashcardSet.flashcards.length}
+							</div>
+
+							<div class="flex items-center space-x-2">
+								<button
+									class="btn-icon btn-icon-sm"
+									onclick={toggleCurrentCardStar}
+									class:text-yellow-500={currentCard.is_starred}
+									title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
+								>
+									<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
+								</button>
+
+								<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
+									<Edit class="h-5 w-5" />
+								</button>
+
+								<button
+									class="btn-icon btn-icon-sm"
+									onclick={() => speakText(currentCard.definition)}
+									title="Listen to pronunciation"
+								>
+									<Volume2 class="h-5 w-5" />
+								</button>
+							</div>
+						</div>
+
+						<!-- Definition Content with Reveal Animation -->
+						<div class="text-center">
+							<h2 class="reveal-text mb-4 text-3xl font-medium" class:animate-reveal={showAnswer}>
+								{currentCard.definition}
+							</h2>
+						</div>
+					</div>
 				</div>
 			</div>
-			<!-- Large Flashcard -->
-
-			<!-- View Mode -->
-			{#if !showAnswer}
-				<h2 class="mb-4 text-4xl font-bold">{currentCard.term}</h2>
-			{:else}
-				<h2 class="mb-4 text-3xl font-medium">{currentCard.definition}</h2>
-			{/if}
 		</div>
 
-		<!-- Navigation Controls -->
+		<!-- Navigation Controls (existing - tidak berubah) -->
 		<div class="mt-6 flex items-center justify-between">
 			<Switch name="example" checked={state} onCheckedChange={(e) => (state = e.checked)} />
 			<div>
@@ -275,7 +346,7 @@
 			</div>
 		</div>
 
-		<!-- Progress Bar -->
+		<!-- Progress Bar (existing - tidak berubah) -->
 		<div class="mt-6">
 			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
 				<div
@@ -286,15 +357,12 @@
 		</div>
 	</div>
 
-	<!-- Edit Modal -->
+	<!-- Edit Modal (existing - tidak berubah) -->
 	<Modal bind:showModal={showEditModal} title="Edit Flashcard">
 		{#snippet children()}
 			<div class="space-y-6">
 				<div>
-					<label
-						for="modal-edit-term"
-						class="text-surface-600-300-token mb-3 block text-lg font-medium"
-					>
+					<label for="modal-edit-term" class="mb-3 block text-lg font-medium text-surface-600-400">
 						Term
 					</label>
 					<input
@@ -309,7 +377,7 @@
 				<div>
 					<label
 						for="modal-edit-definition"
-						class="text-surface-600-300-token mb-3 block text-lg font-medium"
+						class="mb-3 block text-lg font-medium text-surface-600-400"
 					>
 						Definition
 					</label>
@@ -343,6 +411,67 @@
 	</Modal>
 {:else}
 	<div class="flex h-full items-center justify-center">
-		<p class="text-surface-600-300-token">No flashcard data available</p>
+		<p class="text-surface-600-400">No flashcard data available</p>
 	</div>
 {/if}
+
+<style>
+	/* 3D Flip Animation Styles */
+	.perspective-1000 {
+		perspective: 3000px;
+	}
+
+	.preserve-3d {
+		transform-style: preserve-3d;
+	}
+
+	.flip-card {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		transition: transform 0.3s;
+		transform-style: preserve-3d;
+	}
+
+	.flip-card.flipped {
+		transform: rotateY(180deg);
+	}
+
+	.flip-card-face {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+		border-radius: 0.75rem; /* rounded-xl */
+	}
+
+	.flip-card-back {
+		transform: rotateY(180deg);
+	}
+
+	/* Text Reveal Animation */
+	.reveal-text {
+		color: transparent;
+		transition: color 0.3s ease-in-out;
+	}
+
+	.reveal-text.animate-reveal {
+		color: inherit;
+	}
+
+	@keyframes revealTextSlowly {
+		from {
+			color: transparent;
+			opacity: 0;
+		}
+		to {
+			color: inherit;
+			opacity: 1;
+		}
+	}
+
+	.animate-reveal {
+		animation: revealTextSlowly 0.3s forwards;
+	}
+</style>
