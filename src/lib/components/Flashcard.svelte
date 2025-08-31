@@ -2,11 +2,8 @@
 	import {
 		Play,
 		Shuffle,
-		Settings,
 		Star,
 		Edit,
-		Check,
-		X,
 		Volume2,
 		ArrowRight,
 		ArrowLeft,
@@ -18,7 +15,6 @@
 	import { toast } from '$lib/stores/toast.js';
 	import { supabase } from '$lib/supabase.js';
 	import Modal from './Modal.svelte';
-	import { ProgressService } from '$lib/services/progressService';
 
 	let {
 		flashcardSet,
@@ -27,7 +23,8 @@
 		onPrevious,
 		onShuffle,
 		onEdit,
-		onStarToggle = () => {}
+		onStarToggle = () => {},
+		mode = 'inline' // 'fullpage' atau 'inline'
 	} = $props();
 
 	let state = $state(false);
@@ -47,16 +44,16 @@
 			: 0
 	);
 
-	// Tambahan untuk flip animation
-	let cardContainer = $state();
-	let flipTransition = $state(false);
+	// Tambahan untuk flip animation - tidak digunakan saat ini
+	// let cardContainer = $state();
+	// let flipTransition = $state(false);
 
 	function toggleAnswer() {
-		flipTransition = true;
-		setTimeout(() => {
-			showAnswer = !showAnswer;
-			flipTransition = false;
-		}, 150); // Half of transition duration
+		// flipTransition = true;
+		// setTimeout(() => {
+		showAnswer = !showAnswer;
+		// 	flipTransition = false;
+		// }, 150); // Half of transition duration
 	}
 
 	function nextCard() {
@@ -116,22 +113,6 @@
 		}
 	}
 
-	async function toggleStar() {
-		if (!currentCard) return;
-
-		try {
-			const newStarred = !currentCard.is_starred;
-
-			await supabase.from('flashcards').update({ is_starred: newStarred }).eq('id', currentCard.id);
-
-			currentCard.is_starred = newStarred;
-			toast.success(newStarred ? 'Added to favorites' : 'Removed from favorites');
-		} catch (error) {
-			console.error('Error toggling star:', error);
-			toast.error('Failed to update favorite');
-		}
-	}
-
 	function speakText(text) {
 		if ('speechSynthesis' in window) {
 			const utterance = new SpeechSynthesisUtterance(text);
@@ -169,12 +150,6 @@
 		}
 	}
 
-	async function recordFlashcardInteraction(isCorrect) {
-		if (currentCard) {
-			await ProgressService.recordAttempt(currentCard.id, flashcardSet.id, 'flashcard', isCorrect);
-		}
-	}
-
 	// Function untuk toggle star current card
 	async function toggleCurrentCardStar() {
 		if (currentCard) {
@@ -186,18 +161,23 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if currentCard}
-	<div class="flex h-full flex-col">
+	<div class="flex h-full flex-col {mode === 'fullpage' ? 'mx-auto max-w-4xl px-6 py-8' : ''}">
 		<!-- Flip Container -->
-		<div class="flip-container perspective-1000 min-h-[400px] w-full">
+		<div
+			class="flip-container perspective-1000 {mode === 'fullpage'
+				? 'min-h-[500px]'
+				: 'min-h-[400px]'} w-full"
+		>
 			<div
-				bind:this={cardContainer}
 				class="flip-card preserve-3d relative h-full w-full transition-transform duration-300"
 				class:flipped={showAnswer}
 			>
 				<!-- Front Side (Term) -->
 				<div class="flip-card-face flip-card-front">
 					<div
-						class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
+						class="relative flex {mode === 'fullpage'
+							? 'min-h-[500px]'
+							: 'min-h-[400px]'} w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
 						onclick={toggleAnswer}
 						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
 						role="button"
@@ -246,9 +226,12 @@
 				</div>
 
 				<!-- Back Side (Definition) -->
+				<!-- Back Side (Definition) -->
 				<div class="flip-card-face flip-card-back">
 					<div
-						class="relative flex min-h-[400px] w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
+						class="relative flex {mode === 'fullpage'
+							? 'min-h-[500px]'
+							: 'min-h-[400px]'} w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
 						onclick={toggleAnswer}
 						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
 						role="button"
@@ -341,8 +324,13 @@
 				>
 					<Shuffle class="h-5 w-5" />
 				</button>
-
-				<a href="/"><Scan class="h-5 w-5" /></a>
+				<a
+					href="/quiz/{flashcardSet.id}/flashcard"
+					class="btn-icon btn-icon-sm preset-tonal-surface"
+					title="Flashcard mode"
+				>
+					<Scan class="h-5 w-5" />
+				</a>
 			</div>
 		</div>
 

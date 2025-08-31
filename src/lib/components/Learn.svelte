@@ -1,13 +1,9 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
-	import { BookOpen } from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
 	import { toast } from '$lib/stores/toast.js';
 	import learnIcon from '$lib/images/learn-img.png';
 
-	let { flashcardSet, filterStarred = false } = $props();
-
-	const dispatch = createEventDispatcher();
+	let { flashcardSet, filterStarred = false, mode = 'inline' } = $props();
 
 	let currentQuestionIndex = $state(0);
 	let userAnswers = $state({});
@@ -122,17 +118,6 @@
 		}
 
 		showFeedback = true;
-
-		// Dispatch progress event
-		dispatch('learning-progress', {
-			stillLearning: currentQuestions.filter((q) => q.userAnswer && !q.isCorrect),
-			mastered: currentQuestions.filter((q) => q.userAnswer && q.isCorrect),
-			progress: {
-				correct: correctCount,
-				total: totalAnswered,
-				percentage: Math.round((correctCount / totalAnswered) * 100)
-			}
-		});
 	}
 
 	function continueToNext() {
@@ -141,12 +126,8 @@
 			selectedAnswer = '';
 			showFeedback = false;
 		} else {
-			// End of questions
-			dispatch('learning-complete', {
-				correctCount,
-				totalQuestions: currentQuestions.length,
-				percentage: Math.round((correctCount / currentQuestions.length) * 100)
-			});
+			// End of questions - bisa ditambahkan toast notification jika diperlukan
+			toast.success(`Quiz completed! Score: ${correctCount}/${currentQuestions.length}`);
 		}
 	}
 
@@ -181,7 +162,7 @@
 	</div>
 {:else if currentQuestion}
 	<!-- Learn Interface -->
-	<div class="space-y-6">
+	<div class="space-y-6 {mode === 'fullpage' ? 'mx-auto max-w-4xl px-6 py-8' : ''}">
 		<!-- Filter Toggle -->
 		<div class="mb-4 flex items-center justify-between">
 			<h2 class="text-xl font-semibold">Learn Mode</h2>
@@ -200,7 +181,7 @@
 		</div>
 
 		<!-- Question Card -->
-		<div class="rounded-lg preset-tonal p-8">
+		<div class="rounded-lg preset-tonal {mode === 'fullpage' ? 'p-12' : 'p-8'}">
 			<!-- Header with Progress -->
 			<div class="flex items-center justify-between">
 				<div class="flex gap-4">
@@ -220,7 +201,7 @@
 			</div>
 
 			<div class="mb-8">
-				<div class="my-8 flex h-40 items-center justify-center">
+				<div class="my-8 flex {mode === 'fullpage' ? 'h-48' : 'h-40'} items-center justify-center">
 					<h2 class="mb-4 text-xl font-semibold">{currentQuestion.term}</h2>
 				</div>
 

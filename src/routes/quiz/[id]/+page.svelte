@@ -4,17 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import {
-		ArrowLeft,
-		Zap,
-		Users,
-		Settings,
-		Star,
-		Volume2,
-		MoreVertical,
-		Edit3,
-		Trash2
-	} from 'lucide-svelte';
+	import { Settings, Star, MoreVertical, Edit3, Trash2 } from 'lucide-svelte';
 
 	// Components
 	import Flashcard from '$lib/components/Flashcard.svelte';
@@ -49,10 +39,6 @@
 		}
 	}
 
-	// Learning progress tracking
-	let stillLearning = $state([]);
-	let mastered = $state([]);
-
 	onMount(async () => {
 		await loadFlashcardSet();
 	});
@@ -77,10 +63,6 @@
 				.single();
 
 			if (setError) throw setError;
-
-			// Debug: Lihat struktur data
-			console.log('Flashcard set data:', set);
-			console.log('User data:', set.users);
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
@@ -125,12 +107,6 @@
 		flashcardSet.flashcards = flashcardSet.flashcards.map((card) =>
 			card.id === updatedCard.id ? updatedCard : card
 		);
-	}
-
-	function handleLearningProgress(event) {
-		const { stillLearning: newStillLearning, mastered: newMastered } = event.detail;
-		stillLearning = newStillLearning || [];
-		mastered = newMastered || [];
 	}
 
 	function toggleDropdown() {
@@ -386,6 +362,7 @@
 					onShuffle={shuffleCards}
 					onEdit={handleCardEdit}
 					onStarToggle={toggleCardStar}
+					mode="inline"
 				/>
 			</section>
 			<section class="my-12">
@@ -400,7 +377,7 @@
 				</span>
 			</section>
 			<section>
-				<Learn {flashcardSet} on:learning-progress={handleLearningProgress} />
+				<Learn {flashcardSet} mode="inline" />
 			</section>
 
 			<section class="mt-12">

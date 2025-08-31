@@ -12,7 +12,6 @@
 	let setId = $page.params.id;
 	let flashcardSet = $state(null);
 	let isLoading = $state(true);
-	let learnProgress = $state(null);
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -32,7 +31,7 @@
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
-				.select('*')
+				.select('id, term, definition, is_starred, created_at, updated_at, set_id')
 				.eq('set_id', setId)
 				.order('created_at');
 
@@ -50,10 +49,6 @@
 
 	function exitLearn() {
 		goto(`/quiz/${setId}`);
-	}
-
-	function handleLearningProgress(event) {
-		learnProgress = event.detail;
 	}
 
 	function restartLearn() {
@@ -117,39 +112,11 @@
 					</button>
 				</div>
 			</div>
-
-			<!-- Progress Display -->
-			{#if learnProgress}
-				<div class="mt-4">
-					<div class="flex items-center justify-between text-sm">
-						<span class="font-medium">Progress</span>
-						<span class="text-surface-600-300-token">
-							{learnProgress.correct} / {learnProgress.total} completed
-						</span>
-					</div>
-
-					<div class="bg-surface-300-600-token mt-2 h-2 w-full overflow-hidden rounded-full">
-						<div
-							class="h-2 bg-primary-500 transition-all duration-300"
-							style="width: {(learnProgress.correct / learnProgress.total) * 100}%"
-						></div>
-					</div>
-
-					<div class="text-surface-600-300-token mt-2 flex items-center justify-between text-xs">
-						<span
-							>Accuracy: {Math.round(
-								(learnProgress.correct / (learnProgress.correct + learnProgress.incorrect)) * 100
-							) || 0}%</span
-						>
-						<span>Remaining: {learnProgress.total - learnProgress.correct}</span>
-					</div>
-				</div>
-			{/if}
 		</header>
 
 		<!-- Main Learn Area -->
 		<main class="flex-1 overflow-hidden">
-			<Learn {flashcardSet} onLearningProgress={handleLearningProgress} />
+			<Learn {flashcardSet} mode="fullpage" />
 		</main>
 	</div>
 {:else}

@@ -32,7 +32,7 @@
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
-				.select('*')
+				.select('id, term, definition, is_starred, created_at, updated_at, set_id')
 				.eq('set_id', setId)
 				.order('created_at');
 
@@ -77,6 +77,32 @@
 		flashcardSet.flashcards = flashcardSet.flashcards.map((card) =>
 			card.id === updatedCard.id ? updatedCard : card
 		);
+	}
+
+	async function handleStarToggle(cardId) {
+		try {
+			const card = flashcardSet.flashcards.find((c) => c.id === cardId);
+			if (!card) return;
+
+			const newStarredState = !card.is_starred;
+
+			const { error } = await supabase
+				.from('flashcards')
+				.update({ is_starred: newStarredState })
+				.eq('id', cardId);
+
+			if (error) throw error;
+
+			// Update local state
+			flashcardSet.flashcards = flashcardSet.flashcards.map((c) =>
+				c.id === cardId ? { ...c, is_starred: newStarredState } : c
+			);
+
+			toast.success(newStarredState ? 'Added to favorites!' : 'Removed from favorites!');
+		} catch (error) {
+			console.error('Error toggling star:', error);
+			toast.error('Failed to update favorite status');
+		}
 	}
 
 	let progress = $derived(
@@ -157,6 +183,8 @@
 				onPrevious={previousCard}
 				onShuffle={shuffleCards}
 				onEdit={handleCardEdit}
+				onStarToggle={handleStarToggle}
+				mode="fullpage"
 			/>
 		</main>
 	</div>
