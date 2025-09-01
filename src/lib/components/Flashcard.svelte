@@ -34,6 +34,7 @@
 	let editDefinition = $state('');
 	let isSaving = $state(false);
 	let isPlaying = $state(false);
+	let autoPlayInterval = $state(null);
 
 	let currentCard = $derived(flashcardSet?.flashcards[currentIndex]);
 	let isFirstCard = $derived(currentIndex === 0);
@@ -44,25 +45,32 @@
 			: 0
 	);
 
-	// Tambahan untuk flip animation - tidak digunakan saat ini
-	// let cardContainer = $state();
-	// let flipTransition = $state(false);
-
 	function toggleAnswer() {
-		// flipTransition = true;
-		// setTimeout(() => {
 		showAnswer = !showAnswer;
-		// 	flipTransition = false;
-		// }, 150); // Half of transition duration
+		// Stop auto-play if user manually toggles answer
+		if (isPlaying) {
+			stopAutoPlay();
+			isPlaying = false;
+		}
 	}
 
 	function nextCard() {
 		showAnswer = false;
+		// Stop auto-play if user manually navigates
+		if (isPlaying) {
+			stopAutoPlay();
+			isPlaying = false;
+		}
 		onNext?.();
 	}
 
 	function previousCard() {
 		showAnswer = false;
+		// Stop auto-play if user manually navigates
+		if (isPlaying) {
+			stopAutoPlay();
+			isPlaying = false;
+		}
 		onPrevious?.();
 	}
 
@@ -123,8 +131,51 @@
 
 	function togglePlay() {
 		isPlaying = !isPlaying;
-		// TODO: Implement auto-play functionality
+
+		if (isPlaying) {
+			startAutoPlay();
+		} else {
+			stopAutoPlay();
+		}
 	}
+
+	function startAutoPlay() {
+		if (autoPlayInterval) {
+			clearInterval(autoPlayInterval);
+		}
+
+		autoPlayInterval = setInterval(() => {
+			if (!showAnswer) {
+				// Show answer first
+				showAnswer = true;
+			} else {
+				// Move to next card or stop if at the end
+				if (isLastCard) {
+					stopAutoPlay();
+					isPlaying = false;
+					toast.success('Auto-play completed!');
+				} else {
+					nextCard();
+				}
+			}
+		}, 3000); // Fixed 3 seconds interval
+	}
+
+	function stopAutoPlay() {
+		if (autoPlayInterval) {
+			clearInterval(autoPlayInterval);
+			autoPlayInterval = null;
+		}
+	}
+
+	// Clean up interval on component destroy
+	$effect(() => {
+		return () => {
+			if (autoPlayInterval) {
+				clearInterval(autoPlayInterval);
+			}
+		};
+	});
 
 	// Keyboard shortcuts
 	function handleKeydown(event) {
@@ -219,8 +270,8 @@
 						</div>
 
 						<!-- Term Content -->
-						<div class="text-center">
-							<h2 class="mb-4 text-4xl font-bold">{currentCard.term}</h2>
+						<div class="px-6 py-4 text-center">
+							<h2 class="mb-4 max-w-2xl text-2xl font-medium">{currentCard.term}</h2>
 						</div>
 					</div>
 				</div>
@@ -273,8 +324,8 @@
 						</div>
 
 						<!-- Definition Content with Reveal Animation -->
-						<div class="text-center">
-							<h2 class="reveal-text mb-4 text-3xl font-medium" class:animate-reveal={showAnswer}>
+						<div class="px-6 py-4 text-center">
+							<h2 class="reveal-text text-2xl font-medium" class:animate-reveal={showAnswer}>
 								{currentCard.definition}
 							</h2>
 						</div>
@@ -306,9 +357,11 @@
 
 			<div class="flex items-center space-x-2">
 				<button
-					class="btn-icon btn-icon-sm preset-tonal-surface"
+					class="btn-icon btn-icon-sm {isPlaying
+						? 'preset-filled-primary-500'
+						: 'preset-tonal-surface'}"
 					onclick={togglePlay}
-					title={isPlaying ? 'Pause' : 'Play'}
+					title={isPlaying ? 'Pause auto-play' : 'Start auto-play'}
 				>
 					{#if isPlaying}
 						<Pause class="h-5 w-5" />
@@ -374,7 +427,7 @@
 						bind:value={editDefinition}
 						class="textarea w-full text-lg"
 						placeholder="Enter definition"
-						rows="4"
+						rows="2"
 						disabled={isSaving}
 					></textarea>
 				</div>
