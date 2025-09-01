@@ -63,57 +63,16 @@
 		showNavigationDropdown = !showNavigationDropdown;
 	}
 
-	// Flashcard navigation
-	function nextCard() {
-		if (currentCardIndex < flashcardSet.flashcards.length - 1) {
-			currentCardIndex++;
-		}
-	}
-
-	function previousCard() {
-		if (currentCardIndex > 0) {
-			currentCardIndex--;
-		}
-	}
-
-	function shuffleCards() {
-		const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
-		flashcardSet = { ...flashcardSet, flashcards: shuffled };
-		currentCardIndex = 0;
-		toast.success('Cards shuffled');
-	}
-
+	// Card edit callback - for parent-level updates
 	function handleCardEdit(updatedCard) {
-		// Update the card in the flashcard set
-		flashcardSet.flashcards = flashcardSet.flashcards.map((card) =>
-			card.id === updatedCard.id ? updatedCard : card
-		);
+		// Component handles the update, this is for additional parent logic
+		console.log('Card updated in flashcard page:', updatedCard);
 	}
 
-	async function handleStarToggle(cardId) {
-		try {
-			const card = flashcardSet.flashcards.find((c) => c.id === cardId);
-			if (!card) return;
-
-			const newStarredState = !card.is_starred;
-
-			const { error } = await supabase
-				.from('flashcards')
-				.update({ is_starred: newStarredState })
-				.eq('id', cardId);
-
-			if (error) throw error;
-
-			// Update local state
-			flashcardSet.flashcards = flashcardSet.flashcards.map((c) =>
-				c.id === cardId ? { ...c, is_starred: newStarredState } : c
-			);
-
-			toast.success(newStarredState ? 'Added to favorites!' : 'Removed from favorites!');
-		} catch (error) {
-			console.error('Error toggling star:', error);
-			toast.error('Failed to update favorite status');
-		}
+	// Star toggle callback - for parent-level updates
+	function handleStarToggle(cardId) {
+		// Component handles the update, this is for additional parent logic
+		console.log('Star toggled in flashcard page:', cardId);
 	}
 
 	let progress = $derived(
@@ -142,7 +101,7 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading flashcards...</p>
+			<p class="text-surface-600-400">Loading flashcards...</p>
 		</div>
 	</div>
 {:else if flashcardSet}
@@ -164,7 +123,7 @@
 
 					{#if showNavigationDropdown}
 						<div
-							class="border-surface-300-600-token absolute top-full left-4 z-10 mt-2 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+							class="absolute top-full left-4 z-10 mt-2 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
 						>
 							<div class="grid grid-cols-1 gap-2 p-3">
 								<a
@@ -234,7 +193,7 @@
 			<!-- Progress Bar -->
 			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
 				<div
-					class=" h-1 bg-primary-950-50 transition-all duration-300"
+					class="h-1 bg-primary-950-50 transition-all duration-300"
 					style="width: {progress}%"
 				></div>
 			</div>
@@ -243,12 +202,9 @@
 		<!-- Main Flashcard Area -->
 		<main class="flex-1 overflow-hidden">
 			<Flashcard
-				{flashcardSet}
+				bind:flashcardSet
 				bind:currentIndex={currentCardIndex}
-				onNext={nextCard}
-				onPrevious={previousCard}
-				onShuffle={shuffleCards}
-				onEdit={handleCardEdit}
+				onCardEdit={handleCardEdit}
 				onStarToggle={handleStarToggle}
 				mode="fullpage"
 			/>
@@ -258,9 +214,7 @@
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Flashcard set not found</h2>
-			<p class="text-surface-600-300-token mt-2">
-				The requested flashcard set could not be loaded.
-			</p>
+			<p class="mt-2 text-surface-600-400">The requested flashcard set could not be loaded.</p>
 			<button onclick={() => goto(`/quiz/${setId}`)} class="mt-4 btn preset-filled-primary-500">
 				Back to Quiz
 			</button>

@@ -17,12 +17,11 @@
 	import Modal from './Modal.svelte';
 
 	let {
-		flashcardSet,
+		flashcardSet = $bindable(),
 		currentIndex = $bindable(0),
 		onNext,
 		onPrevious,
-		onShuffle,
-		onEdit,
+		onCardEdit,
 		onStarToggle = () => {},
 		mode = 'inline' // 'fullpage' atau 'inline'
 	} = $props();
@@ -35,6 +34,7 @@
 	let isSaving = $state(false);
 	let isPlaying = $state(false);
 	let autoPlayInterval = $state(null);
+	let isShuffled = $state(false);
 
 	let currentCard = $derived(flashcardSet?.flashcards[currentIndex]);
 	let isFirstCard = $derived(currentIndex === 0);
@@ -61,6 +61,13 @@
 			stopAutoPlay();
 			isPlaying = false;
 		}
+
+		// Internal navigation logic
+		if (currentIndex < flashcardSet?.flashcards.length - 1) {
+			currentIndex++;
+		}
+
+		// Call parent callback if provided
 		onNext?.();
 	}
 
@@ -71,6 +78,13 @@
 			stopAutoPlay();
 			isPlaying = false;
 		}
+
+		// Internal navigation logic
+		if (currentIndex > 0) {
+			currentIndex--;
+		}
+
+		// Call parent callback if provided
 		onPrevious?.();
 	}
 
@@ -112,7 +126,7 @@
 
 			showEditModal = false;
 			toast.success('Flashcard updated successfully');
-			onEdit?.(currentCard);
+			onCardEdit?.(currentCard);
 		} catch (error) {
 			console.error('Error updating flashcard:', error);
 			toast.error('Failed to update flashcard: ' + error.message);
@@ -168,7 +182,20 @@
 		}
 	}
 
-	// Clean up interval on component destroy
+	function handleShuffle() {
+		if (!flashcardSet?.flashcards) return;
+
+		if (!isShuffled) {
+			// Shuffle the cards
+			const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
+			flashcardSet = { ...flashcardSet, flashcards: shuffled };
+			currentIndex = 0;
+			isShuffled = true;
+		} else {
+			isShuffled = false;
+		}
+	}
+
 	$effect(() => {
 		return () => {
 			if (autoPlayInterval) {
@@ -203,8 +230,61 @@
 
 	// Function untuk toggle star current card
 	async function toggleCurrentCardStar() {
-		if (currentCard) {
-			await onStarToggle(currentCard.id);
+		if (!currentCard) return;
+
+		try {
+			const { error } = await supabase
+				.from('flashcards')
+				.update({ is_starred: !currentCard.is_starred })
+				.eq('id', currentCard.id);
+
+			if (error) throw error;
+
+			// Update local state
+			currentCard.is_starred = !currentCard.is_starred;
+
+			// Update in flashcard set
+			if (flashcardSet?.flashcards) {
+				const cardIndex = flashcardSet.flashcards.findIndex((c) => c.id === currentCard.id);
+				if (cardIndex !== -1) {
+					flashcardSet.flashcards[cardIndex].is_starred = currentCard.is_starred;
+					flashcardSet = flashcardSet; // Trigger reactivity
+				}
+			}
+
+			// Call parent callback if provided
+			onStarToggle?.(currentCard.id);
+		} catch (error) {
+			console.error('Failed to toggle star:', error);
+		}
+	}
+
+	// Handle card editing
+	async function handleCardEdit(updatedCard) {
+		try {
+			const { error } = await supabase
+				.from('flashcards')
+				.update({
+					term: updatedCard.term,
+					definition: updatedCard.definition
+				})
+				.eq('id', updatedCard.id);
+
+			if (error) throw error;
+
+			// Update in the current flashcard set
+			if (flashcardSet?.flashcards) {
+				const cardIndex = flashcardSet.flashcards.findIndex((c) => c.id === updatedCard.id);
+				if (cardIndex !== -1) {
+					flashcardSet.flashcards[cardIndex] = updatedCard;
+					flashcardSet = flashcardSet; // Trigger reactivity
+				}
+			}
+
+			// Call parent callback if provided
+			onCardEdit?.(updatedCard);
+		} catch (error) {
+			console.error('Failed to update card:', error);
 		}
 	}
 </script>
@@ -216,7 +296,7 @@
 		<!-- Flip Container -->
 		<div
 			class="flip-container perspective-1000 {mode === 'fullpage'
-				? 'min-h-[500px]'
+				? 'h-full'
 				: 'min-h-[400px]'} w-full"
 		>
 			<div
@@ -227,7 +307,7 @@
 				<div class="flip-card-face flip-card-front">
 					<div
 						class="relative flex {mode === 'fullpage'
-							? 'min-h-[500px]'
+							? 'h-full'
 							: 'min-h-[400px]'} w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
 						onclick={toggleAnswer}
 						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
@@ -236,12 +316,14 @@
 					>
 						<!-- Card Controls (existing) -->
 						<div class="absolute top-10 flex w-full items-center justify-between px-10">
-							<button class="flex gap-2">
+							<button class="flex gap-2 text-sm">
 								<Lightbulb class="h-5 w-5" />
 								Get a hint
 							</button>
 
-							<div class="text-lg font-medium text-surface-600-400">
+							<div
+								class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400"
+							>
 								{currentIndex + 1} / {flashcardSet.flashcards.length}
 							</div>
 
@@ -271,17 +353,18 @@
 
 						<!-- Term Content -->
 						<div class="px-6 py-4 text-center">
-							<h2 class="mb-4 max-w-2xl text-2xl font-medium">{currentCard.term}</h2>
+							<h2 class="mb-4 max-w-2xl text-2xl font-medium">
+								{currentCard.term}
+							</h2>
 						</div>
 					</div>
 				</div>
 
 				<!-- Back Side (Definition) -->
-				<!-- Back Side (Definition) -->
 				<div class="flip-card-face flip-card-back">
 					<div
 						class="relative flex {mode === 'fullpage'
-							? 'min-h-[500px]'
+							? 'h-full'
 							: 'min-h-[400px]'} w-full cursor-pointer items-center justify-center card rounded-xl preset-tonal card-hover transition-all duration-300"
 						onclick={toggleAnswer}
 						onkeydown={(e) => e.key === 'Enter' && toggleAnswer()}
@@ -290,12 +373,14 @@
 					>
 						<!-- Card Controls (duplicated for back side) -->
 						<div class="absolute top-10 flex w-full items-center justify-between px-10">
-							<button class="flex gap-2">
+							<button class="flex gap-2 text-sm">
 								<Lightbulb class="h-5 w-5" />
 								Get a hint
 							</button>
 
-							<div class="text-lg font-medium text-surface-600-400">
+							<div
+								class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400"
+							>
 								{currentIndex + 1} / {flashcardSet.flashcards.length}
 							</div>
 
@@ -337,31 +422,26 @@
 		<!-- Navigation Controls (existing - tidak berubah) -->
 		<div class="mt-6 flex items-center justify-between">
 			<Switch name="example" checked={state} onCheckedChange={(e) => (state = e.checked)} />
-			<div>
+			<div class="flex gap-6">
 				<button
-					class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
+					class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
 					onclick={previousCard}
-					disabled={isFirstCard}
 				>
 					<ArrowLeft class="h-7 w-7" size={20} />
 				</button>
 
-				<button
-					class="btn rounded-full preset-outlined-primary-500 px-8 py-3"
-					onclick={nextCard}
-					disabled={isLastCard}
-				>
+				<button class="btn rounded-full preset-outlined-surface-500 px-8 py-3" onclick={nextCard}>
 					<ArrowRight class="h-7 w-7" />
 				</button>
 			</div>
 
 			<div class="flex items-center space-x-2">
 				<button
-					class="btn-icon btn-icon-sm {isPlaying
+					class="btn-icon btn-icon-base {isPlaying
 						? 'preset-filled-primary-500'
 						: 'preset-tonal-surface'}"
 					onclick={togglePlay}
-					title={isPlaying ? 'Pause auto-play' : 'Start auto-play'}
+					title="auto-play"
 				>
 					{#if isPlaying}
 						<Pause class="h-5 w-5" />
@@ -371,27 +451,31 @@
 				</button>
 
 				<button
-					class="btn-icon btn-icon-sm preset-tonal-surface"
-					onclick={onShuffle}
-					title="Shuffle cards"
+					class="btn-icon btn-icon-base {isShuffled
+						? 'preset-filled-primary-500'
+						: 'preset-tonal-surface'}"
+					onclick={handleShuffle}
+					title={isShuffled ? 'Restore order' : 'Shuffle cards'}
 				>
 					<Shuffle class="h-5 w-5" />
 				</button>
 				<a
 					href="/quiz/{flashcardSet.id}/flashcard"
-					class="btn-icon btn-icon-sm preset-tonal-surface"
+					class="{mode === 'fullpage'
+						? 'btn-icon hidden btn-icon-lg'
+						: 'btn-icon btn-icon-sm'} preset-tonal-surface"
 					title="Flashcard mode"
 				>
-					<Scan class="h-5 w-5" />
+					<Scan class={mode === 'fullpage' ? 'h-6 w-6' : 'h-5 w-5'} />
 				</a>
 			</div>
 		</div>
 
 		<!-- Progress Bar (existing - tidak berubah) -->
-		<div class="mt-6">
+		<div class="mt-6 {mode === 'fullpage' ? 'hidden' : 'block'}">
 			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
 				<div
-					class=" h-1 bg-primary-950-50 transition-all duration-300"
+					class="h-1 bg-primary-950-50 transition-all duration-300"
 					style="width: {progress}%"
 				></div>
 			</div>

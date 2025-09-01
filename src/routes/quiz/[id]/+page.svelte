@@ -83,30 +83,20 @@
 		}
 	}
 
-	function nextCard() {
-		if (currentCardIndex < flashcardSet.flashcards.length - 1) {
-			currentCardIndex++;
-		}
-	}
-
-	function previousCard() {
-		if (currentCardIndex > 0) {
-			currentCardIndex--;
-		}
-	}
-
-	function shuffleCards() {
-		const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
-		flashcardSet = { ...flashcardSet, flashcards: shuffled };
-		currentCardIndex = 0;
-		toast.success('Cards shuffled');
-	}
-
+	// Card edit callback - for parent-level updates
 	function handleCardEdit(updatedCard) {
-		// Update the card in the flashcard set
-		flashcardSet.flashcards = flashcardSet.flashcards.map((card) =>
-			card.id === updatedCard.id ? updatedCard : card
-		);
+		// Component handles the update, this is for additional parent logic
+		// Update starred cards if needed
+		updateStarredCards();
+		console.log('Card updated in main page:', updatedCard);
+	}
+
+	// Star toggle callback - for parent-level updates
+	function handleStarToggle(cardId) {
+		// Component handles the update, this is for additional parent logic
+		// Update starred cards array
+		updateStarredCards();
+		console.log('Star toggled in main page:', cardId);
 	}
 
 	function toggleDropdown() {
@@ -355,13 +345,10 @@
 		<main class="mx-auto max-w-6xl">
 			<section>
 				<Flashcard
-					{flashcardSet}
+					bind:flashcardSet
 					bind:currentIndex={currentCardIndex}
-					onNext={nextCard}
-					onPrevious={previousCard}
-					onShuffle={shuffleCards}
-					onEdit={handleCardEdit}
-					onStarToggle={toggleCardStar}
+					onCardEdit={handleCardEdit}
+					onStarToggle={handleStarToggle}
 					mode="inline"
 				/>
 			</section>
