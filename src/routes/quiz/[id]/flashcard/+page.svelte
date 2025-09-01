@@ -4,15 +4,22 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { ArrowLeft, Settings } from 'lucide-svelte';
+	import { ArrowLeft, Settings, X, ChevronDown } from 'lucide-svelte';
 
 	// Components
 	import Flashcard from '$lib/components/Flashcard.svelte';
+
+	// Icons for navigation
+	import flascardIcon from '$lib/images/flashcard-img.png';
+	import learnIcon from '$lib/images/learn-img.png';
+	import testIcon from '$lib/images/terst-img.png';
+	import matchIcon from '$lib/images/match-img.png';
 
 	let setId = $page.params.id;
 	let flashcardSet = $state(null);
 	let isLoading = $state(true);
 	let currentCardIndex = $state(0);
+	let showNavigationDropdown = $state(false);
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -50,6 +57,10 @@
 
 	function exitFlashcard() {
 		goto(`/quiz/${setId}`);
+	}
+
+	function toggleNavigationDropdown() {
+		showNavigationDropdown = !showNavigationDropdown;
 	}
 
 	// Flashcard navigation
@@ -110,11 +121,20 @@
 			? ((currentCardIndex + 1) / flashcardSet.flashcards.length) * 100
 			: 0
 	);
+
+	// Close dropdown when clicking outside
+	function handleClickOutside(event) {
+		if (showNavigationDropdown && !event.target.closest('.navigation-dropdown')) {
+			showNavigationDropdown = false;
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Flashcards - {flashcardSet?.title || 'Loading...'} - Quizcard</title>
 </svelte:head>
+
+<svelte:window on:click={handleClickOutside} />
 
 {#if isLoading}
 	<div class="flex h-screen items-center justify-center">
@@ -126,51 +146,97 @@
 		</div>
 	</div>
 {:else if flashcardSet}
-	<!-- Fullscreen Flashcard Container -->
-	<div class="bg-surface-50-900-token flex h-screen flex-col">
+	<div class=" flex h-screen flex-col bg-surface-50-950">
 		<!-- Flashcard Header -->
-		<header
-			class="bg-surface-100-800-token border-surface-300-600-token flex-shrink-0 border-b px-6 py-4"
-		>
-			<div class="flex items-center justify-between">
-				<div class="flex items-center space-x-4">
-					<!-- Back Button -->
+		<header class="mt-4 flex-shrink-0">
+			<div class="mx-6 mb-4 flex items-center justify-between">
+				<!-- Navigation Dropdown -->
+				<div class="navigation-dropdown relative">
 					<button
-						onclick={exitFlashcard}
-						class="btn-icon btn-icon-sm preset-tonal-surface"
-						title="Back to Quiz"
+						onclick={toggleNavigationDropdown}
+						class="flex items-center preset-tonal-surface"
+						title="Switch mode"
 					>
-						<ArrowLeft class="h-5 w-5" />
+						<img src={flascardIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
+						Flashcards
+						<ChevronDown class="ml-2 h-4 w-4" />
 					</button>
 
-					<div>
-						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-						<p class="text-surface-600-300-token text-sm">
-							Flashcard Mode • {currentCardIndex + 1} of {flashcardSet.flashcards.length} cards
-						</p>
-					</div>
+					{#if showNavigationDropdown}
+						<div
+							class="border-surface-300-600-token absolute top-full left-4 z-10 mt-2 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+						>
+							<div class="grid grid-cols-1 gap-2 p-3">
+								<a
+									href="/quiz/{setId}/flashcard"
+									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+								>
+									<img src={flascardIcon} alt="flashcard" class="mx-auto h-6 w-6 object-contain" />
+									<span class="text-xs font-semibold">Flashcards</span>
+								</a>
+
+								<a
+									href="/quiz/{setId}/learn"
+									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+								>
+									<img src={learnIcon} alt="learn" class="mx-auto h-6 w-6 object-contain" />
+									<span class="text-xs font-semibold">Learn</span>
+								</a>
+
+								<a
+									href="/quiz/{setId}/test"
+									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+								>
+									<img src={testIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
+									<span class="text-xs font-semibold">Test</span>
+								</a>
+
+								<a
+									href="/quiz/{setId}/match"
+									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+								>
+									<img src={matchIcon} alt="matchmaking" class="mx-auto h-6 w-6 object-contain" />
+									<span class="text-xs font-semibold">Match</span>
+								</a>
+								<a
+									href="/"
+									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+								>
+									<span class="text-xs font-semibold">Home</span>
+								</a>
+							</div>
+						</div>
+					{/if}
 				</div>
 
-				<div class="flex items-center space-x-2">
-					<!-- Settings -->
-					<button class="btn-icon btn-icon-sm preset-tonal-surface" title="Settings">
-						<Settings class="h-5 w-5" />
+				<div class="text-center text-base font-semibold text-surface-600-400">
+					<h1>
+						{currentCardIndex + 1} / {flashcardSet.flashcards.length}
+					</h1>
+					<h2>{flashcardSet.title}</h2>
+				</div>
+
+				<div class="flex items-center justify-center space-x-2">
+					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+						<Settings class="h-8 w-8" />
+					</button>
+
+					<button
+						onclick={exitFlashcard}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Back to Quiz"
+					>
+						<X class="h-8 w-8" />
 					</button>
 				</div>
 			</div>
 
 			<!-- Progress Bar -->
-			<div class="mt-4">
-				<div class="bg-surface-300-600-token h-2 w-full overflow-hidden rounded-full">
-					<div
-						class="h-2 bg-primary-500 transition-all duration-300"
-						style="width: {progress}%"
-					></div>
-				</div>
-				<div class="text-surface-600-300-token mt-2 flex items-center justify-between text-xs">
-					<span>Progress: {Math.round(progress)}%</span>
-					<span>Card {currentCardIndex + 1} of {flashcardSet.flashcards.length}</span>
-				</div>
+			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
+				<div
+					class=" h-1 bg-primary-950-50 transition-all duration-300"
+					style="width: {progress}%"
+				></div>
 			</div>
 		</header>
 
