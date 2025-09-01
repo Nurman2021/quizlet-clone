@@ -83,18 +83,12 @@
 		}
 	}
 
-	// Card edit callback - for parent-level updates
 	function handleCardEdit(updatedCard) {
-		// Component handles the update, this is for additional parent logic
-		// Update starred cards if needed
 		updateStarredCards();
 		console.log('Card updated in main page:', updatedCard);
 	}
 
-	// Star toggle callback - for parent-level updates
 	function handleStarToggle(cardId) {
-		// Component handles the update, this is for additional parent logic
-		// Update starred cards array
 		updateStarredCards();
 		console.log('Star toggled in main page:', cardId);
 	}
@@ -244,7 +238,7 @@
 	</div>
 {:else if flashcardSet}
 	<!-- Main Quiz Container -->
-	<div class="bg-surface-50-900-token min-h-screen">
+	<div class="bg-surface-50-900-token my-12 min-h-screen">
 		<!-- Header Section -->
 		<header class="bg-surface-100-800-token px-6 py-4">
 			<div class="mx-auto max-w-6xl">
