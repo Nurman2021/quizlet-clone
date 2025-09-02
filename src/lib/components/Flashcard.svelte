@@ -421,7 +421,12 @@
 
 		<!-- Navigation Controls (existing - tidak berubah) -->
 		<div class="mt-6 flex items-center justify-between">
-			<Switch name="example" checked={state} onCheckedChange={(e) => (state = e.checked)} />
+			<Switch
+				name="example"
+				checked={state}
+				onCheckedChange={(e) => (state = e.checked)}
+				disabled
+			/>
 			<div class="flex gap-6">
 				<button
 					class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
