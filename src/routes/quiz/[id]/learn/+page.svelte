@@ -163,7 +163,7 @@
 					</button>
 
 					<button
-						onclick={exitFlashcard}
+						onclick={exitLearn}
 						class="btn-icon btn-icon-lg preset-tonal-surface"
 						title="Back to Quiz"
 					>
