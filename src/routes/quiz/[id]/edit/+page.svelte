@@ -128,22 +128,62 @@
 
 			if (setError) throw setError;
 
-			// Delete all existing flashcards
-			const { error: deleteError } = await supabase.from('flashcards').delete().eq('set_id', setId);
+			// Smart flashcard handling - preserve existing IDs to maintain progress
+			const existingCards = validCards.filter((card) => card.isExisting && card.id);
+			const newCards = validCards.filter((card) => !card.isExisting);
 
-			if (deleteError) throw deleteError;
+			// Get current flashcards from database to determine what to delete
+			const { data: currentFlashcards, error: fetchError } = await supabase
+				.from('flashcards')
+				.select('id')
+				.eq('set_id', setId);
 
-			// Insert new/updated flashcards
-			const flashcardsToInsert = validCards.map((card) => ({
-				set_id: setId,
-				term: card.term.trim(),
-				definition: card.definition.trim(),
-				user_id: user.id
-			}));
+			if (fetchError) throw fetchError;
 
-			const { error: insertError } = await supabase.from('flashcards').insert(flashcardsToInsert);
+			// Find cards to delete (existing in DB but not in current cards)
+			const currentCardIds = existingCards.map((card) => card.id);
+			const cardsToDelete = currentFlashcards
+				.filter((dbCard) => !currentCardIds.includes(dbCard.id))
+				.map((card) => card.id);
 
-			if (insertError) throw insertError;
+			// Delete removed cards (this will also cascade delete their progress)
+			if (cardsToDelete.length > 0) {
+				const { error: deleteError } = await supabase
+					.from('flashcards')
+					.delete()
+					.in('id', cardsToDelete);
+
+				if (deleteError) throw deleteError;
+			}
+
+			// Update existing cards (preserves their IDs and associated progress)
+			for (const card of existingCards) {
+				if (card.id) {
+					const { error: updateError } = await supabase
+						.from('flashcards')
+						.update({
+							term: card.term.trim(),
+							definition: card.definition.trim(),
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', card.id);
+
+					if (updateError) throw updateError;
+				}
+			}
+
+			// Insert new cards only
+			if (newCards.length > 0) {
+				const flashcardsToInsert = newCards.map((card) => ({
+					set_id: setId,
+					term: card.term.trim(),
+					definition: card.definition.trim()
+				}));
+
+				const { error: insertError } = await supabase.from('flashcards').insert(flashcardsToInsert);
+
+				if (insertError) throw insertError;
+			}
 
 			toast.success('Success!', 'Flashcard set updated successfully');
 			goto(`/quiz/${setId}`);
@@ -170,11 +210,11 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading flashcard set...</p>
+			<p class="text-surface-600-400">Loading flashcard set...</p>
 		</div>
 	</div>
 {:else}
-	<div class="bg-surface-50-900-token p-6">
+	<div class="bg-surface-50-950 p-6">
 		<div class="mx-auto max-w-4xl">
 			<!-- Header -->
 			<div class="mb-8 flex items-center justify-between">
@@ -186,7 +226,7 @@
 					>
 						<ArrowLeft class="h-5 w-5" />
 					</button>
-					<h1 class="text-2xl font-bold">Edit flashcard set</h1>
+					<h1 class="text-2xl font-bold">Back to set</h1>
 				</div>
 				<div class="flex items-center space-x-4">
 					<button class="btn preset-tonal" onclick={cancelEdit} disabled={isSaving}>
@@ -197,7 +237,7 @@
 						onclick={saveFlashcardSet}
 						disabled={isSaving}
 					>
-						{isSaving ? 'Saving...' : 'Save changes'}
+						{isSaving ? 'Saving...' : 'Done'}
 					</button>
 				</div>
 			</div>
@@ -284,7 +324,7 @@
 				<!-- Add Card Button -->
 				<button
 					onclick={addCard}
-					class="!border-surface-300-600-token btn w-full border-2 border-dashed preset-tonal"
+					class="btn w-full border-2 border-dashed border-surface-300-700 preset-tonal"
 					disabled={isSaving}
 				>
 					<Plus class="mr-2 h-4 w-4" />
@@ -295,7 +335,7 @@
 				<div>
 					<label class="label" for="folder-select">
 						<span>Folder (optional)</span>
-						<p class="text-surface-600-300-token mb-2 text-sm">
+						<p class="mb-2 text-sm text-surface-600-400">
 							Select a folder to group this flashcard set
 						</p>
 					</label>
@@ -313,7 +353,7 @@
 						{/each}
 					</select>
 					{#if $folders.length === 0}
-						<p class="text-surface-600-300-token mt-2 text-sm">
+						<p class="mt-2 text-sm text-surface-600-400">
 							You don't have any folders yet. <a
 								href="/folders"
 								class="text-primary-500 hover:underline">Create folder</a
@@ -332,7 +372,7 @@
 						onclick={saveFlashcardSet}
 						disabled={isSaving}
 					>
-						{isSaving ? 'Saving...' : 'Save changes'}
+						{isSaving ? 'Saving...' : 'Done'}
 					</button>
 				</div>
 			</div>
