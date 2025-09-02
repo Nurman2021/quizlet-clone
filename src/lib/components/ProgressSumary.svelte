@@ -11,6 +11,9 @@
 		ChevronDown
 	} from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
+	import { toast } from '$lib/stores/toast.js';
+	import { supabase } from '$lib/supabase.js';
+	import Modal from './Modal.svelte';
 
 	let { flashcardSet, onStarToggle } = $props();
 
@@ -30,6 +33,13 @@
 	// Stats dropdown state
 	let showStatsDropdown = $state(false);
 	let selectedStatsMode = $state('your-stats'); // 'your-stats', 'alphabetical', 'original'
+
+	// Edit modal state
+	let showEditModal = $state(false);
+	let editTerm = $state('');
+	let editDefinition = $state('');
+	let isSaving = $state(false);
+	let currentEditCard = $state(null);
 
 	// Calculate starred count from flashcard set
 	let starredCount = $derived(
@@ -116,6 +126,8 @@
 
 	// Close dropdown when clicking outside
 	function handleClickOutside(event) {
+		if (showEditModal) return; // Don't close dropdowns when edit modal is open
+
 		if (showBlurDropdown && !event.target.closest('.dropdown-container')) {
 			showBlurDropdown = false;
 		}
@@ -159,6 +171,72 @@
 				return cards;
 			default:
 				return cards; // For 'your-stats', we'll show progress data
+		}
+	}
+
+	// Edit functions
+	function enterEditMode(card) {
+		if (!card) return;
+		currentEditCard = card;
+		showEditModal = true;
+		editTerm = card.term;
+		editDefinition = card.definition;
+	}
+
+	function cancelEdit() {
+		showEditModal = false;
+		editTerm = '';
+		editDefinition = '';
+		currentEditCard = null;
+	}
+
+	async function saveEdit() {
+		if (!currentEditCard || !editTerm.trim() || !editDefinition.trim()) {
+			toast.error('Term and definition cannot be empty');
+			return;
+		}
+
+		isSaving = true;
+
+		try {
+			const { error } = await supabase
+				.from('flashcards')
+				.update({
+					term: editTerm.trim(),
+					definition: editDefinition.trim()
+				})
+				.eq('id', currentEditCard.id);
+
+			if (error) throw error;
+
+			// Update local data in flashcard set
+			if (flashcardSet?.flashcards) {
+				const cardIndex = flashcardSet.flashcards.findIndex((c) => c.id === currentEditCard.id);
+				if (cardIndex !== -1) {
+					flashcardSet.flashcards[cardIndex].term = editTerm.trim();
+					flashcardSet.flashcards[cardIndex].definition = editDefinition.trim();
+				}
+			}
+
+			// Update in progress arrays
+			const updateProgressItem = (item) => {
+				if (item.flashcards && item.flashcards.id === currentEditCard.id) {
+					item.flashcards.term = editTerm.trim();
+					item.flashcards.definition = editDefinition.trim();
+				}
+			};
+
+			stillLearning.forEach(updateProgressItem);
+			mastered.forEach(updateProgressItem);
+			starredTerms.forEach(updateProgressItem);
+
+			showEditModal = false;
+			toast.success('Flashcard updated successfully');
+		} catch (error) {
+			console.error('Error updating flashcard:', error);
+			toast.error('Failed to update flashcard: ' + error.message);
+		} finally {
+			isSaving = false;
 		}
 	}
 </script>
@@ -368,6 +446,7 @@
 											</button>
 											<button
 												class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+												onclick={() => enterEditMode(item.flashcards)}
 												title="Edit"
 											>
 												<Edit class="h-4 w-4" />
@@ -471,6 +550,13 @@
 												title="Play audio"
 											>
 												<Volume2 class="h-4 w-4" />
+											</button>
+											<button
+												class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+												onclick={() => enterEditMode(item.flashcards)}
+												title="Edit"
+											>
+												<Edit class="h-4 w-4" />
 											</button>
 										</div>
 									</div>
@@ -581,6 +667,7 @@
 										</button>
 										<button
 											class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+											onclick={() => enterEditMode(item.flashcards)}
 											title="Edit"
 										>
 											<Edit class="h-4 w-4" />
@@ -682,6 +769,13 @@
 													>
 														<Volume2 class="h-4 w-4" />
 													</button>
+													<button
+														class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+														onclick={() => enterEditMode(item.flashcards)}
+														title="Edit"
+													>
+														<Edit class="h-4 w-4" />
+													</button>
 												</div>
 											</div>
 										</div>
@@ -762,6 +856,13 @@
 													>
 														<Volume2 class="h-4 w-4" />
 													</button>
+													<button
+														class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+														onclick={() => enterEditMode(item.flashcards)}
+														title="Edit"
+													>
+														<Edit class="h-4 w-4" />
+													</button>
 												</div>
 											</div>
 										</div>
@@ -840,6 +941,7 @@
 										</button>
 										<button
 											class="btn-icon btn-icon-sm transition-transform hover:scale-110"
+											onclick={() => enterEditMode(card)}
 											title="Edit"
 										>
 											<Edit class="h-4 w-4" />
@@ -863,3 +965,56 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Edit Modal -->
+<Modal bind:showModal={showEditModal} title="Edit Flashcard">
+	{#snippet children()}
+		<div class="space-y-6">
+			<div>
+				<label for="modal-edit-term" class="mb-3 block text-lg font-medium text-surface-600-400">
+					Term
+				</label>
+				<input
+					id="modal-edit-term"
+					type="text"
+					bind:value={editTerm}
+					class="input w-full text-xl"
+					placeholder="Enter term"
+					disabled={isSaving}
+				/>
+			</div>
+			<div>
+				<label
+					for="modal-edit-definition"
+					class="mb-3 block text-lg font-medium text-surface-600-400"
+				>
+					Definition
+				</label>
+				<textarea
+					id="modal-edit-definition"
+					bind:value={editDefinition}
+					class="textarea w-full text-lg"
+					placeholder="Enter definition"
+					rows="2"
+					disabled={isSaving}
+				></textarea>
+			</div>
+		</div>
+
+		<div class="mt-6 flex items-center justify-end space-x-3">
+			<button class="btn preset-tonal-surface" onclick={cancelEdit} disabled={isSaving}>
+				Cancel
+			</button>
+			<button class="btn preset-filled-primary-500" onclick={saveEdit} disabled={isSaving}>
+				{#if isSaving}
+					<div
+						class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+					></div>
+					Saving...
+				{:else}
+					Save Changes
+				{/if}
+			</button>
+		</div>
+	{/snippet}
+</Modal>
