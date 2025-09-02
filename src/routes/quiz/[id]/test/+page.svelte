@@ -74,7 +74,7 @@
 
 	function startTest(event) {
 		testConfig = event.detail;
-		console.log('Test config received:', testConfig);
+		console.log('Test config received:', $state.snapshot(testConfig));
 
 		// Generate questions based on config
 		generateQuestions();
@@ -395,6 +395,7 @@
 	<TestSetup
 		bind:show={showSetup}
 		maxQuestions={flashcardSet?.flashcards?.length || 20}
+		{flashcardSet}
 		on:start-test={startTest}
 		on:close={cancelSetup}
 	/>

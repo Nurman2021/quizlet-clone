@@ -1,8 +1,9 @@
 <script>
 	import Modal from './Modal.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { toast } from '$lib/stores/toast.js';
 
-	let { show = $bindable(), maxQuestions = 20 } = $props();
+	let { show = $bindable(), maxQuestions = 20, flashcardSet = null } = $props();
 
 	const dispatch = createEventDispatcher();
 
@@ -22,10 +23,12 @@
 		}
 	});
 
-	// Update starredCount when maxQuestions changes
+	// Update starredCount when flashcardSet or maxQuestions changes
 	$effect(() => {
-		if (maxQuestions !== undefined) {
-			starredCount = flashcardSet?.flashcards?.filter((card) => card.is_starred)?.length || 0;
+		if (flashcardSet?.flashcards) {
+			starredCount = flashcardSet.flashcards.filter((card) => card.is_starred)?.length || 0;
+		} else {
+			starredCount = 0;
 		}
 	});
 
@@ -49,7 +52,10 @@
 		// Disable invalid question types for small flashcard sets
 		if (maxQuestions < 4) {
 			if (multipleChoice || matching) {
-				console.warn('Disabling multiple choice and matching due to insufficient flashcards');
+				// Show user-friendly notification instead of console warning
+				toast.info(
+					'Multiple choice and matching disabled due to insufficient flashcards (need at least 4)'
+				);
 				multipleChoice = false;
 				matching = false;
 
@@ -74,7 +80,8 @@
 			useStarredOnly // Tambahan untuk starred filter
 		};
 
-		console.log('Dispatching start-test event with config:', config);
+		// Use $state.snapshot to avoid proxy warning in console
+		console.log('Dispatching start-test event with config:', $state.snapshot(config));
 		dispatch('start-test', config);
 		closeModal();
 	}
