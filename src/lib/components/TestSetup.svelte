@@ -15,6 +15,7 @@
 	let written = $state(false);
 	let useStarredOnly = $state(false);
 	let starredCount = $state(0);
+	let isStartingTest = $state(false);
 
 	// Update questionCount when maxQuestions changes
 	$effect(() => {
@@ -33,18 +34,24 @@
 	});
 
 	function closeModal() {
+		console.log('TestSetup: closeModal called');
+		if (!isStartingTest) {
+			console.log('TestSetup: Manual close - dispatching close event');
+			dispatch('close');
+		}
 		show = false;
-		dispatch('close');
 	}
 
 	function startTest() {
+		console.log('TestSetup: startTest called');
+
 		// Auto-enable True/False and Written if no question types selected and maxQuestions is limited
 		if (!trueFalse && !multipleChoice && !matching && !written) {
 			if (maxQuestions >= 1) {
 				trueFalse = true;
 				written = true;
 			} else {
-				alert('No flashcards available for test.');
+				toast.error('No flashcards available for test');
 				return;
 			}
 		}
@@ -82,8 +89,20 @@
 
 		// Use $state.snapshot to avoid proxy warning in console
 		console.log('Dispatching start-test event with config:', $state.snapshot(config));
+
+		// Set flag BEFORE dispatching to prevent close event
+		isStartingTest = true;
+
 		dispatch('start-test', config);
-		closeModal();
+
+		// Close modal directly without triggering close event
+		show = false;
+
+		// Reset flag after modal is closed
+		setTimeout(() => {
+			console.log('TestSetup: Resetting isStartingTest flag');
+			isStartingTest = false;
+		}, 300);
 	}
 </script>
 

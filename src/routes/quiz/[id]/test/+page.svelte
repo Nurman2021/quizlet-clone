@@ -75,16 +75,31 @@
 	function startTest(event) {
 		testConfig = event.detail;
 		console.log('Test config received:', $state.snapshot(testConfig));
+		console.log('Flashcard set available cards:', flashcardSet?.flashcards?.length);
+
+		// Validate flashcard set exists
+		if (!flashcardSet?.flashcards?.length) {
+			toast.error('No flashcards available for test');
+			console.error('No flashcards available in set');
+			return;
+		}
 
 		// Generate questions based on config
 		generateQuestions();
 
-		showSetup = false;
-		testInProgress = true;
-		toast.info('Test started!');
+		// Only proceed if questions were generated successfully
+		if (testQuestions.length > 0) {
+			showSetup = false;
+			testInProgress = true;
+			toast.info('Test started!');
+			console.log('Test started successfully with', testQuestions.length, 'questions');
+		} else {
+			console.error('Failed to generate questions');
+		}
 	}
 
 	function cancelSetup() {
+		console.log('cancelSetup called - redirecting to quiz page');
 		// Redirect back to quiz page when user cancels setup
 		goto(`/quiz/${setId}`);
 	}
@@ -100,7 +115,10 @@
 
 			if (availableCards.length === 0) {
 				toast.error('No starred cards available for test');
-				resetTest();
+				// Reset back to setup instead of calling undefined resetTest()
+				showSetup = true;
+				testInProgress = false;
+				testConfig = null;
 				return;
 			}
 		}
@@ -136,6 +154,17 @@
 		testQuestions = questions.slice(0, testConfig.questionCount);
 		testAnswers = {};
 		currentQuestionIndex = 0;
+
+		// Validate that questions were generated successfully
+		if (testQuestions.length === 0) {
+			toast.error('Failed to generate questions. Please try again.');
+			showSetup = true;
+			testInProgress = false;
+			testConfig = null;
+			return;
+		}
+
+		console.log(`Generated ${testQuestions.length} questions successfully`);
 	}
 
 	function generateQuestionByType(card, type, id) {
@@ -387,7 +416,7 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading test...</p>
+			<p class="text-surface-600-400">Loading test...</p>
 		</div>
 	</div>
 {:else if flashcardSet}
@@ -402,7 +431,7 @@
 
 	{#if testInProgress}
 		<!-- Test Interface with Navigation Sidebar -->
-		<div class="bg-surface-50-900-token flex min-h-screen">
+		<div class="flex min-h-screen bg-surface-50-950">
 			<!-- Navigation Sidebar -->
 			<TestNavigation
 				questions={testQuestions}
@@ -417,7 +446,7 @@
 			<div class="flex-1">
 				<!-- Test Header -->
 				<header
-					class="bg-surface-100-800-token border-surface-300-600-token sticky top-0 z-10 border-b px-6 py-4"
+					class="sticky top-0 z-10 border-b border-surface-300-700 bg-surface-100-900 px-6 py-4"
 				>
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-4">
@@ -431,7 +460,7 @@
 
 							<div>
 								<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-								<p class="text-surface-600-300-token text-sm">
+								<p class="text-sm text-surface-600-400">
 									Test Mode • {testQuestions.length} questions
 								</p>
 							</div>
@@ -439,7 +468,7 @@
 
 						<div class="flex items-center space-x-4">
 							<div class="text-center">
-								<div class="text-surface-600-300-token text-sm">Progress</div>
+								<div class="text-sm text-surface-600-400">Progress</div>
 								<div class="font-semibold">{answeredCount}/{testQuestions.length}</div>
 							</div>
 
@@ -462,7 +491,7 @@
 						{#each testQuestions as question, index}
 							<div
 								id="question-{question.id}"
-								class="bg-surface-100-800-token border-surface-300-600-token rounded-lg border p-6"
+								class="rounded-lg border border-surface-300-700 bg-surface-100-900 p-6"
 							>
 								<!-- Question Header -->
 								<div class="mb-6">
@@ -473,7 +502,7 @@
 											>
 												{question.type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
 											</span>
-											<span class="text-surface-600-300-token">
+											<span class="text-surface-600-400">
 												Question {index + 1} of {testQuestions.length}
 											</span>
 										</div>
@@ -491,9 +520,7 @@
 										<h3 class="mb-3 text-lg font-semibold">
 											{question.questionType}
 										</h3>
-										<div
-											class="bg-surface-50-900-token border-surface-300-600-token rounded-lg border p-4"
-										>
+										<div class="rounded-lg border border-surface-300-700 bg-surface-50-950 p-4">
 											<p class="text-center font-medium">
 												{question.question}
 											</p>
@@ -513,13 +540,13 @@
 													class="w-full rounded-lg border-2 p-4 text-left transition-all duration-200
 														{isSelected
 														? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-														: 'border-surface-300-600-token bg-surface-50-900-token hover:border-surface-400-500-token hover:bg-surface-200-700-token'}
+														: 'border-surface-300-700 bg-surface-50-950 hover:border-surface-400-600'}
 													"
 												>
 													<div class="flex items-center space-x-3">
 														<div
 															class="flex h-5 w-5 items-center justify-center rounded-full border-2
-															{isSelected ? 'border-primary-500 bg-primary-500' : 'border-surface-300-600-token'}
+															{isSelected ? 'border-primary-500 bg-primary-500' : 'border-surface-300-700'}
 														"
 														>
 															{#if isSelected}
@@ -552,14 +579,14 @@
 							<button onclick={finishTest} class="btn preset-filled-primary-500 px-8 py-3 text-lg">
 								Submit Test
 							</button>
-							<p class="text-surface-600-300-token mt-2 text-sm">
+							<p class="mt-2 text-sm text-surface-600-400">
 								All questions answered! Ready to submit.
 							</p>
 						{:else}
 							<button onclick={finishTest} class="btn preset-tonal-surface px-8 py-3 text-lg">
 								Submit Test ({answeredCount}/{testQuestions.length} answered)
 							</button>
-							<p class="text-surface-600-300-token mt-2 text-sm">
+							<p class="mt-2 text-sm text-surface-600-400">
 								You can submit with incomplete answers, but unanswered questions will be marked as
 								incorrect.
 							</p>
@@ -570,8 +597,8 @@
 		</div>
 	{:else if showResults}
 		<!-- Test Results -->
-		<div class="bg-surface-50-900-token min-h-screen">
-			<header class="bg-surface-100-800-token border-surface-300-600-token border-b px-6 py-4">
+		<div class="min-h-screen bg-surface-50-950">
+			<header class="border-b border-surface-300-700 bg-surface-100-900 px-6 py-4">
 				<div class="flex items-center space-x-4">
 					<button
 						onclick={exitTest}
@@ -582,7 +609,7 @@
 					</button>
 					<div>
 						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-						<p class="text-surface-600-300-token text-sm">Test Results</p>
+						<p class="text-sm text-surface-600-400">Test Results</p>
 					</div>
 				</div>
 			</header>
@@ -604,9 +631,7 @@
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Flashcard set not found</h2>
-			<p class="text-surface-600-300-token mt-2">
-				The requested flashcard set could not be loaded.
-			</p>
+			<p class="mt-2 text-surface-600-400">The requested flashcard set could not be loaded.</p>
 			<button onclick={() => goto(`/quiz/${setId}`)} class="mt-4 btn preset-filled-primary-500">
 				Back to Quiz
 			</button>

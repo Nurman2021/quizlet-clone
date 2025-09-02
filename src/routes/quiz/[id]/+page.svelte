@@ -55,7 +55,8 @@
                 users (
                     id,
                     full_name,
-                    email
+                    email,
+                    avatar_url
                 )
             `
 				)
@@ -346,16 +347,54 @@
 					mode="inline"
 				/>
 			</section>
-			<section class="my-12">
-				<p class="mb-3 text-base leading-relaxed text-surface-700-300">
-					{flashcardSet.description}
-				</p>
-				<span class="text-sm text-surface-600-400">
-					{flashcardSet.flashcards.length} terms
-				</span>
-				<span class="text-sm text-surface-600-400">
-					Created by {flashcardSet.users?.full_name || 'Unknown'}
-				</span>
+			<section class="my-12 px-8 py-8">
+				<div class="mb-6 flex flex-wrap items-center gap-4 text-sm text-surface-600-400">
+					<!-- User Avatar -->
+					{#if flashcardSet.users?.avatar_url}
+						<img
+							src={flashcardSet.users.avatar_url}
+							alt="Creator avatar"
+							class="h-14 w-14 rounded-full object-cover"
+							onerror={(e) => (e.target.style.display = 'none')}
+						/>
+					{:else}
+						<div
+							class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-500 text-xl font-medium text-white"
+						>
+							{(flashcardSet.users?.full_name || 'Unknown').charAt(0).toUpperCase()}
+						</div>
+					{/if}
+
+					<div class="flex flex-col">
+						<span>Created by</span>
+
+						<span class="font-medium text-surface-800-200">
+							{flashcardSet.users?.full_name || 'Unknown'}
+						</span>
+
+						{#if flashcardSet.created_at}
+							<div class="flex items-center gap-2">
+								<span>Created</span>
+								<span class="font-medium">
+									{new Date(flashcardSet.created_at).toLocaleDateString('en-US', {
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+									})}
+								</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+				<div>
+					<p class="text-lg leading-relaxed text-surface-700-300">
+						{flashcardSet.description}
+					</p>
+					<div class="flex items-center gap-2">
+						<span class="font-medium">{flashcardSet.flashcards.length}</span>
+						<span>terms</span>
+					</div>
+				</div>
 			</section>
 			<section>
 				<Learn {flashcardSet} mode="inline" />
