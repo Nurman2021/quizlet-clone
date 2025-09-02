@@ -204,21 +204,21 @@
 								class="absolute top-full right-0 z-10 mt-1 w-40 rounded-lg border border-surface-300-700 preset-tonal shadow-lg"
 							>
 								<button
-									class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 rounded-t-lg px-3 py-2 text-left text-sm"
+									class="flex w-full items-center space-x-2 rounded-t-lg px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 									onclick={() => setBlurMode('none')}
 								>
 									<Eye class="h-4 w-4" />
 									<span>Show All</span>
 								</button>
 								<button
-									class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 px-3 py-2 text-left text-sm"
+									class="flex w-full items-center space-x-2 px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 									onclick={() => setBlurMode('term')}
 								>
 									<EyeOff class="h-4 w-4" />
 									<span>Hide Terms</span>
 								</button>
 								<button
-									class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 rounded-b-lg px-3 py-2 text-left text-sm"
+									class="flex w-full items-center space-x-2 rounded-b-lg px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 									onclick={() => setBlurMode('definition')}
 								>
 									<EyeOff class="h-4 w-4" />
@@ -262,19 +262,19 @@
 							class="absolute top-full right-0 z-10 mt-1 w-40 rounded-lg border border-surface-300-700 preset-tonal shadow-lg"
 						>
 							<button
-								class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 rounded-t-lg px-3 py-2 text-left text-sm"
+								class="flex w-full items-center space-x-2 rounded-t-lg px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 								onclick={() => setStatsMode('your-stats')}
 							>
 								<span>Your stats</span>
 							</button>
 							<button
-								class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 px-3 py-2 text-left text-sm"
+								class="flex w-full items-center space-x-2 px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 								onclick={() => setStatsMode('alphabetical')}
 							>
 								<span>Alphabetical</span>
 							</button>
 							<button
-								class="hover:bg-surface-200-700-token flex w-full items-center space-x-2 rounded-b-lg px-3 py-2 text-left text-sm"
+								class="flex w-full items-center space-x-2 rounded-b-lg px-3 py-2 text-left text-sm hover:bg-surface-200-800"
 								onclick={() => setStatsMode('original')}
 							>
 								<span>Original</span>
@@ -293,7 +293,7 @@
 						<Sparkles class="mr-2 h-5 w-5" />
 						Still learning ({stillLearning.length})
 					</h3>
-					<p class="text-surface-600-300-token text-sm">
+					<p class="text-sm text-surface-600-400">
 						You've started learning these terms. Keep it up!
 					</p>
 
@@ -319,7 +319,7 @@
 													false
 												)} flex min-h-[120px] items-center"
 											>
-												<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+												<p class="text-base leading-relaxed break-words text-surface-700-300">
 													{item.flashcards.definition}
 												</p>
 											</div>
@@ -341,7 +341,7 @@
 													true
 												)} flex min-h-[120px] items-center"
 											>
-												<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+												<p class="text-base leading-relaxed break-words text-surface-700-300">
 													{item.flashcards.term}
 												</p>
 											</div>
@@ -398,7 +398,7 @@
 						<Star class="mr-2 h-5 w-5" />
 						Mastered ({mastered.length})
 					</h3>
-					<p class="text-surface-600-300-token text-sm">You've been getting these terms right!</p>
+					<p class="text-sm text-surface-600-400">You've been getting these terms right!</p>
 
 					<div class="space-y-3">
 						{#each mastered as item}
@@ -422,7 +422,7 @@
 													false
 												)} flex min-h-[120px] items-center"
 											>
-												<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+												<p class="text-base leading-relaxed break-words text-surface-700-300">
 													{item.flashcards.definition}
 												</p>
 											</div>
@@ -444,7 +444,7 @@
 													true
 												)} flex min-h-[120px] items-center"
 											>
-												<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+												<p class="text-base leading-relaxed break-words text-surface-700-300">
 													{item.flashcards.term}
 												</p>
 											</div>
@@ -494,7 +494,7 @@
 				<div class="py-12 text-center">
 					<div class="rounded-lg preset-tonal p-8">
 						<h3 class="mb-2 text-xl font-semibold">No progress tracked yet</h3>
-						<p class="text-surface-600-300-token mb-4">
+						<p class="mb-4 text-surface-600-400">
 							Start studying with flashcards, learn mode, or take tests to see your progress here.
 						</p>
 						<div class="flex justify-center space-x-4">
@@ -534,7 +534,7 @@
 												false
 											)} flex min-h-[120px] items-center"
 										>
-											<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+											<p class="text-base leading-relaxed break-words text-surface-700-300">
 												{item.flashcards.definition}
 											</p>
 										</div>
@@ -554,7 +554,7 @@
 												true
 											)} flex min-h-[120px] items-center"
 										>
-											<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+											<p class="text-base leading-relaxed break-words text-surface-700-300">
 												{item.flashcards.term}
 											</p>
 										</div>
@@ -602,9 +602,9 @@
 					</div>
 				{:else}
 					<div class="py-12 text-center">
-						<Star class="text-surface-400-500-token mx-auto mb-4 h-12 w-12" />
+						<Star class="mx-auto mb-4 h-12 w-12 text-surface-400-600" />
 						<h3 class="mb-2 text-lg font-semibold">No starred terms yet</h3>
-						<p class="text-surface-600-300-token">
+						<p class="text-surface-600-400">
 							Star important terms to track their progress separately.
 						</p>
 					</div>
@@ -640,9 +640,7 @@
 															false
 														)} flex min-h-[120px] items-center"
 													>
-														<p
-															class="text-surface-700-200-token text-base leading-relaxed break-words"
-														>
+														<p class="text-base leading-relaxed break-words text-surface-700-300">
 															{item.flashcards.definition}
 														</p>
 													</div>
@@ -661,9 +659,7 @@
 															true
 														)} flex min-h-[120px] items-center"
 													>
-														<p
-															class="text-surface-700-200-token text-base leading-relaxed break-words"
-														>
+														<p class="text-base leading-relaxed break-words text-surface-700-300">
 															{item.flashcards.term}
 														</p>
 													</div>
@@ -720,9 +716,7 @@
 															false
 														)} flex min-h-[120px] items-center"
 													>
-														<p
-															class="text-surface-700-200-token text-base leading-relaxed break-words"
-														>
+														<p class="text-base leading-relaxed break-words text-surface-700-300">
 															{item.flashcards.definition}
 														</p>
 													</div>
@@ -741,9 +735,7 @@
 															true
 														)} flex min-h-[120px] items-center"
 													>
-														<p
-															class="text-surface-700-200-token text-base leading-relaxed break-words"
-														>
+														<p class="text-base leading-relaxed break-words text-surface-700-300">
 															{item.flashcards.term}
 														</p>
 													</div>
@@ -781,7 +773,7 @@
 
 					{#if stillLearning.length === 0 && mastered.length === 0}
 						<div class="py-12 text-center">
-							<p class="text-surface-600-300-token">No progress data available yet.</p>
+							<p class="text-surface-600-400">No progress data available yet.</p>
 						</div>
 					{/if}
 				</div>
@@ -808,7 +800,7 @@
 												false
 											)} flex min-h-[120px] items-center"
 										>
-											<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+											<p class="text-base leading-relaxed break-words text-surface-700-300">
 												{card.definition}
 											</p>
 										</div>
@@ -825,7 +817,7 @@
 												true
 											)} flex min-h-[120px] items-center"
 										>
-											<p class="text-surface-700-200-token text-base leading-relaxed break-words">
+											<p class="text-base leading-relaxed break-words text-surface-700-300">
 												{card.term}
 											</p>
 										</div>
@@ -867,7 +859,7 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading progress...</p>
+			<p class="text-surface-600-400">Loading progress...</p>
 		</div>
 	</div>
 {/if}
