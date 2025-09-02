@@ -127,14 +127,6 @@
 						>
 							<div class="grid grid-cols-1 gap-2 p-3">
 								<a
-									href="/quiz/{setId}/flashcard"
-									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-								>
-									<img src={flascardIcon} alt="flashcard" class="mx-auto h-6 w-6 object-contain" />
-									<span class="text-xs font-semibold">Flashcards</span>
-								</a>
-
-								<a
 									href="/quiz/{setId}/learn"
 									class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
 								>
@@ -168,7 +160,7 @@
 					{/if}
 				</div>
 
-				<div class="text-center text-base font-semibold text-surface-600-400">
+				<div class="text-center text-xl font-semibold">
 					<h1>
 						{currentCardIndex + 1} / {flashcardSet.flashcards.length}
 					</h1>

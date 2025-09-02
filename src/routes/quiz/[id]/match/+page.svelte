@@ -4,8 +4,23 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { ArrowLeft, Users, RotateCcw, Trophy } from 'lucide-svelte';
+	import {
+		ArrowLeft,
+		Users,
+		RotateCcw,
+		Trophy,
+		ChevronDown,
+		Settings,
+		X,
+		Check
+	} from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
+
+	// Icons for navigation
+	import flascardIcon from '$lib/images/flashcard-img.png';
+	import learnIcon from '$lib/images/learn-img.png';
+	import testIcon from '$lib/images/terst-img.png';
+	import matchIcon from '$lib/images/match-img.png';
 
 	let setId = $page.params.id;
 	let flashcardSet = $state(null);
@@ -18,6 +33,7 @@
 	let gameTimer = $state(0);
 	let timerInterval = $state(null);
 	let attempts = $state(0);
+	let showNavigationDropdown = $state(false);
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -54,10 +70,19 @@
 		}
 	}
 
+	function toggleNavigationDropdown() {
+		showNavigationDropdown = !showNavigationDropdown;
+	}
+
+	function handleClickOutside(event) {
+		if (showNavigationDropdown && !event.target.closest('.navigation-dropdown')) {
+			showNavigationDropdown = false;
+		}
+	}
+
 	function prepareGame() {
 		if (!flashcardSet?.flashcards) return;
 
-		// Take up to 6 random flashcards to create 12 cards total
 		const selectedFlashcards = flashcardSet.flashcards.sort(() => Math.random() - 0.5).slice(0, 6);
 
 		// Create pairs of cards (term and definition)
@@ -164,7 +189,6 @@
 			return;
 		}
 
-		// If we already have 2 cards selected, don't allow more
 		if (selectedCards.length >= 2) return;
 
 		// Select the card
@@ -174,7 +198,7 @@
 		// Check for match when 2 cards are selected
 		if (selectedCards.length === 2) {
 			attempts++;
-			setTimeout(checkMatch, 500); // Small delay for visual feedback
+			setTimeout(checkMatch, 500);
 		}
 	}
 
@@ -255,7 +279,6 @@
 		goto(`/quiz/${setId}`);
 	}
 
-	// Cleanup on component destroy
 	$effect(() => {
 		return () => {
 			stopTimer();
@@ -273,58 +296,109 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading match game...</p>
+			<p class="text-surface-600-400">Loading match game...</p>
 		</div>
 	</div>
 {:else if flashcardSet}
-	<!-- Fullscreen Match Container -->
-	<div class="bg-surface-50-900-token flex h-screen flex-col">
-		<!-- Match Header -->
-		<header
-			class="bg-surface-100-800-token border-surface-300-600-token flex-shrink-0 border-b px-6 py-4"
-		>
+	<div class="flex h-screen flex-col bg-surface-50-950">
+		<header class="flex-shrink-0 border-b border-surface-300-700 preset-tonal-surface px-6 py-4">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center space-x-4">
-					<!-- Back Button -->
-					<button
-						onclick={exitMatch}
-						class="btn-icon btn-icon-sm preset-tonal-surface"
-						title="Back to Quiz"
-					>
-						<ArrowLeft class="h-5 w-5" />
-					</button>
+					<div class="navigation-dropdown relative">
+						<button
+							onclick={toggleNavigationDropdown}
+							class="flex items-center preset-tonal-surface"
+							title="Switch mode"
+						>
+							<img src={matchIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
+							Match
+							<ChevronDown class="ml-2 h-4 w-4" />
+						</button>
 
-					<div>
-						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-						<p class="text-surface-600-300-token text-sm">
-							Match Mode • {gameCards.length / 2} pairs
-						</p>
+						{#if showNavigationDropdown}
+							<div
+								class="absolute top-full left-4 z-10 mt-2 w-full rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+							>
+								<div class="grid grid-cols-1 gap-2 p-3">
+									<a
+										href="/quiz/{setId}/flashcard"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img
+											src={flascardIcon}
+											alt="flashcard"
+											class="mx-auto h-6 w-6 object-contain"
+										/>
+										<span class="text-xs font-semibold">Flashcards</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/learn"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={learnIcon} alt="learn" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Learn</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/test"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={testIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Test</span>
+									</a>
+
+									<a
+										href="/"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<span class="text-xs font-semibold">Home</span>
+									</a>
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
-
-				<div class="flex items-center space-x-4">
-					<!-- Game Stats -->
-					<div class="text-center">
-						<div class="text-surface-600-300-token text-sm">Time</div>
-						<div class="font-mono text-lg font-semibold">{formatTime(gameTimer)}</div>
-					</div>
-
-					<div class="text-center">
-						<div class="text-surface-600-300-token text-sm">Attempts</div>
-						<div class="font-mono text-lg font-semibold">{attempts}</div>
-					</div>
-
-					<div class="text-center">
-						<div class="text-surface-600-300-token text-sm">Matches</div>
-						<div class="font-mono text-lg font-semibold">
-							{matchedPairs.length}/{gameCards.length / 2}
+				{#if gameStarted}
+					<div class="flex items-center space-x-4">
+						<div class="text-center">
+							<div class="text-sm text-surface-600-400">Time</div>
+							<div class="font-mono text-lg font-semibold">{formatTime(gameTimer)}</div>
 						</div>
-					</div>
 
-					<!-- Reset Button -->
-					<button onclick={resetGame} class="btn preset-tonal-surface" title="Reset Game">
-						<RotateCcw class="mr-2 h-4 w-4" />
-						Reset
+						<div class="text-center">
+							<div class="text-sm text-surface-600-400">Attempts</div>
+							<div class="font-mono text-lg font-semibold">{attempts}</div>
+						</div>
+
+						<div class="text-center">
+							<div class="text-sm text-surface-600-400">Matches</div>
+							<div class="font-mono text-lg font-semibold">
+								{matchedPairs.length}/{gameCards.length / 2}
+							</div>
+						</div>
+
+						<button onclick={resetGame} class="btn preset-tonal-surface" title="Reset Game">
+							<RotateCcw class="mr-2 h-4 w-4" />
+							Reset
+						</button>
+					</div>
+				{:else}
+					<div>
+						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
+					</div>
+				{/if}
+				<div class="flex items-center justify-center space-x-2">
+					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+						<Settings class="h-8 w-8" />
+					</button>
+
+					<button
+						onclick={exitMatch}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Back to Quiz"
+					>
+						<X class="h-8 w-8" />
 					</button>
 				</div>
 			</div>
@@ -338,7 +412,7 @@
 					<div class="text-center">
 						<Trophy class="mx-auto mb-6 h-16 w-16 text-yellow-500" />
 						<h2 class="mb-4 text-3xl font-semibold">Congratulations!</h2>
-						<p class="text-surface-600-300-token mb-6 text-lg">
+						<p class="mb-6 text-lg text-surface-600-400">
 							You completed the match game in <span class="font-semibold"
 								>{formatTime(gameTimer)}</span
 							>
@@ -357,25 +431,15 @@
 					</div>
 				</div>
 			{:else if !gameStarted}
-				<!-- Pre-Game Start Screen -->
 				<div class="flex h-full items-center justify-center">
 					<div class="mx-auto max-w-2xl text-center">
-						<h2 class="mb-4 text-3xl font-semibold">Match Game</h2>
-						<p class="text-surface-600-300-token mb-6 text-lg">
+						<img src={matchIcon} alt="flashcard" class="mx-auto mb-4 h-32 w-32 object-contain" />
+						<h2 class="mb-4 text-3xl font-semibold">Ready to play?</h2>
+						<p class="mb-6 text-lg text-surface-600-400">
 							Match {gameCards.length / 2} terms with their definitions. Click on cards to select them
 							and find matching pairs.
 						</p>
-						<div
-							class="bg-surface-100-800-token border-surface-300-600-token mb-8 rounded-lg border p-6"
-						>
-							<h3 class="mb-3 font-semibold">How to Play:</h3>
-							<ul class="text-surface-600-300-token space-y-2 text-left">
-								<li>• Click on a term card, then click on its matching definition card</li>
-								<li>• If they match, both cards will turn green</li>
-								<li>• If they don't match, try again with different cards</li>
-								<li>• Match all pairs as quickly as possible!</li>
-							</ul>
-						</div>
+
 						<button onclick={startGame} class="btn preset-filled-primary-500 px-8 py-3 text-lg">
 							Start Game
 						</button>
@@ -383,25 +447,23 @@
 				</div>
 			{:else}
 				<!-- Game Grid -->
-				<div class="mx-auto max-w-6xl">
-					<!-- Instructions -->
-					<div class="mb-6 text-center">
-						<p class="text-surface-600-300-token text-lg">
-							Click on cards to match terms with their definitions
-						</p>
-						<p class="text-surface-600-300-token mt-2 text-sm">
-							Matched: {matchedPairs.length} / {gameCards.length / 2}
-						</p>
-					</div>
-
-					<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+				<div class="flex h-full items-center justify-center">
+					<div class="mx-auto flex max-w-6xl flex-wrap justify-center gap-4">
 						{#each gameCards as card (card.id)}
 							<button
-								class="group relative flex min-h-[120px] items-center justify-center overflow-hidden rounded-lg border-2 p-4 text-center transition-all duration-200 {card.matched
+								class="group relative flex items-center justify-center overflow-hidden rounded-lg border-2 p-4 text-center transition-all duration-200
+								{gameCards.length <= 4
+									? 'h-40 w-72'
+									: gameCards.length <= 8
+										? 'h-36 w-60'
+										: gameCards.length <= 12
+											? 'h-32 w-48'
+											: 'h-28 w-40'}
+								{card.matched
 									? 'cursor-default border-green-500 bg-green-100 dark:bg-green-900'
 									: card.selected
 										? 'border-blue-500 bg-blue-100 dark:bg-blue-900'
-										: 'border-surface-300-600-token bg-surface-100-800-token hover:border-surface-400-500-token hover:bg-surface-200-700-token'} {card.matched
+										: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600 hover:bg-surface-200-800'} {card.matched
 									? ''
 									: 'cursor-pointer active:scale-95'}"
 								onclick={() => selectCard(card)}
@@ -416,13 +478,7 @@
 								{#if card.matched}
 									<div class="absolute top-2 right-2">
 										<div class="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-											<svg class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-												<path
-													fill-rule="evenodd"
-													d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-													clip-rule="evenodd"
-												/>
-											</svg>
+											<Check class="h-3 w-3 text-white" />
 										</div>
 									</div>
 								{/if}
@@ -433,15 +489,6 @@
 										<div class="h-5 w-5 rounded-full bg-blue-500"></div>
 									</div>
 								{/if}
-
-								<!-- Card type indicator -->
-								<div class="absolute top-2 left-2">
-									<div
-										class="bg-surface-200-700-token text-surface-700-200-token rounded px-2 py-1 text-xs font-medium"
-									>
-										{card.type === 'term' ? 'Term' : 'Definition'}
-									</div>
-								</div>
 							</button>
 						{/each}
 					</div>
@@ -453,9 +500,7 @@
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Flashcard set not found</h2>
-			<p class="text-surface-600-300-token mt-2">
-				The requested flashcard set could not be loaded.
-			</p>
+			<p class="mt-2 text-surface-600-400">The requested flashcard set could not be loaded.</p>
 			<button onclick={() => goto(`/quiz/${setId}`)} class="mt-4 btn preset-filled-primary-500">
 				Back to Quiz
 			</button>
