@@ -113,7 +113,7 @@
 				<div class="navigation-dropdown relative">
 					<button
 						onclick={toggleNavigationDropdown}
-						class="flex items-center preset-tonal-surface"
+						class="flex items-center preset-tonal-surface text-xs font-semibold"
 						title="Switch mode"
 					>
 						<img src={flascardIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />

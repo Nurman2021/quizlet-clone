@@ -4,7 +4,13 @@
 	import { toast } from '$lib/stores/toast.js';
 	import learnIcon from '$lib/images/learn-img.png';
 
-	let { flashcardSet, filterStarred = false, mode = 'inline' } = $props();
+	let {
+		flashcardSet,
+		filterStarred = false,
+		mode = 'inline',
+		onRestart = null,
+		onExit = null
+	} = $props();
 
 	let currentQuestionIndex = $state(0);
 	let selectedAnswer = $state('');
@@ -146,8 +152,12 @@
 		currentFeedback = feedbackResult;
 	}
 	function studyWithLearn() {
-		// Reset everything and start over
-		generateQuestions();
+		if (onRestart) {
+			onRestart();
+		} else {
+			// Reset everything and start over
+			generateQuestions();
+		}
 	}
 
 	let currentQuestion = $derived(currentQuestions[currentQuestionIndex]);
@@ -194,12 +204,17 @@
 				<div>
 					<p class="text-sm text-surface-600-400">{progress}</p>
 				</div>
-				<a
-					href="/quiz/{flashcardSet.id}/learn"
-					class="btn rounded-full preset-outlined-surface-500 font-semibold"
-				>
-					Study with Learn
-				</a>
+				{#if mode === 'fullpage'}
+					<!-- In fullpage mode, don't show the study link -->
+					<div></div>
+				{:else}
+					<a
+						href="/quiz/{flashcardSet.id}/learn"
+						class="btn rounded-full preset-outlined-surface-500 font-semibold"
+					>
+						Study with Learn
+					</a>
+				{/if}
 			</div>
 
 			<div class="mb-8">
@@ -230,10 +245,10 @@
 								? 'border-green-500 bg-green-100 text-green-800 dark:border-green-400 dark:bg-green-900 dark:text-green-200'
 								: option === selectedAnswer && option !== currentQuestion.correctAnswer
 									? 'border-red-500 bg-red-100 text-red-800 dark:border-red-400 dark:bg-red-900 dark:text-red-200'
-									: 'bg-surface-200-700-token border-surface-300-600-token'
+									: 'border-surface-300-700 bg-surface-200-800'
 							: selectedAnswer === option
 								? 'border-primary-500 bg-primary-100 text-primary-800 dark:border-primary-400 dark:bg-primary-900 dark:text-primary-200'
-								: 'bg-surface-200-700-token border-surface-300-600-token hover:bg-surface-300-600-token'}"
+								: 'border-surface-300-700 bg-surface-200-800 hover:bg-surface-300-700'}"
 						onclick={() => selectAnswer(option)}
 						disabled={currentFeedback}
 					>
@@ -254,7 +269,7 @@
 		<div class="text-center">
 			{#if !currentFeedback}
 				<button
-					class="hover:text-surface-900-50-token text-sm text-surface-600-400 underline"
+					class="text-sm text-surface-600-400 underline hover:text-surface-950-50"
 					onclick={showHint}
 				>
 					Don't know?

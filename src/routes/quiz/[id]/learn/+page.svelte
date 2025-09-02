@@ -4,19 +4,35 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { ArrowLeft, Settings } from 'lucide-svelte';
+	import { ArrowLeft, Settings, X, ChevronDown } from 'lucide-svelte';
 
 	// Components
 	import Learn from '$lib/components/Learn.svelte';
 
+	// Icons for navigation
+	import flascardIcon from '$lib/images/flashcard-img.png';
+	import learnIcon from '$lib/images/learn-img.png';
+	import testIcon from '$lib/images/terst-img.png';
+	import matchIcon from '$lib/images/match-img.png';
+
 	let setId = $page.params.id;
 	let flashcardSet = $state(null);
 	let isLoading = $state(true);
+	let showNavigationDropdown = $state(false);
 
 	onMount(async () => {
 		await loadFlashcardSet();
 	});
 
+	function toggleNavigationDropdown() {
+		showNavigationDropdown = !showNavigationDropdown;
+	}
+
+	function handleClickOutside(event) {
+		if (showNavigationDropdown && !event.target.closest('.navigation-dropdown')) {
+			showNavigationDropdown = false;
+		}
+	}
 	async function loadFlashcardSet() {
 		try {
 			isLoading = true;
@@ -52,7 +68,7 @@
 	}
 
 	function restartLearn() {
-		// Reset learn component
+		// This will be passed to Learn component to handle restart
 		window.location.reload();
 	}
 </script>
@@ -67,32 +83,68 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading learn session...</p>
+			<p class="text-surface-600-400">Loading learn session...</p>
 		</div>
 	</div>
 {:else if flashcardSet}
 	<!-- Fullscreen Learn Container -->
-	<div class="bg-surface-50-900-token flex h-screen flex-col">
+	<div class="flex h-screen flex-col bg-surface-50-950">
 		<!-- Learn Header -->
-		<header
-			class="bg-surface-100-800-token border-surface-300-600-token flex-shrink-0 border-b px-6 py-4"
-		>
+		<header class="flex-shrink-0 border-b border-surface-300-700 preset-tonal-surface px-6 py-4">
 			<div class="flex items-center justify-between">
-				<div class="flex items-center space-x-4">
-					<!-- Back Button -->
-					<button
-						onclick={exitLearn}
-						class="btn-icon btn-icon-sm preset-tonal-surface"
-						title="Back to Quiz"
-					>
-						<ArrowLeft class="h-5 w-5" />
-					</button>
+				<div class="flex items-center">
+					<div class="navigation-dropdown relative">
+						<button
+							onclick={toggleNavigationDropdown}
+							class="flex items-center preset-tonal-surface text-xs font-semibold"
+							title="Switch mode"
+						>
+							<img src={learnIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
+							Learn
+							<ChevronDown class="ml-2 h-4 w-4" />
+						</button>
 
-					<div>
-						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-						<p class="text-surface-600-300-token text-sm">
-							Learn Mode • {flashcardSet.flashcards.length} terms
-						</p>
+						{#if showNavigationDropdown}
+							<div
+								class="absolute top-full left-4 z-10 mt-2 w-full rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+							>
+								<div class="grid grid-cols-1 gap-2 p-3">
+									<a
+										href="/quiz/{setId}/flashcard"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img
+											src={flascardIcon}
+											alt="flashcard"
+											class="mx-auto h-6 w-6 object-contain"
+										/>
+										<span class="text-xs font-semibold">Flashcards</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/test"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={testIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Test</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/match"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={matchIcon} alt="matchmaking" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Match</span>
+									</a>
+									<a
+										href="/"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<span class="text-xs font-semibold">Home</span>
+									</a>
+								</div>
+							</div>
+						{/if}
 					</div>
 				</div>
 
@@ -106,9 +158,16 @@
 						Restart
 					</button>
 
-					<!-- Settings -->
-					<button class="btn-icon btn-icon-sm preset-tonal-surface" title="Settings">
-						<Settings class="h-5 w-5" />
+					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+						<Settings class="h-8 w-8" />
+					</button>
+
+					<button
+						onclick={exitFlashcard}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Back to Quiz"
+					>
+						<X class="h-8 w-8" />
 					</button>
 				</div>
 			</div>
@@ -116,16 +175,14 @@
 
 		<!-- Main Learn Area -->
 		<main class="flex-1 overflow-hidden">
-			<Learn {flashcardSet} mode="fullpage" />
+			<Learn {flashcardSet} mode="fullpage" onRestart={restartLearn} onExit={exitLearn} />
 		</main>
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Flashcard set not found</h2>
-			<p class="text-surface-600-300-token mt-2">
-				The requested flashcard set could not be loaded.
-			</p>
+			<p class="mt-2 text-surface-600-400">The requested flashcard set could not be loaded.</p>
 			<button onclick={() => goto(`/quiz/${setId}`)} class="mt-4 btn preset-filled-primary-500">
 				Back to Quiz
 			</button>
