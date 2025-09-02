@@ -233,14 +233,14 @@
 			<div
 				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
 			></div>
-			<p class="text-surface-600-300-token">Loading flashcards...</p>
+			<p class="text-surface-600-400">Loading flashcards...</p>
 		</div>
 	</div>
 {:else if flashcardSet}
 	<!-- Main Quiz Container -->
-	<div class="bg-surface-50-900-token my-12 min-h-screen">
+	<div class="my-12 min-h-screen bg-surface-50-950">
 		<!-- Header Section -->
-		<header class="bg-surface-100-800-token px-6 py-4">
+		<header class="preset-tonal-surface px-6 py-4">
 			<div class="mx-auto max-w-6xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
@@ -276,18 +276,18 @@
 
 							{#if showDropdown}
 								<div
-									class="bg-surface-100-800-token border-surface-300-600-token absolute top-full right-0 z-10 mt-2 min-w-[160px] rounded-lg border shadow-lg"
+									class="absolute top-full right-0 z-10 mt-2 min-w-[160px] rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
 								>
 									<button
 										onclick={editFlashcardSet}
-										class="hover:bg-surface-200-700-token flex w-full items-center px-4 py-3 text-left"
+										class="flex w-full items-center px-4 py-3 text-left hover:bg-surface-200-800"
 									>
 										<Edit3 class="mr-3 h-4 w-4" />
 										Edit
 									</button>
 									<button
 										onclick={confirmDelete}
-										class="hover:bg-surface-200-700-token flex w-full items-center px-4 py-3 text-left text-error-500"
+										class="flex w-full items-center px-4 py-3 text-left text-error-500 hover:bg-surface-200-800"
 									>
 										<Trash2 class="mr-3 h-4 w-4" />
 										Delete
@@ -347,13 +347,13 @@
 				/>
 			</section>
 			<section class="my-12">
-				<p class="text-surface-700-200-token mb-3 text-base leading-relaxed">
+				<p class="mb-3 text-base leading-relaxed text-surface-700-300">
 					{flashcardSet.description}
 				</p>
-				<span class="text-surface-600-300-token text-sm">
+				<span class="text-sm text-surface-600-400">
 					{flashcardSet.flashcards.length} terms
 				</span>
-				<span class="text-surface-600-300-token text-sm">
+				<span class="text-sm text-surface-600-400">
 					Created by {flashcardSet.users?.full_name || 'Unknown'}
 				</span>
 			</section>
@@ -402,9 +402,7 @@
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<h2 class="text-xl font-bold">Flashcard set not found</h2>
-			<p class="text-surface-600-300-token mt-2">
-				The requested flashcard set could not be loaded.
-			</p>
+			<p class="mt-2 text-surface-600-400">The requested flashcard set could not be loaded.</p>
 			<button onclick={() => goto('/')} class="mt-4 btn preset-filled-primary-500">
 				Go Home
 			</button>
