@@ -140,7 +140,7 @@
 	<title>Create new flashcard set</title>
 </svelte:head>
 
-<div class="bg-surface-50-900-token p-6">
+<div class="bg-surface-50-950 p-6">
 	<div class="mx-auto max-w-4xl">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
@@ -230,7 +230,7 @@
 			<!-- Add Card Button -->
 			<button
 				onclick={addCard}
-				class="!border-surface-300-600-token btn w-full border-2 border-dashed preset-tonal"
+				class="btn w-full border-2 border-dashed !border-surface-300-700 preset-tonal"
 			>
 				Add card
 			</button>
@@ -239,7 +239,7 @@
 			<div>
 				<label class="label" for="folder-select">
 					<span>Folder (optional)</span>
-					<p class="text-surface-600-300-token mb-2 text-sm">
+					<p class="mb-2 text-sm text-surface-600-400">
 						Select a folder to group this flashcard set
 					</p>
 				</label>
@@ -252,7 +252,7 @@
 					{/each}
 				</select>
 				{#if $folders.length === 0}
-					<p class="text-surface-600-300-token mt-2 text-sm">
+					<p class="mt-2 text-sm text-surface-600-400">
 						You don't have any folders yet. <a
 							href="/folders"
 							class="text-primary-500 hover:underline">Create folder</a

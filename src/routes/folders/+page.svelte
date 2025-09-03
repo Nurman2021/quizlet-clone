@@ -83,7 +83,7 @@
 	<title>Your Folders</title>
 </svelte:head>
 
-<div class="bg-surface-50-900-token min-h-screen p-6">
+<div class="min-h-screen bg-surface-50-950 p-6">
 	<div class="mx-auto max-w-5xl">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
@@ -98,7 +98,7 @@
 			<!-- Loading State -->
 			<div class="py-16 text-center">
 				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-300-token">Loading folders...</p>
+				<p class="text-surface-600-400">Loading folders...</p>
 			</div>
 		{:else if $folders.length === 0}
 			<!-- Empty State -->
@@ -106,14 +106,14 @@
 				<div class="mb-8">
 					<!-- Folder Icon -->
 					<div
-						class="bg-surface-200-700-token mb-6 inline-flex h-24 w-24 items-center justify-center rounded-2xl"
+						class="mb-6 inline-flex h-24 w-24 items-center justify-center rounded-2xl bg-surface-200-800"
 					>
-						<Folder class="text-surface-600-300-token h-12 w-12" />
+						<Folder class="h-12 w-12 text-surface-600-400" />
 					</div>
 				</div>
 
 				<h2 class="mb-4 text-2xl font-semibold">You don't have any folders yet</h2>
-				<p class="text-surface-600-300-token mx-auto mb-8 max-w-md">
+				<p class="mx-auto mb-8 max-w-md text-surface-600-400">
 					Folders help you organize flashcard sets and practice tests
 				</p>
 
@@ -145,7 +145,7 @@
 									<div class="min-w-0">
 										<h3 class="truncate font-semibold">{folder.name}</h3>
 										{#if folder.description}
-											<p class="text-surface-600-300-token truncate text-sm">
+											<p class="truncate text-sm text-surface-600-400">
 												{folder.description}
 											</p>
 										{/if}
@@ -196,7 +196,7 @@
 							</div>
 
 							<!-- Folder Stats -->
-							<div class="text-surface-600-300-token flex items-center justify-between text-sm">
+							<div class="flex items-center justify-between text-sm text-surface-600-400">
 								<div class="flex items-center space-x-1">
 									<FileText class="h-4 w-4" />
 									<span>{folder.flashcard_sets?.length || 0} sets</span>
@@ -224,7 +224,7 @@
 				Are you sure you want to delete the folder
 				<span class="font-semibold text-primary-500">"{folderToDelete?.name}"</span>?
 			</p>
-			<p class="text-surface-600-300-token text-center text-sm">
+			<p class="text-center text-sm text-surface-600-400">
 				This action cannot be undone. All flashcard sets in this folder will be moved to "No
 				folder".
 			</p>

@@ -40,7 +40,7 @@
 		user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User';
 </script>
 
-<header class="bg-surface-100-800-token border-surface-300-600-token border-b px-4 py-4">
+<header class="border-b border-surface-300-700 preset-tonal-surface px-4 py-4">
 	<div class="flex w-full items-center justify-between">
 		<!-- Logo, Toggle, dan Brand -->
 		<div class="flex items-center space-x-3">
@@ -58,7 +58,7 @@
 				<div class="flex h-8 w-8 items-center justify-center rounded bg-primary-500">
 					<span class="text-lg font-bold text-white">Q</span>
 				</div>
-				<span class="text-surface-900-50-token hidden text-xl font-bold sm:block">Quizcard</span>
+				<span class="hidden text-xl font-bold text-surface-900-100 sm:block">Quizcard</span>
 			</div>
 		</div>
 

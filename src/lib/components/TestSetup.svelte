@@ -112,12 +112,12 @@
 		<div class="space-y-6">
 			<!-- Warning for limited flashcards -->
 			{#if maxQuestions < 5}
-				<div class="bg-warning-50-900-token border-warning-200-700-token rounded-lg border p-4">
+				<div class="rounded-lg border border-warning-200-800 bg-warning-50-950 p-4">
 					<div class="flex items-start space-x-3">
 						<div class="mt-0.5 text-warning-500">⚠️</div>
 						<div>
-							<h4 class="text-warning-800-100-token font-medium">Limited Flashcards</h4>
-							<p class="text-warning-700-200-token text-sm">
+							<h4 class="font-medium text-warning-800-200">Limited Flashcards</h4>
+							<p class="text-sm text-warning-700-300">
 								Only {maxQuestions} flashcard{maxQuestions === 1 ? '' : 's'} available. Consider adding
 								more flashcards for a better test experience.
 							</p>
@@ -169,7 +169,7 @@
 					<div class="flex-1">
 						<label for="multipleChoice" class="font-medium">Multiple choice</label>
 						{#if maxQuestions < 4}
-							<p class="text-warning-600-300-token text-xs">
+							<p class="text-xs text-warning-600-400">
 								Need at least 4 flashcards for good multiple choice options
 							</p>
 						{/if}
@@ -188,7 +188,7 @@
 					<div class="flex-1">
 						<label for="matching" class="font-medium">Matching</label>
 						{#if maxQuestions < 4}
-							<p class="text-warning-600-300-token text-xs">
+							<p class="text-xs text-warning-600-400">
 								Need at least 4 flashcards for good matching options
 							</p>
 						{/if}
@@ -222,7 +222,7 @@
 					/>
 					<span class="text-sm">
 						Use starred cards only
-						<span class="text-surface-500-400-token">
+						<span class="text-surface-500">
 							({starredCount} available)
 						</span>
 					</span>

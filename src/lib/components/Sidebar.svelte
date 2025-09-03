@@ -9,7 +9,7 @@
 	}
 </script>
 
-<div class="bg-surface-100-800-token h-full">
+<div class="h-full bg-surface-100-900">
 	<Navigation.Rail expanded={$sidebarExpanded}>
 		{#snippet tiles()}
 			<!-- Main Navigation -->
@@ -19,8 +19,8 @@
 
 			<!-- Separator -->
 			{#if $sidebarExpanded}
-				<div class="border-surface-300-600-token mt-4 w-full border-t px-4 py-2">
-					<p class="text-surface-600-300-token my-4 text-xs font-semibold tracking-wider uppercase">
+				<div class="mt-4 w-full border-t border-surface-300-700 px-4 py-2">
+					<p class="my-4 text-xs font-semibold tracking-wider text-surface-600-400 uppercase">
 						Your Subjects
 					</p>
 				</div>
@@ -32,8 +32,8 @@
 
 			<!-- Separator -->
 			{#if $sidebarExpanded}
-				<div class="border-surface-300-600-token mt-4 w-full border-t px-4 py-2">
-					<p class="text-surface-600-300-token my-4 text-xs font-semibold tracking-wider uppercase">
+				<div class="mt-4 w-full border-t border-surface-300-700 px-4 py-2">
+					<p class="my-4 text-xs font-semibold tracking-wider text-surface-600-400 uppercase">
 						Start here
 					</p>
 				</div>

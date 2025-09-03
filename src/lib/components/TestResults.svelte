@@ -42,14 +42,14 @@
 			>
 				{testScore.toFixed(0)}%
 			</div>
-			<p class="text-surface-600-300-token text-lg">
+			<p class="text-lg text-surface-600-400">
 				You scored {correctAnswers} out of {testQuestions.length} questions correctly
 			</p>
 		</div>
 
 		<!-- Progress Bar -->
 		<div class="mx-auto mb-6 max-w-md">
-			<div class="bg-surface-300-600-token flex h-4 overflow-hidden rounded-full">
+			<div class="flex h-4 overflow-hidden rounded-full bg-surface-300-700">
 				<div
 					class="bg-success-500 transition-all duration-500"
 					style="width: {correctPercentage}%"
@@ -112,7 +112,7 @@
 
 				<!-- Question Text -->
 				<div class="mb-4">
-					<p class="text-surface-700-200-token mb-3 font-medium">
+					<p class="mb-3 font-medium text-surface-700-300">
 						{question.question}
 					</p>
 				</div>
@@ -135,7 +135,7 @@
 									class="rounded-lg border-2 p-3 transition-colors
 									{isCorrectAnswer ? 'border-success-500 bg-success-50 dark:bg-success-900/20' : ''}
 									{isUserAnswer && !isCorrectAnswer ? 'border-error-500 bg-error-50 dark:bg-error-900/20' : ''}
-									{!isUserAnswer && !isCorrectAnswer ? 'border-surface-300-600-token bg-surface-100-800-token' : ''}
+									{!isUserAnswer && !isCorrectAnswer ? 'border-surface-300-700 bg-surface-100-900' : ''}
 								"
 								>
 									<div class="flex items-center justify-between">
@@ -215,8 +215,8 @@
 				</div>
 
 				<!-- Explanation or additional info -->
-				<div class="border-surface-300-600-token mt-4 border-t pt-4">
-					<div class="text-surface-600-300-token flex items-center justify-between text-sm">
+				<div class="mt-4 border-t border-surface-300-700 pt-4">
+					<div class="flex items-center justify-between text-sm text-surface-600-400">
 						<span
 							>Question Type: {question.type
 								.replace('_', ' ')

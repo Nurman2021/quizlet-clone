@@ -102,13 +102,13 @@
 	<title>{$currentFolder?.name || 'Loading...'} - Folder</title>
 </svelte:head>
 
-<div class="bg-surface-50-900-token min-h-screen p-6">
+<div class="min-h-screen bg-surface-50-950 p-6">
 	<div class="mx-auto max-w-6xl">
 		{#if isLoading}
 			<!-- Loading -->
 			<div class="py-16 text-center">
 				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-300-token">Loading folder...</p>
+				<p class="text-surface-600-400">Loading folder...</p>
 			</div>
 		{:else if $currentFolder}
 			<!-- Header -->
@@ -129,9 +129,9 @@
 						<div>
 							<h1 class="text-3xl font-bold">{$currentFolder.name}</h1>
 							{#if $currentFolder.description}
-								<p class="text-surface-600-300-token mt-1">{$currentFolder.description}</p>
+								<p class="mt-1 text-surface-600-400">{$currentFolder.description}</p>
 							{/if}
-							<p class="text-surface-600-300-token mt-2 text-sm">
+							<p class="mt-2 text-sm text-surface-600-400">
 								{folderSets.length} flashcard sets
 							</p>
 						</div>
@@ -154,7 +154,7 @@
 			{#if folderSets.length === 0}
 				<div class="card preset-tonal-surface p-16 text-center">
 					<h3 class="mb-2 text-xl font-semibold">This folder is empty</h3>
-					<p class="text-surface-600-300-token mb-6">
+					<p class="mb-6 text-surface-600-400">
 						Add flashcard sets to this folder to organize them better
 					</p>
 					<a href="/create?folder={folderId}" class="btn preset-tonal">
@@ -180,16 +180,16 @@
 								</div>
 
 								{#if set.description}
-									<p class="text-surface-600-300-token mb-4 line-clamp-2 text-sm">
+									<p class="mb-4 line-clamp-2 text-sm text-surface-600-400">
 										{set.description}
 									</p>
 								{/if}
 
 								<div class="mb-4 flex items-center justify-between">
-									<span class="text-surface-600-300-token text-sm">
+									<span class="text-sm text-surface-600-400">
 										{set.total_cards} cards
 									</span>
-									<span class="text-surface-600-300-token text-sm">
+									<span class="text-sm text-surface-600-400">
 										{new Date(set.created_at).toLocaleDateString('en-US')}
 									</span>
 								</div>
@@ -224,7 +224,7 @@
 				<span class="font-semibold text-primary-500">"{setToRemove?.title}"</span>
 				from this folder?
 			</p>
-			<p class="text-surface-600-300-token text-center text-sm">
+			<p class="text-center text-sm text-surface-600-400">
 				The flashcard set will be moved to "No folder" but won't be deleted.
 			</p>
 

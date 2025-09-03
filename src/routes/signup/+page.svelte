@@ -97,7 +97,7 @@
 	<title>Signup | Quizcard</title>
 </svelte:head>
 
-<div class="bg-surface-50-900-token flex min-h-screen items-center justify-center p-4">
+<div class="flex min-h-screen items-center justify-center bg-surface-50-950 p-4">
 	<div class="w-full max-w-md card preset-tonal-surface p-8">
 		<!-- Logo -->
 		<div class="mb-8 text-center">
@@ -105,7 +105,7 @@
 				<span class="text-3xl font-bold text-white">Q</span>
 			</div>
 			<h1 class="text-2xl font-bold">Signup to Quizcard</h1>
-			<p class="text-surface-600-300-token mt-2">
+			<p class="mt-2 text-surface-600-400">
 				Already have an account?
 				<a href="/login" class="text-primary-500 hover:underline">Log in</a>
 			</p>
@@ -189,7 +189,7 @@
 						minlength="6"
 					/>
 				</div>
-				<p class="text-surface-600-300-token mt-1 text-xs">Minimum 6 characters</p>
+				<p class="mt-1 text-xs text-surface-600-400">Minimum 6 characters</p>
 			</label>
 
 			<!-- Confirm Password Input -->
@@ -231,9 +231,9 @@
 		</form>
 
 		<p class="my-6 flex w-full items-center">
-			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+			<span class="flex-grow rounded border-t border-surface-300-700"></span>
 			<span class="mx-4 text-sm">or</span>
-			<span class="border-surface-300-600-token flex-grow rounded border-t"></span>
+			<span class="flex-grow rounded border-t border-surface-300-700"></span>
 		</p>
 
 		<!-- Social Signup -->

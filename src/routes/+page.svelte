@@ -71,7 +71,7 @@
 	<meta name="description" content="Quizcard - Interactive learning platform" />
 </svelte:head>
 
-<div class="bg-surface-50-900-token p-6">
+<div class="bg-surface-50-950 p-6">
 	<div class="mx-auto max-w-5xl">
 		<!-- Popular Content Section -->
 		<div class="mt-12">
@@ -172,7 +172,7 @@
 			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
 			onclick={(e) => e.stopPropagation()}
 		>
-			<div class="bg-surface-100-800-token rounded-container-token shadow-xl">
+			<div class="rounded-container bg-surface-100-900 shadow-xl">
 				<div class="p-6">
 					<h3 class="mb-4 text-xl font-bold">Move to Folder</h3>
 
@@ -187,7 +187,7 @@
 					</label>
 
 					{#if $folders.length === 0}
-						<p class="text-surface-600-300-token mt-2 text-sm">
+						<p class="mt-2 text-sm text-surface-600-400">
 							No folders yet. <a href="/folders" class="text-primary-500">Create a new folder</a>
 						</p>
 					{/if}

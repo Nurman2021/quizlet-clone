@@ -91,7 +91,7 @@
 						<button
 							type="button"
 							class="h-10 w-full rounded-lg transition-all {selectedColor === color
-								? 'ring-offset-surface-100-800-token ring-2 ring-offset-2'
+								? 'ring-2 ring-offset-2 ring-offset-surface-100-900'
 								: ''}"
 							style="background-color: {color}"
 							onclick={() => (selectedColor = color)}
@@ -111,7 +111,7 @@
 					</div>
 					<div>
 						<p class="font-semibold">{name || 'Folder name'}</p>
-						<p class="text-surface-600-300-token text-sm">
+						<p class="text-sm text-surface-600-400">
 							{description || 'Folder description'}
 						</p>
 					</div>

@@ -453,16 +453,6 @@
 											</button>
 										</div>
 									</div>
-
-									<!-- Progress Info Footer -->
-									<!-- <div class="px-6 py-3">
-										<div class="text-surface-500-400-token text-xs">
-											Confidence: {item.confidence_level}/5 •
-											{item.correct_attempts}/{item.total_attempts} correct • Last seen: {new Date(
-												item.last_attempt_at
-											).toLocaleDateString()}
-										</div>
-									</div> -->
 								</div>
 							{/if}
 						{/each}
@@ -560,14 +550,6 @@
 											</button>
 										</div>
 									</div>
-
-									<!-- Progress Info Footer -->
-									<!-- <div class="px-6 py-3">
-										<div class="text-surface-500-400-token text-xs">
-											Mastered on: {new Date(item.mastered_at).toLocaleDateString()} •
-											{item.correct_attempts}/{item.total_attempts} correct
-										</div>
-									</div> -->
 								</div>
 							{/if}
 						{/each}
@@ -674,16 +656,6 @@
 										</button>
 									</div>
 								</div>
-
-								<!-- Progress Info Footer -->
-								<!-- <div class="px-6 py-3">
-									<div class="text-surface-500-400-token text-xs">
-										Confidence: {item.confidence_level}/5 •
-										{item.correct_attempts}/{item.total_attempts} correct • Last seen: {new Date(
-											item.last_attempt_at
-										).toLocaleDateString()}
-									</div>
-								</div> -->
 							</div>
 						{/each}
 					</div>
