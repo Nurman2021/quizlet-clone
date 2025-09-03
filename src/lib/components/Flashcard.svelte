@@ -353,7 +353,7 @@
 						tabindex="0"
 					>
 						<!-- Card Controls (existing) -->
-						<div class="absolute top-10 flex w-full items-center justify-between px-10">
+						<div class="absolute top-0 flex h-20 w-full items-center justify-between px-10">
 							<button
 								class="flex gap-2 text-sm {showHint
 									? 'rounded-full preset-filled-primary-50-950 p-2 text-primary-500'
@@ -424,7 +424,7 @@
 						tabindex="0"
 					>
 						<!-- Card Controls (duplicated for back side) -->
-						<div class="absolute top-10 flex w-full items-center justify-between px-10">
+						<div class="absolute top-0 flex h-20 w-full items-center justify-between px-10">
 							<button
 								class="flex gap-2 text-sm {showHint ? 'text-primary-500' : ''} max-w-xs"
 								onclick={(e) => toggleHint(e)}
