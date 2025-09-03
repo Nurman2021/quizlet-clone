@@ -99,14 +99,21 @@ export class ProgressService {
 
                 if (isCorrect) {
                     newConfidenceLevel = Math.min(5, newConfidenceLevel + 1);
-                    if (newConfidenceLevel >= 4 && accuracy >= 0.8) {
+                    // More lenient mastered criteria
+                    if (newConfidenceLevel >= 3 && accuracy >= 0.7 && newCorrectAttempts >= 2) {
                         newStatus = 'mastered';
-                        masteredAt = now;
+                        if (!masteredAt) { // Only set mastered_at if not already set
+                            masteredAt = now;
+                        }
                     }
                 } else {
                     newConfidenceLevel = Math.max(1, newConfidenceLevel - 1);
-                    newStatus = 'learning';
-                    masteredAt = null;
+                    // Only reset to learning if confidence drops significantly
+                    if (newConfidenceLevel <= 2 && accuracy < 0.5) {
+                        newStatus = 'learning';
+                        masteredAt = null;
+                    }
+                    // Keep mastered status if still decent performance
                 }
 
                 const { error } = await supabase
@@ -159,7 +166,12 @@ export class ProgressService {
     static async getSetProgress(setId) {
         try {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return { stillLearning: [], mastered: [] };
+            if (!user) {
+                console.log('No user authenticated for progress');
+                return { stillLearning: [], mastered: [] };
+            }
+
+            console.log('Getting progress for user:', user.id, 'setId:', setId);
 
             const { data: progress, error } = await supabase
                 .from('user_progress')
@@ -180,8 +192,21 @@ export class ProgressService {
                 return { stillLearning: [], mastered: [] };
             }
 
+            console.log('Raw progress data:', progress);
+
             const stillLearning = progress?.filter(p => p.status === 'learning') || [];
             const mastered = progress?.filter(p => p.status === 'mastered') || [];
+
+            console.log('Filtered progress:', {
+                stillLearning: stillLearning.length,
+                mastered: mastered.length,
+                masteredItems: mastered.map(m => ({
+                    term: m.flashcards?.term,
+                    status: m.status,
+                    confidence: m.confidence_level,
+                    masteredAt: m.mastered_at
+                }))
+            });
 
             return { stillLearning, mastered };
 
@@ -244,6 +269,57 @@ export class ProgressService {
         } catch (error) {
             console.warn('Error getting detailed stats:', error.message);
             return null;
+        }
+    }
+
+    // Debug function to check all user progress
+    static async debugUserProgress() {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                console.log('No user authenticated');
+                return;
+            }
+
+            const { data: allProgress, error } = await supabase
+                .from('user_progress')
+                .select(`
+                    *,
+                    flashcards (
+                        id,
+                        term,
+                        definition,
+                        is_starred
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                console.error('Debug error:', error);
+                return;
+            }
+
+            console.log('=== USER PROGRESS DEBUG ===');
+            console.log('User ID:', user.id);
+            console.log('Total progress records:', allProgress?.length || 0);
+
+            allProgress?.forEach((p, index) => {
+                console.log(`${index + 1}. ${p.flashcards?.term || 'Unknown term'} - Status: ${p.status}, Confidence: ${p.confidence_level}, Mastered: ${p.mastered_at}`);
+            });
+
+            const statusBreakdown = {
+                learning: allProgress?.filter(p => p.status === 'learning').length || 0,
+                mastered: allProgress?.filter(p => p.status === 'mastered').length || 0
+            };
+
+            console.log('Status breakdown:', statusBreakdown);
+            console.log('=== END DEBUG ===');
+
+            return allProgress;
+
+        } catch (error) {
+            console.error('Debug error:', error);
         }
     }
 }

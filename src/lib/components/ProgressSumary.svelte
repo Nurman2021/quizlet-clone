@@ -48,6 +48,8 @@
 
 	onMount(async () => {
 		await loadProgress();
+		// Debug: check all user progress
+		await ProgressService.debugUserProgress();
 	});
 
 	async function loadProgress() {
@@ -250,6 +252,15 @@
 			<h2 class="text-2xl font-bold">Terms in this set ({flashcardSet.flashcards.length})</h2>
 
 			<div class="flex items-center space-x-4">
+				<!-- Debug Button (temporary) -->
+				<button
+					class="btn preset-tonal-error text-xs"
+					onclick={() => ProgressService.debugUserProgress()}
+					title="Debug progress data"
+				>
+					Debug Progress
+				</button>
+
 				<!-- Control Buttons -->
 				<div class="flex items-center space-x-2 border-r border-surface-300-700 pr-4">
 					<!-- Switch Position Button -->
