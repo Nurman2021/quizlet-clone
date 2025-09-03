@@ -35,6 +35,7 @@
 	let isPlaying = $state(false);
 	let autoPlayInterval = $state(null);
 	let isShuffled = $state(false);
+	let showHint = $state(false);
 
 	let currentCard = $derived(flashcardSet?.flashcards[currentIndex]);
 	let isFirstCard = $derived(currentIndex === 0);
@@ -47,6 +48,7 @@
 
 	function toggleAnswer() {
 		showAnswer = !showAnswer;
+		showHint = false; // Reset hint when toggling answer
 		// Stop auto-play if user manually toggles answer
 		if (isPlaying) {
 			stopAutoPlay();
@@ -56,6 +58,7 @@
 
 	function nextCard() {
 		showAnswer = false;
+		showHint = false; // Reset hint when changing card
 		// Stop auto-play if user manually navigates
 		if (isPlaying) {
 			stopAutoPlay();
@@ -73,6 +76,7 @@
 
 	function previousCard() {
 		showAnswer = false;
+		showHint = false; // Reset hint when changing card
 		// Stop auto-play if user manually navigates
 		if (isPlaying) {
 			stopAutoPlay();
@@ -88,7 +92,8 @@
 		onPrevious?.();
 	}
 
-	function enterEditMode() {
+	function enterEditMode(event) {
+		event?.stopPropagation();
 		if (!currentCard) return;
 		showEditModal = true;
 		editTerm = currentCard.term;
@@ -135,7 +140,8 @@
 		}
 	}
 
-	function speakText(text) {
+	function speakText(text, event) {
+		event?.stopPropagation();
 		if ('speechSynthesis' in window) {
 			const utterance = new SpeechSynthesisUtterance(text);
 			utterance.rate = 0.8;
@@ -225,11 +231,16 @@
 				event.preventDefault();
 				enterEditMode();
 				break;
+			case 'h':
+				event.preventDefault();
+				toggleHint();
+				break;
 		}
 	}
 
 	// Function untuk toggle star current card
-	async function toggleCurrentCardStar() {
+	async function toggleCurrentCardStar(event) {
+		event?.stopPropagation();
 		if (!currentCard) return;
 
 		try {
@@ -287,6 +298,33 @@
 			console.error('Failed to update card:', error);
 		}
 	}
+
+	// Function untuk toggle hint
+	function toggleHint(event) {
+		event?.stopPropagation();
+		showHint = !showHint;
+	}
+
+	// Function untuk generate hint text
+	function getHintText() {
+		if (!currentCard) return '';
+
+		// Jika kita di sisi term (showAnswer = false), berikan hint dari definition
+		// Jika kita di sisi definition (showAnswer = true), berikan hint dari term
+		const sourceText = showAnswer ? currentCard.term : currentCard.definition;
+
+		// Untuk text pendek (1 kata), tampilkan beberapa karakter pertama
+		if (sourceText.split(' ').length === 1) {
+			const maxChars = Math.max(3, Math.ceil(sourceText.length * 0.4));
+			return sourceText.slice(0, maxChars) + (sourceText.length > maxChars ? '...' : '');
+		}
+
+		// Untuk text panjang (multiple kata), tampilkan beberapa kata pertama
+		const words = sourceText.split(' ');
+		const wordCount = Math.max(2, Math.min(3, Math.ceil(words.length * 0.3)));
+
+		return words.slice(0, wordCount).join(' ') + (words.length > wordCount ? '...' : '');
+	}
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -316,9 +354,19 @@
 					>
 						<!-- Card Controls (existing) -->
 						<div class="absolute top-10 flex w-full items-center justify-between px-10">
-							<button class="flex gap-2 text-sm">
-								<Lightbulb class="h-5 w-5" />
-								Get a hint
+							<button
+								class="flex gap-2 text-sm {showHint
+									? 'rounded-full preset-filled-primary-50-950 p-2 text-primary-500'
+									: ''} max-w-xs"
+								onclick={(e) => toggleHint(e)}
+								title="Get a hint (Press H)"
+							>
+								<Lightbulb class="h-5 w-5 flex-shrink-0" />
+								{#if showHint && !showAnswer}
+									<span class="truncate">{getHintText()}</span>
+								{:else}
+									Get a hint
+								{/if}
 							</button>
 
 							<div
@@ -330,20 +378,24 @@
 							<div class="flex items-center space-x-2">
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={toggleCurrentCardStar}
+									onclick={(e) => toggleCurrentCardStar(e)}
 									class:text-yellow-500={currentCard.is_starred}
 									title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
 								>
 									<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
 								</button>
 
-								<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
+								<button
+									class="btn-icon btn-icon-sm"
+									title="Edit (Press E)"
+									onclick={(e) => enterEditMode(e)}
+								>
 									<Edit class="h-5 w-5" />
 								</button>
 
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={() => speakText(currentCard.term)}
+									onclick={(e) => speakText(currentCard.term, e)}
 									title="Listen to pronunciation"
 								>
 									<Volume2 class="h-5 w-5" />
@@ -373,9 +425,17 @@
 					>
 						<!-- Card Controls (duplicated for back side) -->
 						<div class="absolute top-10 flex w-full items-center justify-between px-10">
-							<button class="flex gap-2 text-sm">
-								<Lightbulb class="h-5 w-5" />
-								Get a hint
+							<button
+								class="flex gap-2 text-sm {showHint ? 'text-primary-500' : ''} max-w-xs"
+								onclick={(e) => toggleHint(e)}
+								title="Get a hint (Press H)"
+							>
+								<Lightbulb class="h-5 w-5 flex-shrink-0" />
+								{#if showHint && showAnswer}
+									<span class="truncate">{getHintText()}</span>
+								{:else}
+									Get a hint
+								{/if}
 							</button>
 
 							<div
@@ -387,20 +447,24 @@
 							<div class="flex items-center space-x-2">
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={toggleCurrentCardStar}
+									onclick={(e) => toggleCurrentCardStar(e)}
 									class:text-yellow-500={currentCard.is_starred}
 									title={currentCard.is_starred ? 'Remove from favorites' : 'Add to favorites'}
 								>
 									<Star class="h-5 w-5 {currentCard.is_starred ? 'fill-current' : ''}" />
 								</button>
 
-								<button class="btn-icon btn-icon-sm" title="Edit (Press E)" onclick={enterEditMode}>
+								<button
+									class="btn-icon btn-icon-sm"
+									title="Edit (Press E)"
+									onclick={(e) => enterEditMode(e)}
+								>
 									<Edit class="h-5 w-5" />
 								</button>
 
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={() => speakText(currentCard.definition)}
+									onclick={(e) => speakText(currentCard.definition, e)}
 									title="Listen to pronunciation"
 								>
 									<Volume2 class="h-5 w-5" />
