@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { ArrowLeft, Settings, X, ChevronDown } from 'lucide-svelte';
+	import { Settings, X, ChevronDown } from 'lucide-svelte';
 
 	// Components
 	import Flashcard from '$lib/components/Flashcard.svelte';
@@ -65,13 +65,10 @@
 
 	// Card edit callback - for parent-level updates
 	function handleCardEdit(updatedCard) {
-		// Component handles the update, this is for additional parent logic
 		console.log('Card updated in flashcard page:', updatedCard);
 	}
 
-	// Star toggle callback - for parent-level updates
 	function handleStarToggle(cardId) {
-		// Component handles the update, this is for additional parent logic
 		console.log('Star toggled in flashcard page:', cardId);
 	}
 

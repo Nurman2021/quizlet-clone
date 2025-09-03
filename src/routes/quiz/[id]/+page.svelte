@@ -325,6 +325,14 @@
 							<span class="text-sm font-semibold">Test</span>
 						</a>
 
+						<!-- <a
+							href="/quiz/{setId}/uji"
+							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+						>
+							<img src={testIcon} alt="uji" class="mx-auto mb-1 h-9 w-9 object-contain" />
+							<span class="text-sm font-semibold">Uji</span>
+						</a> -->
+
 						<a
 							href="/quiz/{setId}/match"
 							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"

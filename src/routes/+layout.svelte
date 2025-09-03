@@ -13,7 +13,8 @@
 		$page.route.id?.includes('/flashcard') ||
 			$page.route.id?.includes('/learn') ||
 			$page.route.id?.includes('/match') ||
-			$page.route.id?.includes('/test')
+			$page.route.id?.includes('/test') ||
+			$page.route.id?.includes('/uji')
 	);
 </script>
 

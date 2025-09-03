@@ -4,8 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { X, ChevronDown, Settings, ArrowLeft } from 'lucide-svelte';
-	import TestSetup from '$lib/components/TestSetup.svelte';
+	import { X, ChevronDown, Settings } from 'lucide-svelte';
 	import TestResults from '$lib/components/TestResults.svelte';
 	import TestNavigation from '$lib/components/TestNavigation.svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
@@ -21,15 +20,24 @@
 	let isLoading = $state(true);
 
 	// Test states
-	let showSetup = $state(true);
 	let showResults = $state(false);
-	let testInProgress = $state(false);
+	let testInProgress = $state(true);
 	let testQuestions = $state([]);
 	let currentQuestionIndex = $state(0);
 	let testAnswers = $state({});
-	let testConfig = $state(null);
 	let showQuestionList = $state(true);
 	let showNavigationDropdown = $state(false);
+
+	// Static test configuration (tidak ada modal setup)
+	const testConfig = {
+		questionCount: 10,
+		trueFalse: true,
+		multipleChoice: true,
+		matching: true,
+		written: true,
+		answerWith: 'both', // 'terms', 'definitions', 'both'
+		useStarredOnly: false
+	};
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -74,6 +82,14 @@
 			if (cardsError) throw cardsError;
 
 			flashcardSet = { ...set, flashcards: cards };
+
+			// Auto-start test after loading
+			if (flashcardSet?.flashcards?.length > 0) {
+				generateQuestions();
+				if (testQuestions.length > 0) {
+					toast.info('Test dimulai otomatis!');
+				}
+			}
 		} catch (error) {
 			console.error('Error loading flashcard set:', error);
 			toast.error('Failed to load flashcard set', error.message);
@@ -83,40 +99,8 @@
 		}
 	}
 
-	function startTest(event) {
-		testConfig = event.detail;
-		console.log('Test config received:', $state.snapshot(testConfig));
-		console.log('Flashcard set available cards:', flashcardSet?.flashcards?.length);
-
-		// Validate flashcard set exists
-		if (!flashcardSet?.flashcards?.length) {
-			toast.error('No flashcards available for test');
-			console.error('No flashcards available in set');
-			return;
-		}
-
-		// Generate questions based on config
-		generateQuestions();
-
-		// Only proceed if questions were generated successfully
-		if (testQuestions.length > 0) {
-			showSetup = false;
-			testInProgress = true;
-			toast.info('Test started!');
-			console.log('Test started successfully with', testQuestions.length, 'questions');
-		} else {
-			console.error('Failed to generate questions');
-		}
-	}
-
-	function cancelSetup() {
-		console.log('cancelSetup called - redirecting to quiz page');
-		// Redirect back to quiz page when user cancels setup
-		goto(`/quiz/${setId}`);
-	}
-
 	function generateQuestions() {
-		if (!flashcardSet?.flashcards || !testConfig) return;
+		if (!flashcardSet?.flashcards) return;
 
 		let availableCards = flashcardSet.flashcards;
 
@@ -126,10 +110,7 @@
 
 			if (availableCards.length === 0) {
 				toast.error('No starred cards available for test');
-				// Reset back to setup instead of calling undefined resetTest()
-				showSetup = true;
-				testInProgress = false;
-				testConfig = null;
+				goto(`/quiz/${setId}`);
 				return;
 			}
 		}
@@ -169,9 +150,7 @@
 		// Validate that questions were generated successfully
 		if (testQuestions.length === 0) {
 			toast.error('Failed to generate questions. Please try again.');
-			showSetup = true;
-			testInProgress = false;
-			testConfig = null;
+			goto(`/quiz/${setId}`);
 			return;
 		}
 
@@ -355,15 +334,12 @@
 
 	function retakeTest() {
 		showResults = false;
-		showSetup = true;
+		testInProgress = true;
 		testAnswers = {};
-	}
 
-	function backToSetup() {
-		showResults = false;
-		showSetup = true;
-		testInProgress = false;
-		testAnswers = {};
+		// Generate new questions
+		generateQuestions();
+		toast.info('Test restarted!');
 	}
 
 	function exitTest() {
@@ -406,7 +382,7 @@
 </script>
 
 <svelte:head>
-	<title>Test - {flashcardSet?.title || 'Loading...'} - Quizcard</title>
+	<title>Uji - {flashcardSet?.title || 'Loading...'} - Quizcard</title>
 </svelte:head>
 
 {#if isLoading}
@@ -418,229 +394,291 @@
 			<p class="text-surface-600-400">Loading test...</p>
 		</div>
 	</div>
-{:else if flashcardSet}
-	<!-- Test Setup Modal -->
-	<TestSetup
-		bind:show={showSetup}
-		maxQuestions={flashcardSet?.flashcards?.length || 20}
-		{flashcardSet}
-		on:start-test={startTest}
-		on:close={cancelSetup}
-	/>
+{:else if flashcardSet && testInProgress}
+	<!-- Test Interface -->
+	<div class="min-h-screen bg-surface-50-950">
+		<!-- Navigation Sidebar (Floating) -->
+		<TestNavigation
+			questions={testQuestions}
+			{currentQuestionIndex}
+			{testAnswers}
+			{showQuestionList}
+			showResults={false}
+			on:go-to-question={goToQuestion}
+			on:toggle-question-list={toggleQuestionList}
+		/>
 
-	{#if testInProgress}
-		<!-- Test Interface -->
-		<div class="min-h-screen bg-surface-50-950">
-			<!-- Navigation Sidebar (Floating) -->
-			<TestNavigation
-				questions={testQuestions}
-				{currentQuestionIndex}
-				{testAnswers}
-				{showQuestionList}
-				showResults={false}
-				on:go-to-question={goToQuestion}
-				on:toggle-question-list={toggleQuestionList}
-			/>
+		<!-- Main Test Content -->
+		<div class="w-full">
+			<!-- Test Header -->
+			<header
+				class="sticky top-0 z-20 border-b border-surface-300-700 preset-tonal-surface px-6 py-4"
+			>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-4">
+						<button
+							onclick={toggleNavigationDropdown}
+							class="flex items-center preset-tonal-surface text-xs font-semibold"
+							title="Switch mode"
+						>
+							<img src={testIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
+							Test
+							<ChevronDown class="ml-2 h-4 w-4" />
+						</button>
 
-			<!-- Main Test Content -->
-			<div class="w-full">
-				<!-- Test Header -->
-				<header
-					class="sticky top-0 z-20 border-b border-surface-300-700 preset-tonal-surface px-6 py-4"
-				>
-					<div class="flex items-center justify-between">
-						<div class="flex items-center space-x-4">
-							<button
-								onclick={toggleNavigationDropdown}
-								class="flex items-center preset-tonal-surface text-xs font-semibold"
-								title="Switch mode"
-							>
-								<img src={testIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
-								Test
-								<ChevronDown class="ml-2 h-4 w-4" />
-							</button>
-
-							{#if showNavigationDropdown}
-								<div
-									class="absolute top-full left-4 z-50 mt-2 w-30 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
-								>
-									<div class="grid grid-cols-1 gap-2 p-3">
-										<a
-											href="/quiz/{setId}/learn"
-											class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-										>
-											<img src={learnIcon} alt="learn" class="mx-auto h-6 w-6 object-contain" />
-											<span class="text-xs font-semibold">Learn</span>
-										</a>
-
-										<a
-											href="/quiz/{setId}/flashcard"
-											class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-										>
-											<img src={flascardIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
-											<span class="text-xs font-semibold">Flashcard</span>
-										</a>
-
-										<a
-											href="/quiz/{setId}/match"
-											class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-										>
-											<img
-												src={matchIcon}
-												alt="matchmaking"
-												class="mx-auto h-6 w-6 object-contain"
-											/>
-											<span class="text-xs font-semibold">Match</span>
-										</a>
-										<a
-											href="/"
-											class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-										>
-											<span class="text-xs font-semibold">Home</span>
-										</a>
-									</div>
-								</div>
-							{/if}
-						</div>
-
-						<div class="flex flex-col items-center space-x-4">
-							<div class="font-semibold">{answeredCount}/{testQuestions.length}</div>
-							<h1 class="text-lg font-semibold">{flashcardSet.title}</h1>
-						</div>
-
-						<div class="flex items-center justify-center space-x-2">
-							<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
-								<Settings class="h-8 w-8" />
-							</button>
-
-							<button
-								onclick={exitTest}
-								class="btn-icon btn-icon-lg preset-tonal-surface"
-								title="Back to Quiz"
-							>
-								<X class="h-8 w-8" />
-							</button>
-						</div>
-					</div>
-				</header>
-
-				<!-- All Questions in Scroll Format -->
-				<main class="mx-auto max-w-4xl px-8 py-8">
-					<div class="space-y-8">
-						{#each testQuestions as question, index}
+						{#if showNavigationDropdown}
 							<div
-								id="question-{question.id}"
-								class="rounded-lg border border-surface-300-700 bg-surface-100-900 p-6"
+								class="absolute top-full left-4 z-50 mt-2 w-30 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
 							>
-								<!-- Question Header -->
-								<div class="mb-6">
-									<div class="mb-4 flex items-center justify-between">
-										<div class="flex items-center space-x-3">
-											<span class="text-surface-600-400">
-												Question {index + 1} of {testQuestions.length}
-											</span>
-										</div>
-										<div
-											class="text-sm {testAnswers[question.id]
-												? 'font-medium text-success-500'
-												: 'text-surface-500'}"
-										>
-											{testAnswers[question.id] ? '✓ Answered' : 'Not answered'}
-										</div>
-									</div>
+								<div class="grid grid-cols-1 gap-2 p-3">
+									<a
+										href="/quiz/{setId}/learn"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={learnIcon} alt="learn" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Learn</span>
+									</a>
 
-									<!-- Question Text -->
-									<div class="mb-6">
-										<div class="p-4">
-											<p class="text-center text-lg font-medium">
-												{question.question}
-											</p>
-										</div>
-									</div>
-								</div>
+									<a
+										href="/quiz/{setId}/flashcard"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={flascardIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Flashcard</span>
+									</a>
 
-								<!-- Answer Options -->
-								<div>
-									{#if question.type === 'multiple_choice' || question.type === 'true_false' || question.type === 'matching'}
-										<!-- Multiple Choice Options -->
-										<div class="space-y-3">
-											{#each question.options as option}
-												{@const isSelected = testAnswers[question.id] === option}
-												<button
-													onclick={() => selectAnswer(question.id, option)}
-													class="w-full rounded-lg border-2 p-4 text-left transition-all duration-200
-														{isSelected
-														? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-														: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
-													"
-												>
-													<div class="flex items-center space-x-3">
-														<div
-															class="flex h-5 w-5 items-center justify-center rounded-full border-2
-															{isSelected ? 'border-primary-500 bg-primary-500' : 'border-surface-300-700'}
-														"
-														>
-															{#if isSelected}
-																<div class="h-2 w-2 rounded-full bg-white"></div>
-															{/if}
-														</div>
-														<span class="font-medium">{option}</span>
-													</div>
-												</button>
-											{/each}
-										</div>
-									{:else if question.type === 'written'}
-										<!-- Written Answer -->
-										<div>
-											<textarea
-												bind:value={testAnswers[question.id]}
-												placeholder="Type your answer here..."
-												class="textarea h-24 w-full resize-none bg-surface-50-950"
-											></textarea>
-										</div>
-									{/if}
+									<a
+										href="/quiz/{setId}/match"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={matchIcon} alt="matchmaking" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Match</span>
+									</a>
+									<a
+										href="/"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<span class="text-xs font-semibold">Home</span>
+									</a>
 								</div>
 							</div>
-						{/each}
-					</div>
-
-					<!-- Submit Button at Bottom -->
-					<div class="mt-8 text-center">
-						{#if allAnswered}
-							<button onclick={finishTest} class="btn preset-filled-primary-500 px-8 py-3 text-lg">
-								Submit Test
-							</button>
-							<p class="mt-2 text-sm text-surface-600-400">
-								All questions answered! Ready to submit.
-							</p>
-						{:else}
-							<button onclick={finishTest} class="btn preset-tonal-surface px-8 py-3 text-lg">
-								Submit Test ({answeredCount}/{testQuestions.length} answered)
-							</button>
-							<p class="mt-2 text-sm text-surface-600-400">
-								You can submit with incomplete answers, but unanswered questions will be marked as
-								incorrect.
-							</p>
 						{/if}
 					</div>
-				</main>
-			</div>
+
+					<div class="flex flex-col items-center space-x-4">
+						<div class="font-semibold">{answeredCount}/{testQuestions.length}</div>
+						<h1 class="text-lg font-semibold">{flashcardSet.title}</h1>
+					</div>
+
+					<div class="flex items-center justify-center space-x-2">
+						<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+							<Settings class="h-8 w-8" />
+						</button>
+
+						<button
+							onclick={exitTest}
+							class="btn-icon btn-icon-lg preset-tonal-surface"
+							title="Back to Quiz"
+						>
+							<X class="h-8 w-8" />
+						</button>
+					</div>
+				</div>
+			</header>
+
+			<!-- All Questions in Scroll Format -->
+			<main class="mx-auto max-w-4xl px-8 py-8">
+				<div class="space-y-8">
+					{#each testQuestions as question, index}
+						<div
+							id="question-{question.id}"
+							class="rounded-lg border border-surface-300-700 bg-surface-100-900 p-6"
+						>
+							<!-- Question Header -->
+							<div class="mb-6">
+								<div class="mb-4 flex items-center justify-between">
+									<div class="flex items-center space-x-3">
+										<span class="text-surface-600-400">
+											Question {index + 1} of {testQuestions.length}
+										</span>
+									</div>
+									<div
+										class="text-sm {testAnswers[question.id]
+											? 'font-medium text-success-500'
+											: 'text-surface-500'}"
+									>
+										{testAnswers[question.id] ? '✓ Answered' : 'Not answered'}
+									</div>
+								</div>
+
+								<!-- Question Text -->
+								<div class="mb-6">
+									<div class="p-4">
+										<p class="text-center text-lg font-medium">
+											{question.question}
+										</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Answer Options -->
+							<div>
+								{#if question.type === 'multiple_choice' || question.type === 'true_false' || question.type === 'matching'}
+									<!-- Multiple Choice Options -->
+									<div class="space-y-3">
+										{#each question.options as option}
+											{@const isSelected = testAnswers[question.id] === option}
+											<button
+												onclick={() => selectAnswer(question.id, option)}
+												class="w-full rounded-lg border-2 p-4 text-left transition-all duration-200
+													{isSelected
+													? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+													: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
+												"
+											>
+												<div class="flex items-center space-x-3">
+													<div
+														class="flex h-5 w-5 items-center justify-center rounded-full border-2
+														{isSelected ? 'border-primary-500 bg-primary-500' : 'border-surface-300-700'}
+													"
+													>
+														{#if isSelected}
+															<div class="h-2 w-2 rounded-full bg-white"></div>
+														{/if}
+													</div>
+													<span class="font-medium">{option}</span>
+												</div>
+											</button>
+										{/each}
+									</div>
+								{:else if question.type === 'written'}
+									<!-- Written Answer -->
+									<div>
+										<textarea
+											bind:value={testAnswers[question.id]}
+											placeholder="Type your answer here..."
+											class="textarea h-24 w-full resize-none bg-surface-50-950"
+										></textarea>
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Submit Button at Bottom -->
+				<div class="mt-8 text-center">
+					{#if allAnswered}
+						<button onclick={finishTest} class="btn preset-filled-primary-500 px-8 py-3 text-lg">
+							Submit Test
+						</button>
+						<p class="mt-2 text-sm text-surface-600-400">
+							All questions answered! Ready to submit.
+						</p>
+					{:else}
+						<button
+							onclick={finishTest}
+							disabled={!allAnswered}
+							class="btn preset-tonal-surface px-8 py-3 text-lg disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							Submit Test ({answeredCount}/{testQuestions.length} answered)
+						</button>
+						<p class="mt-2 text-sm text-surface-600-400">
+							Please answer all questions before submitting the test.
+						</p>
+					{/if}
+				</div>
+			</main>
 		</div>
-	{:else if showResults}
-		<!-- Test Results -->
-		<div class="min-h-screen bg-surface-50-950">
-			<header class="border-b border-surface-300-700 bg-surface-100-900 px-6 py-4">
-				<div class="flex items-center space-x-4">
-					<button
-						onclick={exitTest}
-						class="btn-icon btn-icon-sm preset-tonal-surface"
-						title="Back to Quiz"
-					>
-						<ArrowLeft class="h-5 w-5" />
-					</button>
-					<div>
-						<h1 class="text-xl font-semibold">{flashcardSet.title}</h1>
-						<p class="text-sm text-surface-600-400">Test Results</p>
+	</div>
+{:else if showResults}
+	<!-- Test Results -->
+	<div class="min-h-screen bg-surface-50-950">
+		<!-- Navigation Sidebar (Floating) with Results -->
+		<TestNavigation
+			questions={testQuestions}
+			{currentQuestionIndex}
+			{testAnswers}
+			showQuestionList={true}
+			showResults={true}
+			on:go-to-question={goToQuestion}
+			on:toggle-question-list={toggleQuestionList}
+		/>
+
+		<!-- Main Test Content -->
+		<div class="w-full">
+			<!-- Test Header -->
+			<header
+				class="sticky top-0 z-20 border-b border-surface-300-700 preset-tonal-surface px-6 py-4"
+			>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-4">
+						<button
+							onclick={toggleNavigationDropdown}
+							class="flex items-center preset-tonal-surface text-xs font-semibold"
+							title="Switch mode"
+						>
+							<img src={flascardIcon} alt="flashcard" class="mr-2 h-5 w-5 object-contain" />
+							Flashcards
+							<ChevronDown class="ml-2 h-4 w-4" />
+						</button>
+
+						{#if showNavigationDropdown}
+							<div
+								class="absolute top-full left-4 z-50 mt-2 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+							>
+								<div class="grid grid-cols-1 gap-2 p-3">
+									<a
+										href="/quiz/{setId}/learn"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={learnIcon} alt="learn" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Learn</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/test"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={testIcon} alt="test" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Test</span>
+									</a>
+
+									<a
+										href="/quiz/{setId}/match"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<img src={matchIcon} alt="matchmaking" class="mx-auto h-6 w-6 object-contain" />
+										<span class="text-xs font-semibold">Match</span>
+									</a>
+									<a
+										href="/"
+										class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
+									>
+										<span class="text-xs font-semibold">Home</span>
+									</a>
+								</div>
+							</div>
+						{/if}
+					</div>
+
+					<div class="flex flex-col items-center space-x-4">
+						<div class="font-semibold">Results</div>
+						<h1 class="text-lg font-semibold">{flashcardSet.title}</h1>
+					</div>
+
+					<div class="flex items-center justify-center space-x-2">
+						<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+							<Settings class="h-8 w-8" />
+						</button>
+
+						<button
+							onclick={exitTest}
+							class="btn-icon btn-icon-lg preset-tonal-surface"
+							title="Back to Quiz"
+						>
+							<X class="h-8 w-8" />
+						</button>
 					</div>
 				</div>
 			</header>
@@ -652,12 +690,12 @@
 					testScore={(testQuestions.filter((q) => q.isCorrect).length / testQuestions.length) * 100}
 					correctAnswers={testQuestions.filter((q) => q.isCorrect).length}
 					on:retake-test={retakeTest}
-					on:back-to-setup={backToSetup}
+					on:back-to-setup={() => goto(`/quiz/${setId}/test`)}
 					on:go-home={exitTest}
 				/>
 			</main>
 		</div>
-	{/if}
+	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
