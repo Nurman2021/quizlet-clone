@@ -253,13 +253,13 @@
 
 			<div class="flex items-center space-x-4">
 				<!-- Debug Button (temporary) -->
-				<button
+				<!-- <button
 					class="btn preset-tonal-error text-xs"
 					onclick={() => ProgressService.debugUserProgress()}
 					title="Debug progress data"
 				>
 					Debug Progress
-				</button>
+				</button> -->
 
 				<!-- Control Buttons -->
 				<div class="flex items-center space-x-2 border-r border-surface-300-700 pr-4">

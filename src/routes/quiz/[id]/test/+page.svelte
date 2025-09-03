@@ -5,7 +5,7 @@
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
 	import { X, ChevronDown, Settings, ArrowLeft } from 'lucide-svelte';
-	import TestSetup from '$lib/components/TestSetup.svelte';
+	import SettingsModal from '$lib/components/Settings.svelte';
 	import TestResults from '$lib/components/TestResults.svelte';
 	import TestNavigation from '$lib/components/TestNavigation.svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
@@ -282,6 +282,24 @@
 	function selectAnswer(questionId, answer) {
 		testAnswers[questionId] = answer;
 
+		// If instant feedback is enabled, show feedback immediately
+		if (testConfig?.instantFeedback) {
+			const question = testQuestions.find((q) => q.id === questionId);
+			if (question) {
+				const isCorrect = checkAnswerCorrectness(question, answer);
+				question.userAnswer = answer;
+				question.showFeedback = true;
+				question.isCorrectAnswer = isCorrect;
+
+				// Show toast feedback
+				if (isCorrect) {
+					toast.success('Correct!');
+				} else {
+					toast.error(`Incorrect. The correct answer is: ${question.correctAnswer}`);
+				}
+			}
+		}
+
 		// Record progress for immediate feedback
 		const question = testQuestions.find((q) => q.id === questionId);
 		if (question) {
@@ -420,11 +438,12 @@
 	</div>
 {:else if flashcardSet}
 	<!-- Test Setup Modal -->
-	<TestSetup
+	<SettingsModal
 		bind:show={showSetup}
+		mode="test"
 		maxQuestions={flashcardSet?.flashcards?.length || 20}
 		{flashcardSet}
-		on:start-test={startTest}
+		on:apply-settings={startTest}
 		on:close={cancelSetup}
 	/>
 
@@ -541,11 +560,19 @@
 											</span>
 										</div>
 										<div
-											class="text-sm {testAnswers[question.id]
-												? 'font-medium text-success-500'
-												: 'text-surface-500'}"
+											class="text-sm {testConfig?.instantFeedback && question.showFeedback
+												? question.isCorrectAnswer
+													? 'font-medium text-success-500'
+													: 'font-medium text-error-500'
+												: testAnswers[question.id]
+													? 'font-medium text-success-500'
+													: 'text-surface-500'}"
 										>
-											{testAnswers[question.id] ? '✓ Answered' : 'Not answered'}
+											{#if testConfig?.instantFeedback && question.showFeedback}
+												{question.isCorrectAnswer ? '✓ Correct' : '✗ Incorrect'}
+											{:else}
+												{testAnswers[question.id] ? '✓ Answered' : 'Not answered'}
+											{/if}
 										</div>
 									</div>
 
@@ -566,25 +593,55 @@
 										<div class="space-y-3">
 											{#each question.options as option}
 												{@const isSelected = testAnswers[question.id] === option}
+												{@const isCorrectOption =
+													testConfig?.instantFeedback &&
+													question.showFeedback &&
+													option === question.correctAnswer}
+												{@const isWrongSelected =
+													testConfig?.instantFeedback &&
+													question.showFeedback &&
+													isSelected &&
+													!isCorrectOption}
 												<button
 													onclick={() => selectAnswer(question.id, option)}
+													disabled={testConfig?.instantFeedback && question.showFeedback}
 													class="w-full rounded-lg border-2 p-4 text-left transition-all duration-200
-														{isSelected
-														? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-														: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
+														{isCorrectOption
+														? 'border-success-500 bg-success-50 dark:bg-success-900/20'
+														: isWrongSelected
+															? 'border-error-500 bg-error-50 dark:bg-error-900/20'
+															: isSelected
+																? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+																: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
+														{testConfig?.instantFeedback && question.showFeedback ? 'cursor-not-allowed' : ''}
 													"
 												>
-													<div class="flex items-center space-x-3">
-														<div
-															class="flex h-5 w-5 items-center justify-center rounded-full border-2
-															{isSelected ? 'border-primary-500 bg-primary-500' : 'border-surface-300-700'}
-														"
-														>
-															{#if isSelected}
-																<div class="h-2 w-2 rounded-full bg-white"></div>
-															{/if}
+													<div class="flex items-center justify-between">
+														<div class="flex items-center space-x-3">
+															<div
+																class="flex h-5 w-5 items-center justify-center rounded-full border-2
+																{isCorrectOption
+																	? 'border-success-500 bg-success-500'
+																	: isWrongSelected
+																		? 'border-error-500 bg-error-500'
+																		: isSelected
+																			? 'border-primary-500 bg-primary-500'
+																			: 'border-surface-300-700'}
+															"
+															>
+																{#if isSelected || isCorrectOption}
+																	<div class="h-2 w-2 rounded-full bg-white"></div>
+																{/if}
+															</div>
+															<span class="font-medium">{option}</span>
 														</div>
-														<span class="font-medium">{option}</span>
+														{#if testConfig?.instantFeedback && question.showFeedback}
+															{#if isCorrectOption}
+																<span class="font-medium text-success-500">✓ Correct</span>
+															{:else if isWrongSelected}
+																<span class="font-medium text-error-500">✗ Wrong</span>
+															{/if}
+														{/if}
 													</div>
 												</button>
 											{/each}
@@ -594,9 +651,45 @@
 										<div>
 											<textarea
 												bind:value={testAnswers[question.id]}
+												oninput={(e) => {
+													if (testConfig?.instantFeedback) {
+														// Trigger feedback on input change (debounced)
+														clearTimeout(question.inputTimeout);
+														question.inputTimeout = setTimeout(() => {
+															selectAnswer(question.id, e.target.value);
+														}, 1000); // 1 second delay
+													}
+												}}
+												onblur={(e) => {
+													if (testConfig?.instantFeedback) {
+														selectAnswer(question.id, e.target.value);
+													}
+												}}
 												placeholder="Type your answer here..."
-												class="textarea h-24 w-full resize-none bg-surface-50-950"
+												disabled={testConfig?.instantFeedback && question.showFeedback}
+												class="textarea h-24 w-full resize-none bg-surface-50-950
+													{testConfig?.instantFeedback && question.showFeedback
+													? question.isCorrectAnswer
+														? 'border-success-500 bg-success-50 dark:bg-success-900/20'
+														: 'border-error-500 bg-error-50 dark:bg-error-900/20'
+													: ''}"
 											></textarea>
+											{#if testConfig?.instantFeedback && question.showFeedback}
+												<div class="mt-2 flex items-center justify-between">
+													{#if question.isCorrectAnswer}
+														<span class="font-medium text-success-500">✓ Correct answer!</span>
+													{:else}
+														<div>
+															<span class="font-medium text-error-500">✗ Incorrect</span>
+															<p class="mt-1 text-sm text-surface-600-400">
+																Correct answer: <span class="font-medium"
+																	>{question.correctAnswer}</span
+																>
+															</p>
+														</div>
+													{/if}
+												</div>
+											{/if}
 										</div>
 									{/if}
 								</div>

@@ -7,7 +7,8 @@
 	import { Settings, X, ChevronDown } from 'lucide-svelte';
 
 	// Components
-	import Flashcard from '$lib/components/Flashcard.svelte';
+	import FlashcardLearn from '$lib/components/FlashcardLearn.svelte';
+	import SettingsModal from '$lib/components/Settings.svelte';
 
 	// Icons for navigation
 	import flascardIcon from '$lib/images/flashcard-img.png';
@@ -20,6 +21,15 @@
 	let isLoading = $state(true);
 	let currentCardIndex = $state(0);
 	let showNavigationDropdown = $state(false);
+	let showSettings = $state(false);
+
+	// Flashcard settings
+	let flashcardSettings = $state({
+		frontSide: 'term',
+		shuffle: false,
+		autoplay: false,
+		useStarredOnly: false
+	});
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -70,6 +80,31 @@
 
 	function handleStarToggle(cardId) {
 		console.log('Star toggled in flashcard page:', cardId);
+	}
+
+	function openSettings() {
+		showSettings = true;
+	}
+
+	function handleSettingsApply(event) {
+		const newSettings = event.detail;
+		console.log('Applying flashcard settings:', newSettings);
+
+		flashcardSettings = { ...flashcardSettings, ...newSettings };
+
+		// Filter flashcards if starred only is enabled
+		if (newSettings.useStarredOnly) {
+			const starredCards = flashcardSet.flashcards.filter((card) => card.is_starred);
+			if (starredCards.length > 0) {
+				flashcardSet = { ...flashcardSet, flashcards: starredCards };
+				currentCardIndex = 0; // Reset to first card
+			} else {
+				toast.info('No starred cards found. Showing all cards.');
+			}
+		} else {
+			// Reload all cards
+			loadFlashcardSet();
+		}
 	}
 
 	let progress = $derived(
@@ -165,7 +200,11 @@
 				</div>
 
 				<div class="flex items-center justify-center space-x-2">
-					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+					<button
+						onclick={openSettings}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Settings"
+					>
 						<Settings class="h-8 w-8" />
 					</button>
 
@@ -190,14 +229,24 @@
 
 		<!-- Main Flashcard Area -->
 		<main class="flex-1 overflow-hidden">
-			<Flashcard
+			<FlashcardLearn
 				bind:flashcardSet
-				bind:currentIndex={currentCardIndex}
-				onCardEdit={handleCardEdit}
-				onStarToggle={handleStarToggle}
 				mode="fullpage"
+				frontSide={flashcardSettings.frontSide}
+				autoplayEnabled={flashcardSettings.autoplay}
+				shuffleEnabled={flashcardSettings.shuffle}
+				useStarredOnly={flashcardSettings.useStarredOnly}
 			/>
 		</main>
+
+		<!-- Settings Modal -->
+		<SettingsModal
+			bind:show={showSettings}
+			mode="flashcard"
+			{flashcardSet}
+			currentSettings={flashcardSettings}
+			on:apply-settings={handleSettingsApply}
+		/>
 	</div>
 {:else}
 	<div class="flex h-screen items-center justify-center">

@@ -23,7 +23,14 @@
 		onPrevious,
 		onCardEdit,
 		onStarToggle = () => {},
-		mode = 'inline' // 'fullpage' atau 'inline'
+		mode = 'inline', // 'fullpage' atau 'inline'
+		// Settings props
+		frontSide = 'term', // 'term' or 'definition'
+		autoplayEnabled = false,
+		shuffleEnabled = false,
+		// Track progress props
+		onTrackProgressToggle = () => {},
+		showTrackProgress = true
 	} = $props();
 
 	let state = $state(false);
@@ -32,11 +39,14 @@
 	let editTerm = $state('');
 	let editDefinition = $state('');
 	let isSaving = $state(false);
-	let isPlaying = $state(false);
+	let isPlaying = $state(autoplayEnabled);
 	let autoPlayInterval = $state(null);
-	let isShuffled = $state(false);
+	let isShuffled = $state(shuffleEnabled);
 	let showHint = $state(false);
+	let trackProgress = $state(false);
 
+	// Derived values based on settings
+	let isTermFirst = $derived(frontSide === 'term');
 	let currentCard = $derived(flashcardSet?.flashcards[currentIndex]);
 	let isFirstCard = $derived(currentIndex === 0);
 	let isLastCard = $derived(currentIndex === flashcardSet?.flashcards.length - 1);
@@ -210,6 +220,27 @@
 		};
 	});
 
+	// Effect for autoplay setting
+	$effect(() => {
+		if (autoplayEnabled && !isPlaying) {
+			isPlaying = true;
+			startAutoPlay();
+		} else if (!autoplayEnabled && isPlaying) {
+			isPlaying = false;
+			stopAutoPlay();
+		}
+	});
+
+	// Effect for shuffle setting
+	$effect(() => {
+		if (shuffleEnabled && !isShuffled) {
+			handleShuffle();
+		} else if (!shuffleEnabled && isShuffled) {
+			// Reset to original order - we'd need to store original order
+			isShuffled = false;
+		}
+	});
+
 	// Keyboard shortcuts
 	function handleKeydown(event) {
 		if (showEditModal) return;
@@ -325,6 +356,18 @@
 
 		return words.slice(0, wordCount).join(' ') + (words.length > wordCount ? '...' : '');
 	}
+
+	// Handler untuk toggle track progress
+	function handleTrackProgressToggle(checked) {
+		trackProgress = checked;
+		onTrackProgressToggle?.(checked);
+
+		if (checked) {
+			toast.success('Progress tracking enabled - learn mode activated!');
+		} else {
+			toast.info('Progress tracking disabled');
+		}
+	}
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -395,7 +438,8 @@
 
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={(e) => speakText(currentCard.term, e)}
+									onclick={(e) =>
+										speakText(isTermFirst ? currentCard.term : currentCard.definition, e)}
 									title="Listen to pronunciation"
 								>
 									<Volume2 class="h-5 w-5" />
@@ -403,10 +447,10 @@
 							</div>
 						</div>
 
-						<!-- Term Content -->
+						<!-- Front Content (based on frontSide setting) -->
 						<div class="px-6 py-4 text-center">
 							<h2 class="mb-4 max-w-2xl text-2xl font-medium">
-								{currentCard.term}
+								{isTermFirst ? currentCard.term : currentCard.definition}
 							</h2>
 						</div>
 					</div>
@@ -464,7 +508,8 @@
 
 								<button
 									class="btn-icon btn-icon-sm"
-									onclick={(e) => speakText(currentCard.definition, e)}
+									onclick={(e) =>
+										speakText(isTermFirst ? currentCard.definition : currentCard.term, e)}
 									title="Listen to pronunciation"
 								>
 									<Volume2 class="h-5 w-5" />
@@ -472,10 +517,10 @@
 							</div>
 						</div>
 
-						<!-- Definition Content with Reveal Animation -->
+						<!-- Back Content (opposite of front) -->
 						<div class="px-6 py-4 text-center">
 							<h2 class="reveal-text text-2xl font-medium" class:animate-reveal={showAnswer}>
-								{currentCard.definition}
+								{isTermFirst ? currentCard.definition : currentCard.term}
 							</h2>
 						</div>
 					</div>
@@ -485,12 +530,19 @@
 
 		<!-- Navigation Controls (existing - tidak berubah) -->
 		<div class="mt-6 flex items-center justify-between">
-			<Switch
-				name="example"
-				checked={state}
-				onCheckedChange={(e) => (state = e.checked)}
-				disabled
-			/>
+			{#if showTrackProgress}
+				<div class="flex items-center space-x-3">
+					<Switch
+						name="track-progress"
+						checked={trackProgress}
+						onCheckedChange={(e) => handleTrackProgressToggle(e.checked)}
+					/>
+					<span class="text-sm font-medium">Track Progress & Learn</span>
+				</div>
+			{:else}
+				<div></div>
+			{/if}
+
 			<div class="flex gap-6">
 				<button
 					class="btn rounded-full preset-outlined-surface-500 px-8 py-3"

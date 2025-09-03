@@ -8,6 +8,7 @@
 
 	// Components
 	import Learn from '$lib/components/Learn.svelte';
+	import SettingsModal from '$lib/components/Settings.svelte';
 
 	// Icons for navigation
 	import flascardIcon from '$lib/images/flashcard-img.png';
@@ -19,6 +20,11 @@
 	let flashcardSet = $state(null);
 	let isLoading = $state(true);
 	let showNavigationDropdown = $state(false);
+	let showSettings = $state(false);
+	let learnSettings = $state({
+		useStarredOnly: false,
+		orderMode: 'original'
+	});
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -70,6 +76,18 @@
 	function restartLearn() {
 		// This will be passed to Learn component to handle restart
 		window.location.reload();
+	}
+
+	function showSettingsModal() {
+		showSettings = true;
+	}
+
+	function applySettings(event) {
+		learnSettings = event.detail;
+		showSettings = false;
+		console.log('Learn settings applied:', learnSettings);
+		// Note: You might want to pass these settings to the Learn component
+		// For now, we'll just store them for future use
 	}
 </script>
 
@@ -158,7 +176,11 @@
 						Restart
 					</button>
 
-					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+					<button
+						onclick={showSettingsModal}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Settings"
+					>
 						<Settings class="h-8 w-8" />
 					</button>
 
@@ -189,3 +211,12 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Settings Modal -->
+<SettingsModal
+	bind:show={showSettings}
+	mode="learn"
+	{flashcardSet}
+	on:apply-settings={applySettings}
+	on:close={() => (showSettings = false)}
+/>

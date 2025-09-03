@@ -15,6 +15,7 @@
 		Check
 	} from 'lucide-svelte';
 	import { ProgressService } from '$lib/services/progressService.js';
+	import SettingsModal from '$lib/components/Settings.svelte';
 
 	// Icons for navigation
 	import flascardIcon from '$lib/images/flashcard-img.png';
@@ -34,6 +35,11 @@
 	let timerInterval = $state(null);
 	let attempts = $state(0);
 	let showNavigationDropdown = $state(false);
+	let showSettings = $state(false);
+	let matchSettings = $state({
+		useStarredOnly: false,
+		orderMode: 'original'
+	});
 
 	onMount(async () => {
 		await loadFlashcardSet();
@@ -83,7 +89,19 @@
 	function prepareGame() {
 		if (!flashcardSet?.flashcards) return;
 
-		const selectedFlashcards = flashcardSet.flashcards.sort(() => Math.random() - 0.5).slice(0, 6);
+		// Filter cards based on settings
+		let availableCards = flashcardSet.flashcards;
+		if (matchSettings.useStarredOnly) {
+			availableCards = availableCards.filter((card) => card.is_starred);
+			if (availableCards.length === 0) {
+				toast.error('No starred cards available for match game');
+				return;
+			}
+		}
+
+		// Take up to 6 cards for the game (12 total including pairs)
+		const maxCards = Math.min(6, availableCards.length);
+		const selectedFlashcards = availableCards.sort(() => Math.random() - 0.5).slice(0, maxCards);
 
 		// Create pairs of cards (term and definition)
 		let cards = [];
@@ -279,6 +297,21 @@
 		goto(`/quiz/${setId}`);
 	}
 
+	function showSettingsModal() {
+		showSettings = true;
+	}
+
+	function applySettings(event) {
+		matchSettings = event.detail;
+		showSettings = false;
+		console.log('Match settings applied:', matchSettings);
+
+		// If the game hasn't started yet and settings affect card selection, restart game preparation
+		if (!gameStarted) {
+			prepareGame();
+		}
+	}
+
 	$effect(() => {
 		return () => {
 			stopTimer();
@@ -389,7 +422,11 @@
 					</div>
 				{/if}
 				<div class="flex items-center justify-center space-x-2">
-					<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+					<button
+						onclick={showSettingsModal}
+						class="btn-icon btn-icon-lg preset-tonal-surface"
+						title="Settings"
+					>
 						<Settings class="h-8 w-8" />
 					</button>
 
@@ -507,3 +544,12 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Settings Modal -->
+<SettingsModal
+	bind:show={showSettings}
+	mode="match"
+	{flashcardSet}
+	on:apply-settings={applySettings}
+	on:close={() => (showSettings = false)}
+/>
