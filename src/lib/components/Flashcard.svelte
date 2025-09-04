@@ -10,11 +10,14 @@
 		Pause,
 		Lightbulb,
 		Scan,
-		Settings
+		Settings,
+		X,
+		Check
 	} from 'lucide-svelte';
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
 	import { toast } from '$lib/stores/toast.js';
 	import { supabase } from '$lib/supabase.js';
+	import { ProgressService } from '$lib/services/progressService.js';
 	import Modal from './Modal.svelte';
 	import SettingsModal from './Settings.svelte';
 
@@ -47,6 +50,12 @@
 	let isShuffled = $state(shuffleEnabled);
 	let showHint = $state(false);
 	let trackProgress = $state(false);
+
+	// Track progress stats
+	let progressStats = $state({
+		know: 0,
+		stillLearning: 0
+	});
 
 	// Derived values based on settings
 	let isTermFirst = $derived(frontSide === 'term');
@@ -92,7 +101,7 @@
 
 		showAnswer = false;
 		showHint = false; // Reset hint when changing card
-		
+
 		// Stop auto-play when user manually goes back
 		if (isPlaying && autoPlayInterval) {
 			stopAutoPlay();
@@ -234,7 +243,7 @@
 		if (!flashcardSet?.flashcards) return;
 
 		isShuffled = !isShuffled; // Toggle state first
-		
+
 		if (isShuffled) {
 			// Shuffle the cards
 			const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
@@ -257,7 +266,7 @@
 		};
 	});
 
-	// Effect for shuffle setting - only sync from props when explicitly changed  
+	// Effect for shuffle setting - only sync from props when explicitly changed
 	$effect(() => {
 		// Only apply shuffle from props if not already shuffled
 		if (shuffleEnabled && !isShuffled) {
@@ -273,11 +282,19 @@
 		switch (event.key) {
 			case 'ArrowLeft':
 				event.preventDefault();
-				previousCard();
+				if (trackProgress) {
+					handleStillLearning();
+				} else {
+					previousCard();
+				}
 				break;
 			case 'ArrowRight':
 				event.preventDefault();
-				nextCard();
+				if (trackProgress) {
+					handleKnowCard();
+				} else {
+					nextCard();
+				}
 				break;
 			case ' ':
 				event.preventDefault();
@@ -290,6 +307,20 @@
 			case 'h':
 				event.preventDefault();
 				toggleHint();
+				break;
+			case 'y':
+				// Yes - I know this (only in track progress mode)
+				if (trackProgress) {
+					event.preventDefault();
+					handleKnowCard();
+				}
+				break;
+			case 'n':
+				// No - Still learning (only in track progress mode)
+				if (trackProgress) {
+					event.preventDefault();
+					handleStillLearning();
+				}
 				break;
 		}
 	}
@@ -376,12 +407,12 @@
 		if (config.frontSide !== undefined) {
 			frontSide = config.frontSide;
 		}
-		
+
 		// Update autoplay - sync both prop and local state
 		if (config.autoplay !== undefined) {
 			autoplayEnabled = config.autoplay;
 			isPlaying = config.autoplay;
-			
+
 			// Directly control autoplay based on the setting
 			if (config.autoplay) {
 				startAutoPlay();
@@ -389,7 +420,7 @@
 				stopAutoPlay();
 			}
 		}
-		
+
 		// Update shuffle
 		if (config.shuffle !== undefined) {
 			shuffleEnabled = config.shuffle;
@@ -433,12 +464,71 @@
 	// Handler untuk toggle track progress
 	function handleTrackProgressToggle(checked) {
 		trackProgress = checked;
-		onTrackProgressToggle?.(checked);
 
+		// Reset stats ketika mode diaktifkan
 		if (checked) {
+			progressStats = { know: 0, stillLearning: 0 };
 			toast.success('Progress tracking enabled - learn mode activated!');
 		} else {
 			toast.info('Progress tracking disabled');
+		}
+
+		onTrackProgressToggle?.(checked);
+	}
+
+	// Track Progress Functions
+	async function handleKnowCard() {
+		if (!currentCard || !flashcardSet?.id) return;
+
+		try {
+			// Record sebagai "Yes" - user tahu kartu ini
+			await ProgressService.recordAttempt(
+				currentCard.id,
+				flashcardSet.id,
+				'flashcard',
+				true, // isCorrect = true (user knows this card)
+				null, // responseTime
+				'know' // answerText
+			);
+
+			// Update local stats
+			progressStats.know++;
+			progressStats = progressStats; // Trigger reactivity
+
+			toast.success(`Marked as known! (${progressStats.know} total)`);
+
+			// Auto move to next card
+			nextCard();
+		} catch (error) {
+			console.error('Error recording progress:', error);
+			toast.error('Failed to record progress');
+		}
+	}
+	async function handleStillLearning() {
+		if (!currentCard || !flashcardSet?.id) return;
+
+		try {
+			// Record sebagai "No" - user masih belajar kartu ini
+			await ProgressService.recordAttempt(
+				currentCard.id,
+				flashcardSet.id,
+				'flashcard',
+				false, // isCorrect = false (user still learning)
+				null, // responseTime
+				'still_learning' // answerText
+			);
+
+			// Update local stats
+			progressStats.stillLearning++;
+			progressStats = progressStats; // Trigger reactivity
+
+			toast.info(`Added to learning list (${progressStats.stillLearning} total)`);
+
+			// Auto move to next card
+			nextCard();
+		} catch (error) {
+			console.error('Error recording progress:', error);
+			toast.error('Failed to record progress');
 		}
 	}
 </script>
@@ -447,6 +537,30 @@
 
 {#if currentCard}
 	<div class="flex h-full flex-col {mode === 'fullpage' ? 'mx-auto max-w-4xl px-6 py-8' : ''}">
+		<!-- Progress Stats Counter (only in fullpage mode) -->
+		{#if mode === 'fullpage' && trackProgress}
+			<div class="mb-4 flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<div
+						class="rounded-full preset-outlined-error-700-300 px-5 py-1 text-sm font-bold text-error-700"
+					>
+						{progressStats.stillLearning}
+					</div>
+					<div class="text-xx font-bold text-error-700">Learning</div>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<div class="text-xs font-bold text-success-700">Know</div>
+
+					<div
+						class="rounded-full preset-outlined-success-700-300 px-5 py-1 text-sm font-bold text-success-700"
+					>
+						{progressStats.know}
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Flip Container -->
 		<div
 			class="flip-container perspective-1000 {mode === 'fullpage'
@@ -589,34 +703,59 @@
 			</div>
 		</div>
 
-		<!-- Navigation Controls (existing - tidak berubah) -->
+		<!-- Navigation Controls -->
 		<div class="mt-6 flex items-center justify-between">
-			{#if showTrackProgress}
-				<div class="flex items-center space-x-3">
-					<span class="text-sm font-medium">Track Progress</span>
-					<Switch
-						name="track-progress"
-						checked={trackProgress}
-						onCheckedChange={(e) => handleTrackProgressToggle(e.checked)}
-					/>
-				</div>
-			{:else}
-				<div></div>
-			{/if}
+			<div class="flex items-center space-x-3">
+				<span class="text-sm font-medium">Track Progress</span>
+				<Switch
+					name="track-progress"
+					checked={trackProgress}
+					onCheckedChange={(e) => handleTrackProgressToggle(e.checked)}
+				/>
+			</div>
 
 			<div class="flex items-center gap-6">
-				<button
-					class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
-					onclick={previousCard}
-				>
-					<ArrowLeft class="h-7 w-7" size={20} />
-				</button>
-				<div class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400">
-					{currentIndex + 1} / {flashcardSet?.flashcards?.length ?? 0}
-				</div>
-				<button class="btn rounded-full preset-outlined-surface-500 px-8 py-3" onclick={nextCard}>
-					<ArrowRight class="h-7 w-7" />
-				</button>
+				{#if trackProgress}
+					<!-- Track Progress Mode: Yes/No Buttons -->
+					<button
+						class="btn rounded-full preset-outlined-error-700-300 px-8 py-3 font-bold text-error-700"
+						onclick={handleStillLearning}
+						title="Still learning this card"
+					>
+						<X class="mr-2 h-5 w-5" />
+					</button>
+
+					<div class="font-medium text-surface-600-400 {mode === 'fullpage' ? 'hidden' : 'static'}">
+						{currentIndex + 1} / {flashcardSet?.flashcards?.length ?? 0}
+					</div>
+
+					<button
+						class="btn rounded-full preset-outlined-success-700-300 px-8 py-3 font-bold text-success-700"
+						onclick={handleKnowCard}
+						title="I know this card"
+					>
+						<Check class="ml-2 h-5 w-5" />
+					</button>
+				{:else}
+					<!-- Normal Mode: Previous/Next Buttons -->
+					<button
+						class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
+						onclick={previousCard}
+						disabled={isFirstCard}
+					>
+						<ArrowLeft class="h-7 w-7" size={20} />
+					</button>
+					<div class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400">
+						{currentIndex + 1} / {flashcardSet?.flashcards?.length ?? 0}
+					</div>
+					<button
+						class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
+						onclick={nextCard}
+						disabled={isLastCard}
+					>
+						<ArrowRight class="h-7 w-7" />
+					</button>
+				{/if}
 			</div>
 
 			<div class="flex items-center gap-4">
@@ -662,7 +801,7 @@
 			</div>
 		</div>
 
-		<!-- Progress Bar (existing - tidak berubah) -->
+		<!-- Progress Bar -->
 		<div class="mt-6 {mode === 'fullpage' ? 'hidden' : 'block'}">
 			<div class="h-1 w-full overflow-hidden rounded-full bg-surface-300-700">
 				<div
@@ -670,6 +809,15 @@
 					style="width: {progress}%"
 				></div>
 			</div>
+
+			{#if trackProgress}
+				<!-- Keyboard shortcuts hint for track progress mode -->
+				<div class="text-surface-500-400 mt-2 text-center text-xs">
+					Press <kbd class="mx-1 rounded bg-surface-300-700 px-1">Y</kbd> for (I Know) •
+					<kbd class="mx-1 rounded bg-surface-300-700 px-1">N</kbd> for (Still Learning) •
+					<kbd class="mx-1 rounded bg-surface-300-700 px-1">Space</kbd> to flip card
+				</div>
+			{/if}
 		</div>
 	</div>
 
