@@ -252,15 +252,6 @@
 			<h2 class="text-2xl font-bold">Terms in this set ({flashcardSet.flashcards.length})</h2>
 
 			<div class="flex items-center space-x-4">
-				<!-- Debug Button (temporary) -->
-				<!-- <button
-					class="btn preset-tonal-error text-xs"
-					onclick={() => ProgressService.debugUserProgress()}
-					title="Debug progress data"
-				>
-					Debug Progress
-				</button> -->
-
 				<!-- Control Buttons -->
 				<div class="flex items-center space-x-2 border-r border-surface-300-700 pr-4">
 					<!-- Switch Position Button -->
@@ -399,7 +390,9 @@
 													true
 												)} flex min-h-[120px] items-center"
 											>
-												<h4 class="text-lg font-medium break-words">{item.flashcards.term}</h4>
+												<h4 class="text-lg font-medium break-words text-surface-700-300">
+													{item.flashcards.term}
+												</h4>
 											</div>
 
 											<!-- Definition Section (Second) -->
@@ -419,7 +412,7 @@
 													false
 												)} flex min-h-[120px] items-center"
 											>
-												<h4 class="text-lg font-medium break-words">
+												<h4 class="text-lg font-medium break-words text-surface-700-300">
 													{item.flashcards.definition}
 												</h4>
 											</div>
@@ -493,7 +486,9 @@
 													true
 												)} flex min-h-[120px] items-center"
 											>
-												<h4 class="text-lg font-medium break-words">{item.flashcards.term}</h4>
+												<h4 class="text-lg font-medium break-words text-surface-700-300">
+													{item.flashcards.term}
+												</h4>
 											</div>
 
 											<!-- Definition Section (Second) -->
@@ -513,7 +508,7 @@
 													false
 												)} flex min-h-[120px] items-center"
 											>
-												<h4 class="text-lg font-medium break-words">
+												<h4 class="text-lg font-medium break-words text-surface-700-300">
 													{item.flashcards.definition}
 												</h4>
 											</div>
