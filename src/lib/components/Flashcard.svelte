@@ -16,6 +16,7 @@
 	import { toast } from '$lib/stores/toast.js';
 	import { supabase } from '$lib/supabase.js';
 	import Modal from './Modal.svelte';
+	import SettingsModal from './Settings.svelte';
 
 	let {
 		flashcardSet = $bindable(),
@@ -37,6 +38,7 @@
 	let state = $state(false);
 	let showAnswer = $state(false);
 	let showEditModal = $state(false);
+	let showSettingsModal = $state(false);
 	let editTerm = $state('');
 	let editDefinition = $state('');
 	let isSaving = $state(false);
@@ -337,6 +339,54 @@
 		showHint = !showHint;
 	}
 
+	// Function untuk membuka settings modal
+	function openSettingsModal(event) {
+		event?.stopPropagation();
+		showSettingsModal = true;
+	}
+
+	// Function untuk menangani apply settings dari modal
+	function handleApplySettings(event) {
+		const config = event.detail;
+		console.log('Applying flashcard settings:', config);
+
+		// Update settings berdasarkan config yang diterima dari Settings modal
+		if (config.frontSide !== undefined) {
+			frontSide = config.frontSide;
+		}
+		if (config.autoplay !== undefined) {
+			autoplayEnabled = config.autoplay;
+		}
+		if (config.shuffle !== undefined) {
+			shuffleEnabled = config.shuffle;
+		}
+
+		// Apply shuffle jika diminta
+		if (config.shuffle && !isShuffled) {
+			handleShuffle();
+		} else if (!config.shuffle && isShuffled) {
+			// Reset shuffle jika dimatikan
+			isShuffled = false;
+			// Note: Untuk reset ke urutan asli, kita perlu menyimpan urutan asli
+		}
+
+		// Apply autoplay jika diminta
+		if (config.autoplay && !isPlaying) {
+			isPlaying = true;
+			startAutoPlay();
+		} else if (!config.autoplay && isPlaying) {
+			isPlaying = false;
+			stopAutoPlay();
+		}
+
+		toast.success('Flashcard settings applied successfully');
+	}
+
+	// Function untuk menangani close settings modal
+	function handleCloseSettings() {
+		showSettingsModal = false;
+	}
+
 	// Function untuk generate hint text
 	function getHintText() {
 		if (!currentCard) return '';
@@ -571,7 +621,13 @@
 				>
 					<Shuffle class="h-5 w-5" />
 				</button>
-				<button>
+				<button
+					class="btn-icon btn-icon-base preset-tonal-surface {mode === 'fullpage'
+						? 'hidden'
+						: 'static'}"
+					onclick={openSettingsModal}
+					title="Settings"
+				>
 					<Settings class="h-5 w-5" />
 				</button>
 				<a
@@ -647,6 +703,21 @@
 			</div>
 		{/snippet}
 	</Modal>
+
+	<!-- Settings Modal -->
+	<SettingsModal
+		bind:show={showSettingsModal}
+		mode="flashcard"
+		{flashcardSet}
+		currentSettings={{
+			frontSide,
+			shuffle: shuffleEnabled,
+			autoplay: autoplayEnabled,
+			useStarredOnly: false // Default value for flashcard mode
+		}}
+		on:apply-settings={handleApplySettings}
+		on:close={handleCloseSettings}
+	/>
 {:else}
 	<div class="flex h-full items-center justify-center">
 		<p class="text-surface-600-400">No flashcard data available</p>

@@ -4,13 +4,24 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { Settings, Star, MoreVertical, Edit3, Trash2, Bookmark } from 'lucide-svelte';
+	import { folderActions, folders } from '$lib/stores/flashcards.js';
+	import {
+		Settings,
+		Star,
+		MoreVertical,
+		Edit3,
+		Trash2,
+		Bookmark,
+		Folder,
+		Plus
+	} from 'lucide-svelte';
 
 	// Components
 	import Flashcard from '$lib/components/Flashcard.svelte';
 	import Learn from '$lib/components/Learn.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import ProgressSummary from '$lib/components/ProgressSumary.svelte';
+	import CreateFolder from '$lib/components/CreateFolder.svelte';
 
 	// image
 	import flascardIcon from '$lib/images/flashcard-img.png';
@@ -28,6 +39,13 @@
 	let showDeleteModal = $state(false);
 	let isDeleting = $state(false);
 
+	// Folder/Bookmark state
+	let showFolderDropdown = $state(false);
+	let showCreateFolderModal = $state(false);
+	let userFolders = $state([]);
+	let currentFolder = $state(null);
+	let isAddingToFolder = $state(false);
+
 	// Star functionality
 	let starredCards = $state([]);
 
@@ -41,7 +59,27 @@
 
 	onMount(async () => {
 		await loadFlashcardSet();
+		await loadUserFolders();
 	});
+
+	async function loadUserFolders() {
+		try {
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+			if (user) {
+				const foldersData = await folderActions.loadFolders(user.id);
+				userFolders = foldersData || [];
+
+				// Check if current set is already in a folder
+				if (flashcardSet?.folder_id) {
+					currentFolder = userFolders.find((f) => f.id === flashcardSet.folder_id) || null;
+				}
+			}
+		} catch (error) {
+			console.error('Error loading folders:', error);
+		}
+	}
 
 	async function loadFlashcardSet() {
 		try {
@@ -57,6 +95,11 @@
                     full_name,
                     email,
                     avatar_url
+                ),
+                folders (
+                    id,
+                    name,
+                    color
                 )
             `
 				)
@@ -75,6 +118,11 @@
 
 			flashcardSet = { ...set, flashcards: cards || [] };
 			updateStarredCards();
+
+			// Set current folder if exists
+			if (set.folders) {
+				currentFolder = set.folders;
+			}
 		} catch (error) {
 			console.error('Error loading flashcard set:', error);
 			toast.error('Failed to load flashcard set', error.message);
@@ -222,6 +270,91 @@
 			toast.error('Failed to update stars');
 		}
 	}
+
+	// Folder/Bookmark functions
+	function toggleFolderDropdown() {
+		showFolderDropdown = !showFolderDropdown;
+	}
+
+	function closeFolderDropdown() {
+		showFolderDropdown = false;
+	}
+
+	async function addToFolder(folder) {
+		try {
+			isAddingToFolder = true;
+
+			await folderActions.addSetToFolder(setId, folder.id);
+
+			currentFolder = folder;
+			flashcardSet.folder_id = folder.id;
+
+			toast.success(`Added to "${folder.name}" folder`);
+			closeFolderDropdown();
+		} catch (error) {
+			console.error('Error adding to folder:', error);
+			toast.error('Failed to add to folder');
+		} finally {
+			isAddingToFolder = false;
+		}
+	}
+
+	async function removeFromFolder() {
+		try {
+			isAddingToFolder = true;
+
+			await folderActions.removeSetFromFolder(setId);
+
+			currentFolder = null;
+			flashcardSet.folder_id = null;
+
+			toast.success('Removed from folder');
+			closeFolderDropdown();
+		} catch (error) {
+			console.error('Error removing from folder:', error);
+			toast.error('Failed to remove from folder');
+		} finally {
+			isAddingToFolder = false;
+		}
+	}
+
+	async function createNewFolder() {
+		showCreateFolderModal = true;
+		closeFolderDropdown();
+	}
+
+	async function handleCreateFolder(event) {
+		const folderData = event.detail;
+
+		try {
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+			if (!user) {
+				toast.error('Please login first');
+				return;
+			}
+
+			isAddingToFolder = true;
+
+			const newFolder = await folderActions.createFolder(folderData, user.id);
+
+			// Add set to the new folder
+			await folderActions.addSetToFolder(setId, newFolder.id);
+
+			// Reload folders and update current folder
+			await loadUserFolders();
+			currentFolder = newFolder;
+			flashcardSet.folder_id = newFolder.id;
+
+			toast.success(`Created and added to "${newFolder.name}" folder`);
+		} catch (error) {
+			console.error('Error creating folder:', error);
+			toast.error('Failed to create folder');
+		} finally {
+			isAddingToFolder = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -241,6 +374,7 @@
 					</div>
 					<div class="flex items-center space-x-3">
 						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-24 animate-pulse rounded bg-surface-300-700"></div>
 						<div class="h-10 w-24 animate-pulse rounded bg-surface-300-700"></div>
 						<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
 					</div>
@@ -293,10 +427,72 @@
 
 					<!-- Action Buttons -->
 					<div class="flex items-center space-x-3">
-						<button class="btn preset-tonal-surface" title="folder">
-							<Bookmark class="mr-2 h-5 w-5" />
-							Save
-						</button>
+						<!-- Folder/Bookmark Button -->
+						<div class="relative">
+							<button
+								onclick={toggleFolderDropdown}
+								class="btn preset-tonal-surface {currentFolder ? 'text-primary-500' : ''}"
+								title={currentFolder ? `In folder: ${currentFolder.name}` : 'Save to folder'}
+								disabled={isAddingToFolder}
+							>
+								{#if currentFolder}
+									<Folder class="mr-2 h-5 w-5" />
+									{currentFolder.name}
+								{:else}
+									<Bookmark class="mr-2 h-5 w-5" />
+									Save
+								{/if}
+							</button>
+
+							{#if showFolderDropdown}
+								<div
+									class="absolute top-full left-0 z-10 mt-2 min-w-[200px] rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
+								>
+									{#if currentFolder}
+										<button
+											onclick={removeFromFolder}
+											class="flex w-full items-center px-4 py-3 text-left hover:bg-surface-200-800"
+											disabled={isAddingToFolder}
+										>
+											<Bookmark class="mr-3 h-4 w-4" />
+											Remove from folder
+										</button>
+										<hr class="border-surface-300-700" />
+									{/if}
+
+									{#if userFolders.length > 0}
+										<div class="max-h-48 overflow-y-auto">
+											{#each userFolders as folder (folder.id)}
+												<button
+													onclick={() => addToFolder(folder)}
+													class="flex w-full items-center px-4 py-3 text-left hover:bg-surface-200-800 {currentFolder?.id ===
+													folder.id
+														? 'bg-primary-50-950 text-primary-500'
+														: ''}"
+													disabled={isAddingToFolder || currentFolder?.id === folder.id}
+												>
+													<Folder class="mr-3 h-4 w-4" style="color: {folder.color}" />
+													{folder.name}
+													{#if currentFolder?.id === folder.id}
+														<span class="ml-auto text-xs">Current</span>
+													{/if}
+												</button>
+											{/each}
+										</div>
+										<hr class="border-surface-300-700" />
+									{/if}
+
+									<button
+										onclick={createNewFolder}
+										class="flex w-full items-center px-4 py-3 text-left text-primary-500 hover:bg-surface-200-800"
+										disabled={isAddingToFolder}
+									>
+										<Plus class="mr-3 h-4 w-4" />
+										Create new folder
+									</button>
+								</div>
+							{/if}
+						</div>
 						<button
 							onclick={toggleSetStar}
 							class="btn preset-tonal-surface {starredCards.length > 0 ? 'text-yellow-500' : ''}"
@@ -480,11 +676,21 @@
 		{/snippet}
 	</Modal>
 
+	<!-- Create Folder Modal -->
+	<CreateFolder bind:show={showCreateFolderModal} on:create={handleCreateFolder} />
+
 	<!-- Click outside to close dropdown -->
 	{#if showDropdown}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="fixed inset-0 z-0" onclick={closeDropdown} role="button" tabindex="-1"></div>
+	{/if}
+
+	<!-- Click outside to close folder dropdown -->
+	{#if showFolderDropdown}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="fixed inset-0 z-0" onclick={closeFolderDropdown} role="button" tabindex="-1"></div>
 	{/if}
 {:else}
 	<div class="flex h-screen items-center justify-center">

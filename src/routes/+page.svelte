@@ -1,20 +1,10 @@
 <script>
-	import { FolderOpen, Book, BarChart3, Plus, Eye, MoreVertical, Folder } from 'lucide-svelte';
+	import { Book, Plus } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import {
-		flashcardActions,
-		recentActivities,
-		folders,
-		folderActions
-	} from '$lib/stores/flashcards.js';
+	import { flashcardActions, recentActivities } from '$lib/stores/flashcards.js';
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
-	import { toast } from '$lib/stores/toast.js';
 
-	let showDropdown = $state(null);
-	let showMoveToFolderModal = $state(false);
-	let selectedSetId = null;
-	let selectedFolderId = $state(null);
 	let isLoading = $state(true);
 
 	onMount(async () => {
@@ -22,53 +12,13 @@
 			isLoading = true;
 			// Load recent activities when page loads
 			await flashcardActions.loadRecentActivities();
-
-			// Load folders
-			const {
-				data: { user }
-			} = await supabase.auth.getUser();
-			if (user) {
-				await folderActions.loadFolders(user.id);
-			}
 		} finally {
 			isLoading = false;
 		}
 	});
 
-	function toggleDropdown(setId) {
-		showDropdown = showDropdown === setId ? null : setId;
-	}
-
-	function openMoveToFolder(setId) {
-		selectedSetId = setId;
-		selectedFolderId = null;
-		showMoveToFolderModal = true;
-		showDropdown = null;
-	}
-
-	async function moveToFolder() {
-		if (!selectedSetId || !selectedFolderId) {
-			toast.error('Selection Required', 'Please select a destination folder');
-			return;
-		}
-
-		try {
-			await folderActions.addSetToFolder(selectedSetId, selectedFolderId);
-			await flashcardActions.loadRecentActivities();
-
-			toast.success('Moved Successfully', 'Flashcard set moved to folder');
-			showMoveToFolderModal = false;
-		} catch (error) {
-			toast.error('Move Failed', 'Failed to move set: ' + error.message);
-		}
-	}
-
-	function closeModal() {
-		showMoveToFolderModal = false;
-	}
-
-	function closeDropdown() {
-		showDropdown = null;
+	function goToQuiz(activityId) {
+		goto(`/quiz/${activityId}`);
 	}
 </script>
 
@@ -87,7 +37,9 @@
 				<!-- Skeleton Loading for Recent Activities -->
 				<div class="space-y-4">
 					{#each Array(6) as _}
-						<div class="card preset-tonal-surface p-4">
+						<div
+							class="cursor-pointer card preset-tonal-surface p-4 transition-shadow hover:shadow-lg"
+						>
 							<div class="flex items-center space-x-4">
 								<div class="h-12 w-12 animate-pulse rounded bg-surface-300-700"></div>
 								<div class="flex-1 space-y-2">
@@ -97,7 +49,6 @@
 								</div>
 								<div class="flex items-center space-x-2">
 									<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
-									<div class="h-8 w-8 animate-pulse rounded bg-surface-300-700"></div>
 								</div>
 							</div>
 						</div>
@@ -106,7 +57,13 @@
 			{:else if $recentActivities && $recentActivities.length > 0}
 				<div class="space-y-4">
 					{#each $recentActivities as activity}
-						<div class="card preset-tonal-surface p-4">
+						<div
+							class="cursor-pointer card preset-tonal-surface p-4 transition-all duration-200 hover:shadow-lg"
+							role="button"
+							tabindex="0"
+							onclick={() => goToQuiz(activity.id)}
+							onkeydown={(e) => e.key === 'Enter' && goToQuiz(activity.id)}
+						>
 							<div class="flex items-center space-x-4">
 								<div class="flex h-12 w-12 items-center justify-center rounded bg-primary-500">
 									<Book class="h-6 w-6 text-white" />
@@ -128,39 +85,6 @@
 											'en-US'
 										)}
 									</span>
-
-									<!-- Dropdown Menu -->
-									<div class="relative">
-										<button
-											class="btn-icon btn-icon-sm preset-tonal-surface"
-											onclick={() => toggleDropdown(activity.id)}
-										>
-											<MoreVertical class="h-4 w-4" />
-										</button>
-
-										{#if showDropdown === activity.id}
-											<div
-												class="absolute right-0 z-10 mt-2 w-48 card preset-tonal-surface shadow-xl"
-											>
-												<nav class="list-nav p-2">
-													<button
-														class="btn w-full justify-start preset-tonal-surface btn-sm"
-														onclick={() => goto(`/quiz/${activity.id}`)}
-													>
-														<Eye class="h-4 w-4" />
-														<span>View</span>
-													</button>
-													<button
-														class="btn w-full justify-start preset-tonal-surface btn-sm"
-														onclick={() => openMoveToFolder(activity.id)}
-													>
-														<Folder class="h-4 w-4" />
-														<span>Move to Folder</span>
-													</button>
-												</nav>
-											</div>
-										{/if}
-									</div>
 								</div>
 							</div>
 						</div>
@@ -182,61 +106,3 @@
 		</div>
 	</div>
 </div>
-
-<!-- Move to Folder Modal -->
-{#if showMoveToFolderModal}
-	<div
-		class="fixed inset-0 z-40 bg-surface-50-950"
-		onclick={closeModal}
-		role="button"
-		tabindex="-1"
-		onkeydown={(e) => e.key === 'Escape' && closeModal()}
-	>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2"
-			onclick={(e) => e.stopPropagation()}
-		>
-			<div class="rounded-container bg-surface-100-900 shadow-xl">
-				<div class="p-6">
-					<h3 class="mb-4 text-xl font-bold">Move to Folder</h3>
-
-					<label class="label">
-						<span>Select destination folder</span>
-						<select class="select" bind:value={selectedFolderId}>
-							<option value={null}>-- Select Folder --</option>
-							{#each $folders as folder}
-								<option value={folder.id}>{folder.name}</option>
-							{/each}
-						</select>
-					</label>
-
-					{#if $folders.length === 0}
-						<p class="mt-2 text-sm text-surface-600-400">
-							No folders yet. <a href="/folders" class="text-primary-500">Create a new folder</a>
-						</p>
-					{/if}
-
-					<div class="mt-6 flex justify-end space-x-2">
-						<button class="btn preset-tonal-surface" onclick={closeModal}> Cancel </button>
-						<button class="btn preset-tonal" onclick={moveToFolder} disabled={!selectedFolderId}>
-							Move
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-{/if}
-
-<!-- Click outside to close dropdown -->
-{#if showDropdown}
-	<div
-		class="fixed inset-0 z-0"
-		onclick={closeDropdown}
-		onkeydown={() => {}}
-		role="button"
-		tabindex="-1"
-	></div>
-{/if}
