@@ -99,8 +99,7 @@
 			}
 		}
 
-		// Take up to 6 cards for the game (12 total including pairs)
-		const maxCards = Math.min(6, availableCards.length);
+		const maxCards = Math.min(8, availableCards.length);
 		const selectedFlashcards = availableCards.sort(() => Math.random() - 0.5).slice(0, maxCards);
 
 		// Create pairs of cards (term and definition)
@@ -146,8 +145,7 @@
 	function initializeGame() {
 		if (!flashcardSet?.flashcards) return;
 
-		// Take up to 6 random flashcards to create 12 cards total
-		const selectedFlashcards = flashcardSet.flashcards.sort(() => Math.random() - 0.5).slice(0, 6);
+		const selectedFlashcards = flashcardSet.flashcards.sort(() => Math.random() - 0.5).slice(0, 8);
 
 		// Create pairs of cards (term and definition)
 		let cards = [];
@@ -244,7 +242,7 @@
 			toast.success('Match found!');
 
 			// Check if game is complete
-			if (matchedPairs.length === flashcardSet.flashcards.slice(0, 6).length) {
+			if (matchedPairs.length === Math.min(8, flashcardSet.flashcards.length)) {
 				gameComplete = true;
 				stopTimer();
 				toast.success(`Game completed in ${formatTime(gameTimer)} with ${attempts} attempts!`);
@@ -350,9 +348,9 @@
 		<!-- Skeleton Match Game Grid -->
 		<main class="flex-1 overflow-hidden p-6">
 			<div class="mx-auto max-w-6xl">
-				<!-- Skeleton Game Grid -->
-				<div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-					{#each Array(12) as _}
+				<!-- Skeleton Game Grid - 4x4 -->
+				<div class="grid grid-cols-4 gap-3 sm:gap-4">
+					{#each Array(16) as _}
 						<div class="aspect-square animate-pulse rounded-lg bg-surface-200-800"></div>
 					{/each}
 				</div>
@@ -512,8 +510,8 @@
 						<img src={matchIcon} alt="flashcard" class="mx-auto mb-4 h-32 w-32 object-contain" />
 						<h2 class="mb-4 text-3xl font-semibold">Ready to play?</h2>
 						<p class="mb-6 text-lg text-surface-600-400">
-							Match {gameCards.length / 2} terms with their definitions. Click on cards to select them
-							and find matching pairs.
+							Match {gameCards.length / 2} terms with their definitions in a grid. Click on cards to
+							select them and find matching pairs.
 						</p>
 
 						<button onclick={startGame} class="btn preset-filled-primary-500 px-8 py-3 text-lg">
@@ -522,51 +520,52 @@
 					</div>
 				</div>
 			{:else}
-				<!-- Game Grid -->
-				<div class="flex h-full items-center justify-center">
-					<div class="mx-auto flex max-w-6xl flex-wrap justify-center gap-4">
-						{#each gameCards as card (card.id)}
-							<button
-								class="group relative flex items-center justify-center overflow-hidden rounded-lg border-2 p-4 text-center transition-all duration-200
-								{gameCards.length <= 4
-									? 'h-40 w-72'
-									: gameCards.length <= 8
-										? 'h-36 w-60'
-										: gameCards.length <= 12
-											? 'h-32 w-48'
-											: 'h-28 w-40'}
-								{card.matched
-									? 'cursor-default border-green-500 bg-green-100 dark:bg-green-900'
-									: card.selected
-										? 'border-blue-500 bg-blue-100 dark:bg-blue-900'
-										: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600 hover:bg-surface-200-800'} {card.matched
-									? ''
-									: 'cursor-pointer active:scale-95'}"
-								onclick={() => selectCard(card)}
-								disabled={card.matched || !gameStarted}
-							>
-								<!-- Card Content - Always Visible -->
-								<div class="text-sm font-medium break-words">
-									{card.content}
-								</div>
+				<!-- Game Grid  -->
+				<div class="flex h-full items-center justify-center p-4">
+					<div class="mx-auto w-full max-w-6xl">
+						<div
+							class="mx-auto grid max-h-[calc(100vh-180px)] grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8"
+						>
+							{#each gameCards as card (card.id)}
+								<button
+									class="relative flex aspect-square min-h-0 items-center justify-center overflow-hidden rounded-lg border-2 p-3 text-center transition-all duration-200 sm:p-4 md:p-5
+									{card.matched
+										? 'cursor-default border-green-500 bg-green-100 dark:bg-green-900'
+										: card.selected
+											? 'border-blue-500 bg-blue-100 dark:bg-blue-900'
+											: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600 hover:bg-surface-200-800'} {card.matched
+										? ''
+										: 'cursor-pointer active:scale-95'}"
+									onclick={() => selectCard(card)}
+									disabled={card.matched || !gameStarted}
+								>
+									<!-- Card Content - Always Visible -->
+									<div
+										class="text-center text-sm leading-tight font-medium break-words sm:text-base md:text-lg"
+									>
+										{card.content}
+									</div>
 
-								<!-- Matched indicator -->
-								{#if card.matched}
-									<div class="absolute top-2 right-2">
-										<div class="flex h-5 w-5 items-center justify-center rounded-full bg-green-500">
-											<Check class="h-3 w-3 text-white" />
+									<!-- Matched indicator -->
+									{#if card.matched}
+										<div class="absolute top-2 right-2 sm:top-3 sm:right-3">
+											<div
+												class="flex h-5 w-5 items-center justify-center rounded-full bg-green-500 sm:h-6 sm:w-6"
+											>
+												<Check class="h-3 w-3 text-white sm:h-4 sm:w-4" />
+											</div>
 										</div>
-									</div>
-								{/if}
+									{/if}
 
-								<!-- Selected indicator -->
-								{#if card.selected && !card.matched}
-									<div class="absolute top-2 right-2">
-										<div class="h-5 w-5 rounded-full bg-blue-500"></div>
-									</div>
-								{/if}
-							</button>
-						{/each}
+									<!-- Selected indicator -->
+									{#if card.selected && !card.matched}
+										<div class="absolute top-2 right-2 sm:top-3 sm:right-3">
+											<div class="h-5 w-5 rounded-full bg-blue-500 sm:h-6 sm:w-6"></div>
+										</div>
+									{/if}
+								</button>
+							{/each}
+						</div>
 					</div>
 				</div>
 			{/if}
