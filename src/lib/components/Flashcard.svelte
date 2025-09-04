@@ -9,7 +9,8 @@
 		ArrowLeft,
 		Pause,
 		Lightbulb,
-		Scan
+		Scan,
+		Settings
 	} from 'lucide-svelte';
 	import { Switch } from '@skeletonlabs/skeleton-svelte';
 	import { toast } from '$lib/stores/toast.js';
@@ -412,12 +413,6 @@
 								{/if}
 							</button>
 
-							<div
-								class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400"
-							>
-								{currentIndex + 1} / {flashcardSet.flashcards.length}
-							</div>
-
 							<div class="flex items-center space-x-2">
 								<button
 									class="btn-icon btn-icon-sm"
@@ -482,12 +477,6 @@
 								{/if}
 							</button>
 
-							<div
-								class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400"
-							>
-								{currentIndex + 1} / {flashcardSet.flashcards.length}
-							</div>
-
 							<div class="flex items-center space-x-2">
 								<button
 									class="btn-icon btn-icon-sm"
@@ -532,31 +521,33 @@
 		<div class="mt-6 flex items-center justify-between">
 			{#if showTrackProgress}
 				<div class="flex items-center space-x-3">
+					<span class="text-sm font-medium">Track Progress</span>
 					<Switch
 						name="track-progress"
 						checked={trackProgress}
 						onCheckedChange={(e) => handleTrackProgressToggle(e.checked)}
 					/>
-					<span class="text-sm font-medium">Track Progress & Learn</span>
 				</div>
 			{:else}
 				<div></div>
 			{/if}
 
-			<div class="flex gap-6">
+			<div class="flex items-center gap-6">
 				<button
 					class="btn rounded-full preset-outlined-surface-500 px-8 py-3"
 					onclick={previousCard}
 				>
 					<ArrowLeft class="h-7 w-7" size={20} />
 				</button>
-
+				<div class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400">
+					{currentIndex + 1} / {flashcardSet.flashcards.length}
+				</div>
 				<button class="btn rounded-full preset-outlined-surface-500 px-8 py-3" onclick={nextCard}>
 					<ArrowRight class="h-7 w-7" />
 				</button>
 			</div>
 
-			<div class="flex items-center space-x-2">
+			<div class="flex items-center gap-4">
 				<button
 					class="btn-icon btn-icon-base {isPlaying
 						? 'preset-filled-primary-500'
@@ -580,14 +571,15 @@
 				>
 					<Shuffle class="h-5 w-5" />
 				</button>
+				<button>
+					<Settings class="h-5 w-5" />
+				</button>
 				<a
 					href="/quiz/{flashcardSet.id}/flashcard"
-					class="{mode === 'fullpage'
-						? 'btn-icon hidden btn-icon-lg'
-						: 'btn-icon btn-icon-sm'} preset-tonal-surface"
+					class="{mode === 'fullpage' ? 'btn-icon hidden btn-icon-lg' : ''} preset-tonal-surface"
 					title="Flashcard mode"
 				>
-					<Scan class={mode === 'fullpage' ? 'h-6 w-6' : 'h-5 w-5'} />
+					<Scan class="h-5 w-5" />
 				</a>
 			</div>
 		</div>

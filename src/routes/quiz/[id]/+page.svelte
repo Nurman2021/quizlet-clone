@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
-	import { Settings, Star, MoreVertical, Edit3, Trash2 } from 'lucide-svelte';
+	import { Settings, Star, MoreVertical, Edit3, Trash2, Bookmark } from 'lucide-svelte';
 
 	// Components
 	import Flashcard from '$lib/components/Flashcard.svelte';
@@ -252,9 +252,9 @@
 
 					<!-- Action Buttons -->
 					<div class="flex items-center space-x-3">
-						<button class="btn preset-tonal-surface" title="Settings">
-							<Settings class="mr-2 h-5 w-5" />
-							Settings
+						<button class="btn preset-tonal-surface" title="folder">
+							<Bookmark class="mr-2 h-5 w-5" />
+							Save
 						</button>
 						<button
 							onclick={toggleSetStar}
