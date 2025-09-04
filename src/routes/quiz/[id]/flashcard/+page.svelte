@@ -7,7 +7,7 @@
 	import { Settings, X, ChevronDown } from 'lucide-svelte';
 
 	// Components
-	import FlashcardLearn from '$lib/components/FlashcardLearn.svelte';
+	import Flashcard from '$lib/components/Flashcard.svelte';
 	import SettingsModal from '$lib/components/Settings.svelte';
 
 	// Icons for navigation
@@ -94,7 +94,7 @@
 
 		// Filter flashcards if starred only is enabled
 		if (newSettings.useStarredOnly) {
-			const starredCards = flashcardSet.flashcards.filter((card) => card.is_starred);
+			const starredCards = flashcardSet?.flashcards?.filter((card) => card.is_starred) || [];
 			if (starredCards.length > 0) {
 				flashcardSet = { ...flashcardSet, flashcards: starredCards };
 				currentCardIndex = 0; // Reset to first card
@@ -108,7 +108,7 @@
 	}
 
 	let progress = $derived(
-		flashcardSet?.flashcards.length > 0
+		flashcardSet?.flashcards?.length > 0
 			? ((currentCardIndex + 1) / flashcardSet.flashcards.length) * 100
 			: 0
 	);
@@ -194,7 +194,7 @@
 
 				<div class="text-center text-xl font-semibold">
 					<h1>
-						{currentCardIndex + 1} / {flashcardSet.flashcards.length}
+						{currentCardIndex + 1} / {flashcardSet?.flashcards?.length || 0}
 					</h1>
 					<h2>{flashcardSet.title}</h2>
 				</div>
@@ -229,13 +229,16 @@
 
 		<!-- Main Flashcard Area -->
 		<main class="flex-1 overflow-hidden">
-			<FlashcardLearn
+			<Flashcard
 				bind:flashcardSet
+				bind:currentIndex={currentCardIndex}
 				mode="fullpage"
 				frontSide={flashcardSettings.frontSide}
 				autoplayEnabled={flashcardSettings.autoplay}
 				shuffleEnabled={flashcardSettings.shuffle}
-				useStarredOnly={flashcardSettings.useStarredOnly}
+				onCardEdit={handleCardEdit}
+				onStarToggle={handleStarToggle}
+				showTrackProgress={false}
 			/>
 		</main>
 

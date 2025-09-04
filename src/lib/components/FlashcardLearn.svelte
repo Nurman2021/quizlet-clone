@@ -5,7 +5,7 @@
 	import { toast } from '$lib/stores/toast.js';
 
 	let {
-		flashcardSet = $bindable(),
+		flashcardSet,
 		mode = 'inline', // 'fullpage' atau 'inline'
 		// Settings props
 		frontSide = 'term',
@@ -22,26 +22,33 @@
 
 	// Filter flashcards based on starred setting
 	let filteredFlashcards = $derived(() => {
-		if (!flashcardSet?.flashcards) return [];
+		console.log('FlashcardLearn - flashcardSet:', flashcardSet);
+		console.log('FlashcardLearn - flashcards array:', flashcardSet?.flashcards);
+		console.log('FlashcardLearn - useStarredOnly:', useStarredOnly);
 
-		if (useStarredOnly) {
-			return flashcardSet.flashcards.filter((card) => card.is_starred);
+		if (!flashcardSet?.flashcards || !Array.isArray(flashcardSet.flashcards)) {
+			console.log('FlashcardLearn - No flashcards found or not array');
+			return [];
 		}
 
+		if (useStarredOnly) {
+			const starredCards = flashcardSet.flashcards.filter((card) => card.is_starred);
+			console.log('FlashcardLearn - Starred cards:', starredCards);
+			return starredCards;
+		}
+
+		console.log('FlashcardLearn - All cards:', flashcardSet.flashcards);
 		return flashcardSet.flashcards;
 	});
 
-	// Create filtered flashcard set
+	// Simple working flashcard set - bypass filtering for debugging
 	let workingFlashcardSet = $derived(() => {
-		if (!flashcardSet) return null;
+		console.log('FlashcardLearn - Creating workingFlashcardSet');
+		console.log('FlashcardLearn - flashcardSet:', flashcardSet);
 
-		return {
-			...flashcardSet,
-			flashcards: filteredFlashcards
-		};
-	});
-
-	// Handle track progress toggle
+		// Simply return the original flashcardSet without any filtering
+		return flashcardSet;
+	}); // Handle track progress toggle
 	function handleTrackProgressToggle(enabled) {
 		trackProgressMode = enabled;
 
@@ -81,21 +88,21 @@
 
 	// Handle next card in flashcard mode
 	function handleNextCard() {
-		if (trackProgressMode && workingFlashcardSet?.flashcards[currentIndex]) {
+		if (trackProgressMode && workingFlashcardSet?.flashcards?.[currentIndex]) {
 			recordFlashcardProgress(workingFlashcardSet.flashcards[currentIndex].id, 'next_card');
 		}
 	}
 
 	// Handle previous card in flashcard mode
 	function handlePreviousCard() {
-		if (trackProgressMode && workingFlashcardSet?.flashcards[currentIndex]) {
+		if (trackProgressMode && workingFlashcardSet?.flashcards?.[currentIndex]) {
 			recordFlashcardProgress(workingFlashcardSet.flashcards[currentIndex].id, 'previous_card');
 		}
 	}
 
 	// Handle card flip in flashcard mode
 	function handleCardFlip() {
-		if (trackProgressMode && workingFlashcardSet?.flashcards[currentIndex]) {
+		if (trackProgressMode && workingFlashcardSet?.flashcards?.[currentIndex]) {
 			recordFlashcardProgress(workingFlashcardSet.flashcards[currentIndex].id, 'card_flip');
 		}
 	}
@@ -122,11 +129,17 @@
 	}
 </script>
 
-{#if workingFlashcardSet && workingFlashcardSet.flashcards.length > 0}
+{#if workingFlashcardSet?.flashcards?.length > 0}
+	<!-- Debug FlashcardLearn -->
+	<div class="rounded border border-green-200 bg-green-50 p-2 text-xs text-green-600">
+		FlashcardLearn Debug: workingFlashcardSet exists, {workingFlashcardSet.flashcards.length} cards,
+		showFlashcard: {showFlashcard}
+	</div>
+
 	{#if showFlashcard}
 		<!-- Flashcard Mode -->
 		<Flashcard
-			bind:flashcardSet={workingFlashcardSet}
+			flashcardSet={workingFlashcardSet}
 			bind:currentIndex
 			{mode}
 			{frontSide}
@@ -161,8 +174,20 @@
 		</div>
 	{/if}
 {:else}
+	<!-- Debug No Data -->
 	<div class="flex h-full items-center justify-center">
 		<div class="text-center">
+			<div class="mb-4 rounded border border-red-200 bg-red-50 p-4 text-xs text-red-600">
+				FlashcardLearn Debug: No data<br />
+				flashcardSet exists: {!!flashcardSet}<br />
+				flashcardSet.flashcards exists: {!!flashcardSet?.flashcards}<br />
+				flashcards length: {flashcardSet?.flashcards?.length || 0}<br />
+				workingFlashcardSet exists: {!!workingFlashcardSet}<br />
+				workingFlashcardSet.flashcards exists: {!!workingFlashcardSet?.flashcards}<br />
+				workingFlashcardSet.flashcards length: {workingFlashcardSet?.flashcards?.length || 0}<br />
+				useStarredOnly: {useStarredOnly}<br />
+				Condition check: {workingFlashcardSet?.flashcards?.length > 0}
+			</div>
 			<p class="mb-4 text-surface-600-400">
 				{useStarredOnly ? 'No starred flashcards available' : 'No flashcard data available'}
 			</p>
