@@ -722,7 +722,7 @@
 						onclick={handleStillLearning}
 						title="Still learning this card"
 					>
-						<X class="mr-2 h-5 w-5" />
+						<X class="mr-2 h-7 w-7" size={20} />
 					</button>
 
 					<div class="font-medium text-surface-600-400 {mode === 'fullpage' ? 'hidden' : 'static'}">
@@ -734,7 +734,7 @@
 						onclick={handleKnowCard}
 						title="I know this card"
 					>
-						<Check class="ml-2 h-5 w-5" />
+						<Check class="ml-2 h-7 w-7" size={20} />
 					</button>
 				{:else}
 					<!-- Normal Mode: Previous/Next Buttons -->
