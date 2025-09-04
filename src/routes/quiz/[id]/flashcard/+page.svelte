@@ -128,13 +128,50 @@
 <svelte:window on:click={handleClickOutside} />
 
 {#if isLoading}
-	<div class="flex h-screen items-center justify-center">
-		<div class="text-center">
-			<div
-				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
-			></div>
-			<p class="text-surface-600-400">Loading flashcards...</p>
-		</div>
+	<div class="flex h-screen flex-col bg-surface-50-950">
+		<!-- Skeleton Header -->
+		<header class="mt-4 flex-shrink-0">
+			<div class="mx-6 mb-4 flex items-center justify-between">
+				<!-- Skeleton Navigation -->
+				<div class="flex items-center">
+					<div class="h-8 w-24 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Title -->
+				<div class="text-center">
+					<div class="mb-2 h-6 w-32 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-8 w-48 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Actions -->
+				<div class="flex items-center space-x-2">
+					<div class="h-12 w-12 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-12 w-12 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+			</div>
+
+			<!-- Skeleton Progress Bar -->
+			<div class="h-1 w-full animate-pulse rounded-full bg-surface-300-700"></div>
+		</header>
+
+		<!-- Skeleton Main Flashcard -->
+		<main class="flex-1 overflow-hidden p-6">
+			<div class="mx-auto max-w-4xl">
+				<div class="min-h-[500px] animate-pulse rounded-xl bg-surface-200-800"></div>
+				<div class="mt-6 flex items-center justify-between">
+					<div class="h-10 w-32 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="flex gap-6">
+						<div class="h-12 w-12 animate-pulse rounded-full bg-surface-300-700"></div>
+						<div class="h-12 w-12 animate-pulse rounded-full bg-surface-300-700"></div>
+					</div>
+					<div class="flex space-x-2">
+						<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+					</div>
+				</div>
+			</div>
+		</main>
 	</div>
 {:else if flashcardSet}
 	<div class=" flex h-screen flex-col bg-surface-50-950">

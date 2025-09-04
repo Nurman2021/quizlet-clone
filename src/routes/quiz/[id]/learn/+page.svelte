@@ -96,13 +96,47 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="flex h-screen items-center justify-center">
-		<div class="text-center">
-			<div
-				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
-			></div>
-			<p class="text-surface-600-400">Loading learn session...</p>
-		</div>
+	<div class="flex h-screen flex-col bg-surface-50-950">
+		<!-- Skeleton Header -->
+		<header class="flex-shrink-0 border-b border-surface-300-700 bg-surface-100-900 px-6 py-4">
+			<div class="flex items-center justify-between">
+				<!-- Skeleton Navigation -->
+				<div class="flex items-center">
+					<div class="h-8 w-20 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Title -->
+				<div class="text-center">
+					<div class="h-6 w-40 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Actions -->
+				<div class="flex items-center space-x-2">
+					<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Skeleton Main Learn Content -->
+		<main class="flex-1 overflow-hidden p-6">
+			<div class="mx-auto max-w-4xl">
+				<!-- Skeleton Learn Card -->
+				<div class="min-h-[500px] animate-pulse rounded-xl bg-surface-200-800"></div>
+
+				<!-- Skeleton Controls -->
+				<div class="mt-6 flex items-center justify-center space-x-4">
+					<div class="h-12 w-24 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-12 w-28 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-12 w-24 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Progress -->
+				<div class="mt-6">
+					<div class="h-2 w-full animate-pulse rounded-full bg-surface-300-700"></div>
+				</div>
+			</div>
+		</main>
 	</div>
 {:else if flashcardSet}
 	<!-- Fullscreen Learn Container -->

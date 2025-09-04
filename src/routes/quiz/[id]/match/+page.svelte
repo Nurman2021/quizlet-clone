@@ -324,13 +324,52 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="flex h-screen items-center justify-center">
-		<div class="text-center">
-			<div
-				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
-			></div>
-			<p class="text-surface-600-400">Loading match game...</p>
-		</div>
+	<div class="flex h-screen flex-col bg-surface-50-950">
+		<!-- Skeleton Header -->
+		<header class="flex-shrink-0 border-b border-surface-300-700 bg-surface-100-900 px-6 py-4">
+			<div class="flex items-center justify-between">
+				<!-- Skeleton Navigation -->
+				<div class="flex items-center space-x-4">
+					<div class="h-8 w-20 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Title & Timer -->
+				<div class="text-center">
+					<div class="mb-2 h-6 w-40 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-8 w-24 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Actions -->
+				<div class="flex items-center space-x-2">
+					<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Skeleton Match Game Grid -->
+		<main class="flex-1 overflow-hidden p-6">
+			<div class="mx-auto max-w-6xl">
+				<!-- Skeleton Game Grid -->
+				<div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+					{#each Array(12) as _}
+						<div class="aspect-square animate-pulse rounded-lg bg-surface-200-800"></div>
+					{/each}
+				</div>
+
+				<!-- Skeleton Game Stats -->
+				<div class="mt-8 flex justify-center space-x-8">
+					<div class="text-center">
+						<div class="mb-2 h-8 w-16 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-4 w-12 animate-pulse rounded bg-surface-300-700"></div>
+					</div>
+					<div class="text-center">
+						<div class="mb-2 h-8 w-16 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
+					</div>
+				</div>
+			</div>
+		</main>
 	</div>
 {:else if flashcardSet}
 	<div class="flex h-screen flex-col bg-surface-50-950">

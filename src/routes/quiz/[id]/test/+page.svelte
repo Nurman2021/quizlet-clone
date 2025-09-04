@@ -428,13 +428,56 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="flex h-screen items-center justify-center">
-		<div class="text-center">
-			<div
-				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
-			></div>
-			<p class="text-surface-600-400">Loading test...</p>
-		</div>
+	<div class="flex h-screen flex-col bg-surface-50-950">
+		<!-- Skeleton Header -->
+		<header class="border-b border-surface-300-700 bg-surface-50-950 px-6 py-4">
+			<div class="flex items-center justify-between">
+				<!-- Skeleton Navigation -->
+				<div class="flex items-center">
+					<div class="h-8 w-20 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Title -->
+				<div class="text-center">
+					<div class="h-6 w-40 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+
+				<!-- Skeleton Actions -->
+				<div class="flex items-center space-x-2">
+					<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+					<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Skeleton Main Content -->
+		<main class="flex flex-1">
+			<!-- Skeleton Question List -->
+			<aside class="w-80 border-r border-surface-300-700 bg-surface-100-900 p-4">
+				<div class="mb-4 h-6 w-32 animate-pulse rounded bg-surface-300-700"></div>
+				<div class="space-y-2">
+					{#each Array(8) as _}
+						<div class="h-12 w-full animate-pulse rounded bg-surface-200-800"></div>
+					{/each}
+				</div>
+			</aside>
+
+			<!-- Skeleton Test Questions -->
+			<div class="flex-1 p-6">
+				<div class="mx-auto max-w-4xl space-y-8">
+					{#each Array(3) as _}
+						<div class="rounded-lg border border-surface-300-700 bg-surface-50-950 p-6">
+							<div class="mb-4 h-6 w-3/4 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="space-y-3">
+								{#each Array(4) as _}
+									<div class="h-12 w-full animate-pulse rounded bg-surface-200-800"></div>
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		</main>
 	</div>
 {:else if flashcardSet}
 	<!-- Test Setup Modal -->

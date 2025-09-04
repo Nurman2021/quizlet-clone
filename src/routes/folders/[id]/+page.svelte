@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { ArrowLeft, Plus, MoreVertical, Edit, Trash2, Play } from 'lucide-svelte';
+	import { ArrowLeft, Plus, MoreVertical, Edit, Trash2, FileText } from 'lucide-svelte';
 	import { folderActions, currentFolder } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
@@ -68,10 +68,6 @@
 	});
 
 	function goToSet(setId) {
-		goto(`/sets/${setId}`);
-	}
-
-	function startQuiz(setId) {
 		goto(`/quiz/${setId}`);
 	}
 
@@ -105,10 +101,50 @@
 <div class="min-h-screen bg-surface-50-950 p-6">
 	<div class="mx-auto max-w-6xl">
 		{#if isLoading}
-			<!-- Loading -->
-			<div class="py-16 text-center">
-				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-400">Loading folder...</p>
+			<!-- Skeleton Loading State -->
+			<div class="mb-8">
+				<!-- Skeleton Back Button -->
+				<div class="mb-4 h-8 w-32 animate-pulse rounded bg-surface-300-700"></div>
+
+				<!-- Skeleton Header -->
+				<div class="flex items-start justify-between">
+					<div class="flex items-center space-x-4">
+						<div class="h-16 w-16 animate-pulse rounded-xl bg-surface-300-700"></div>
+						<div class="space-y-2">
+							<div class="h-8 w-48 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-4 w-32 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-4 w-24 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+					</div>
+					<div class="flex items-center space-x-2">
+						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-24 animate-pulse rounded bg-surface-300-700"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Skeleton Flashcard Sets Grid -->
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{#each Array(6) as _}
+					<div class="card preset-filled-surface-100-900 p-6">
+						<div class="mb-4 flex items-start justify-between">
+							<div class="h-6 w-3/4 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-8 w-8 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+						<div class="mb-4 space-y-2">
+							<div class="h-4 w-full animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-4 w-2/3 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+						<div class="mb-4 flex items-center justify-between">
+							<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-4 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+						<div class="flex space-x-2">
+							<div class="h-8 w-16 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-8 w-16 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+					</div>
+				{/each}
 			</div>
 		{:else if $currentFolder}
 			<!-- Header -->
@@ -153,57 +189,85 @@
 			<!-- Flashcard Sets -->
 			{#if folderSets.length === 0}
 				<div class="card preset-tonal-surface p-16 text-center">
+					<div class="mb-6">
+						<div
+							class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-surface-200-800"
+						>
+							<Plus class="h-8 w-8 text-surface-600-400" />
+						</div>
+					</div>
 					<h3 class="mb-2 text-xl font-semibold">This folder is empty</h3>
 					<p class="mb-6 text-surface-600-400">
 						Add flashcard sets to this folder to organize them better
 					</p>
-					<a href="/create?folder={folderId}" class="btn preset-tonal">
+					<a href="/create?folder={folderId}" class="btn preset-filled-primary-500">
 						<Plus class="h-4 w-4" />
 						<span>Create flashcard set</span>
 					</a>
 				</div>
 			{:else}
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 					{#each folderSets as set}
 						<div
-							class="divide-surface-200-800 card border-[1px] border-surface-200-800 preset-filled-surface-100-900 card-hover transition-all"
+							class="group cursor-pointer divide-surface-200-800 card border border-surface-200-800 preset-filled-surface-100-900 transition-all duration-200 hover:shadow-lg"
+							role="button"
+							tabindex="0"
+							onclick={() => goToSet(set.id)}
+							onkeydown={(e) => e.key === 'Enter' && goToSet(set.id)}
 						>
 							<div class="p-6">
 								<div class="mb-4 flex items-start justify-between">
-									<h3 class="mr-2 flex-1 font-semibold">{set.title}</h3>
+									<h3
+										class="mr-2 line-clamp-2 flex-1 font-semibold transition-colors group-hover:text-primary-500"
+									>
+										{set.title}
+									</h3>
 									<button
-										class="btn-icon btn-icon-sm preset-tonal-surface"
-										onclick={() => removeSetFromFolder(set.id)}
+										class="btn-icon btn-icon-sm preset-tonal-surface opacity-0 transition-opacity group-hover:opacity-100"
+										onclick={(e) => {
+											e.stopPropagation();
+											removeSetFromFolder(set.id);
+										}}
 									>
 										<Trash2 class="h-4 w-4" />
 									</button>
 								</div>
 
 								{#if set.description}
-									<p class="mb-4 line-clamp-2 text-sm text-surface-600-400">
+									<p class="mb-4 line-clamp-3 text-sm text-surface-600-400">
 										{set.description}
 									</p>
 								{/if}
 
-								<div class="mb-4 flex items-center justify-between">
-									<span class="text-sm text-surface-600-400">
-										{set.total_cards} cards
-									</span>
-									<span class="text-sm text-surface-600-400">
-										{new Date(set.created_at).toLocaleDateString('en-US')}
-									</span>
+								<div class="mb-4 flex items-center justify-between text-sm">
+									<div class="flex items-center space-x-4">
+										<span class="flex items-center space-x-1 text-surface-600-400">
+											<FileText class="h-4 w-4" />
+											<span>{set.total_cards} cards</span>
+										</span>
+										{#if set.last_studied_at}
+											<span class="text-primary-500">Recently studied</span>
+										{/if}
+									</div>
+								</div>
+
+								<div class="mb-4 text-xs text-surface-500">
+									Created {new Date(set.created_at).toLocaleDateString('en-US', {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric'
+									})}
 								</div>
 
 								<div class="flex space-x-2">
 									<button
-										class="btn flex-1 preset-tonal-surface btn-sm"
-										onclick={() => goToSet(set.id)}
+										class="group-hover:preset-soft-primary-500 btn flex-1 preset-tonal-surface btn-sm transition-all"
+										onclick={(e) => {
+											e.stopPropagation();
+											goToSet(set.id);
+										}}
 									>
 										View
-									</button>
-									<button class="btn flex-1 preset-tonal btn-sm" onclick={() => startQuiz(set.id)}>
-										<Play class="h-4 w-4" />
-										<span>Start</span>
 									</button>
 								</div>
 							</div>

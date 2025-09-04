@@ -229,13 +229,54 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="flex h-screen items-center justify-center">
-		<div class="text-center">
-			<div
-				class="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"
-			></div>
-			<p class="text-surface-600-400">Loading flashcards...</p>
-		</div>
+	<div class="my-12 min-h-screen bg-surface-50-950">
+		<!-- Skeleton Header -->
+		<header class="preset-tonal-surface px-6 py-4">
+			<div class="mx-auto max-w-6xl">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-4">
+						<div>
+							<div class="mb-2 h-8 w-64 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+					</div>
+					<div class="flex items-center space-x-3">
+						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-24 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+					</div>
+				</div>
+				<div class="mt-6">
+					<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+						{#each Array(4) as _}
+							<div class="flex-col rounded-xl bg-surface-200-800 px-4 py-3 text-center">
+								<div class="mx-auto mb-1 h-9 w-9 animate-pulse rounded bg-surface-300-700"></div>
+								<div class="mx-auto h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Skeleton Flashcard -->
+		<main class="mx-auto max-w-6xl">
+			<section class="px-6 py-8">
+				<div class="mx-auto max-w-4xl">
+					<div class="min-h-[400px] animate-pulse rounded-xl bg-surface-200-800"></div>
+					<div class="mt-6 flex items-center justify-between">
+						<div class="h-10 w-32 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="flex gap-6">
+							<div class="h-12 w-12 animate-pulse rounded-full bg-surface-300-700"></div>
+							<div class="h-12 w-12 animate-pulse rounded-full bg-surface-300-700"></div>
+						</div>
+						<div class="flex space-x-2">
+							<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-10 w-10 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
 	</div>
 {:else if flashcardSet}
 	<!-- Main Quiz Container -->

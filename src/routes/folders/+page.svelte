@@ -95,10 +95,29 @@
 		</div>
 
 		{#if isLoading}
-			<!-- Loading State -->
-			<div class="py-16 text-center">
-				<div class="mx-auto mb-4 placeholder animate-pulse"></div>
-				<p class="text-surface-600-400">Loading folders...</p>
+			<!-- Skeleton Loading State -->
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{#each Array(6) as _}
+					<div class="preset-ghost-neutral-500-900 card p-6">
+						<!-- Skeleton Folder Header -->
+						<div class="mb-4 flex items-start justify-between">
+							<div class="flex flex-1 items-center space-x-3">
+								<div class="h-12 w-12 animate-pulse rounded-lg bg-surface-300-700"></div>
+								<div class="min-w-0 flex-1 space-y-2">
+									<div class="h-5 w-3/4 animate-pulse rounded bg-surface-300-700"></div>
+									<div class="h-4 w-1/2 animate-pulse rounded bg-surface-300-700"></div>
+								</div>
+							</div>
+							<div class="h-8 w-8 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+
+						<!-- Skeleton Folder Stats -->
+						<div class="flex items-center justify-between">
+							<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
+							<div class="h-4 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						</div>
+					</div>
+				{/each}
 			</div>
 		{:else if $folders.length === 0}
 			<!-- Empty State -->
@@ -124,38 +143,43 @@
 			</div>
 		{:else}
 			<!-- Folders Grid -->
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 				{#each $folders as folder}
 					<div
-						class="preset-ghost-neutral-500-900 hover:preset-soft-neutral-500-900 card transition-all"
+						class="group preset-ghost-neutral-500-900 hover:preset-soft-neutral-500-900 cursor-pointer card transition-all"
+						role="button"
+						tabindex="0"
+						onclick={() => openFolder(folder.id)}
+						onkeydown={(e) => e.key === 'Enter' && openFolder(folder.id)}
 					>
 						<div class="p-6">
 							<!-- Folder Header -->
 							<div class="mb-4 flex items-start justify-between">
-								<button
-									class="flex flex-1 items-center space-x-3 text-left"
-									onclick={() => openFolder(folder.id)}
-								>
+								<div class="flex flex-1 items-center space-x-3">
 									<div
-										class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg"
+										class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
 										style="background-color: {folder.color}"
 									>
 										<Folder class="h-6 w-6 text-white" />
 									</div>
 									<div class="min-w-0">
-										<h3 class="truncate font-semibold">{folder.name}</h3>
+										<h3
+											class="truncate font-semibold transition-colors group-hover:text-primary-500"
+										>
+											{folder.name}
+										</h3>
 										{#if folder.description}
 											<p class="truncate text-sm text-surface-600-400">
 												{folder.description}
 											</p>
 										{/if}
 									</div>
-								</button>
+								</div>
 
 								<!-- Dropdown Menu -->
 								<div class="relative">
 									<button
-										class="preset-ghost-neutral-500-900 btn-icon btn-icon-sm"
+										class="preset-ghost-neutral-500-900 btn-icon btn-icon-sm opacity-0 transition-opacity group-hover:opacity-100"
 										onclick={(e) => {
 											e.stopPropagation();
 											toggleDropdown(folder.id);
@@ -195,14 +219,44 @@
 								</div>
 							</div>
 
+							<!-- Folder Content Preview -->
+							{#if folder.flashcard_sets && folder.flashcard_sets.length > 0}
+								<div class="mb-4 space-y-2">
+									<p class="text-xs tracking-wide text-surface-500 uppercase">Recent Sets</p>
+									<div class="space-y-1">
+										{#each folder.flashcard_sets.slice(0, 3) as set}
+											<div class="flex items-center space-x-2 text-sm">
+												<div class="h-1.5 w-1.5 rounded-full bg-surface-400"></div>
+												<span class="truncate text-surface-600-400">{set.title}</span>
+												<span class="text-xs text-surface-500">({set.total_cards || 0})</span>
+											</div>
+										{/each}
+										{#if folder.flashcard_sets.length > 3}
+											<p class="text-xs text-surface-500">
+												+{folder.flashcard_sets.length - 3} more sets
+											</p>
+										{/if}
+									</div>
+								</div>
+							{:else}
+								<div class="mb-4 py-4 text-center">
+									<p class="text-sm text-surface-500">No sets yet</p>
+								</div>
+							{/if}
+
 							<!-- Folder Stats -->
-							<div class="flex items-center justify-between text-sm text-surface-600-400">
+							<div
+								class="flex items-center justify-between border-t border-surface-200-800 pt-4 text-sm text-surface-600-400"
+							>
 								<div class="flex items-center space-x-1">
 									<FileText class="h-4 w-4" />
 									<span>{folder.flashcard_sets?.length || 0} sets</span>
 								</div>
 								<span>
-									{new Date(folder.created_at).toLocaleDateString('en-US')}
+									{new Date(folder.created_at).toLocaleDateString('en-US', {
+										month: 'short',
+										day: 'numeric'
+									})}
 								</span>
 							</div>
 						</div>

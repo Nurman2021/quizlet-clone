@@ -11,21 +11,27 @@
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
 
-	let showDropdown = null;
-	let showMoveToFolderModal = false;
+	let showDropdown = $state(null);
+	let showMoveToFolderModal = $state(false);
 	let selectedSetId = null;
-	let selectedFolderId = null;
+	let selectedFolderId = $state(null);
+	let isLoading = $state(true);
 
 	onMount(async () => {
-		// Load recent activities when page loads
-		await flashcardActions.loadRecentActivities();
+		try {
+			isLoading = true;
+			// Load recent activities when page loads
+			await flashcardActions.loadRecentActivities();
 
-		// Load folders
-		const {
-			data: { user }
-		} = await supabase.auth.getUser();
-		if (user) {
-			await folderActions.loadFolders(user.id);
+			// Load folders
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+			if (user) {
+				await folderActions.loadFolders(user.id);
+			}
+		} finally {
+			isLoading = false;
 		}
 	});
 
@@ -77,7 +83,27 @@
 		<div class="mt-12">
 			<h3 class="mb-6 text-xl font-semibold">Recents</h3>
 
-			{#if $recentActivities && $recentActivities.length > 0}
+			{#if isLoading}
+				<!-- Skeleton Loading for Recent Activities -->
+				<div class="space-y-4">
+					{#each Array(6) as _}
+						<div class="card preset-tonal-surface p-4">
+							<div class="flex items-center space-x-4">
+								<div class="h-12 w-12 animate-pulse rounded bg-surface-300-700"></div>
+								<div class="flex-1 space-y-2">
+									<div class="h-5 w-3/4 animate-pulse rounded bg-surface-300-700"></div>
+									<div class="h-4 w-1/2 animate-pulse rounded bg-surface-300-700"></div>
+									<div class="h-3 w-full animate-pulse rounded bg-surface-300-700"></div>
+								</div>
+								<div class="flex items-center space-x-2">
+									<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
+									<div class="h-8 w-8 animate-pulse rounded bg-surface-300-700"></div>
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else if $recentActivities && $recentActivities.length > 0}
 				<div class="space-y-4">
 					{#each $recentActivities as activity}
 						<div class="card preset-tonal-surface p-4">
