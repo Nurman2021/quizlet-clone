@@ -50,11 +50,11 @@
 
 	// Derived values based on settings
 	let isTermFirst = $derived(frontSide === 'term');
-	let currentCard = $derived(flashcardSet?.flashcards[currentIndex]);
+	let currentCard = $derived(flashcardSet?.flashcards?.[currentIndex]);
 	let isFirstCard = $derived(currentIndex === 0);
-	let isLastCard = $derived(currentIndex === flashcardSet?.flashcards.length - 1);
+	let isLastCard = $derived(currentIndex === (flashcardSet?.flashcards?.length ?? 0) - 1);
 	let progress = $derived(
-		flashcardSet?.flashcards.length > 0
+		flashcardSet?.flashcards?.length > 0
 			? ((currentIndex + 1) / flashcardSet.flashcards.length) * 100
 			: 0
 	);
@@ -62,24 +62,21 @@
 	function toggleAnswer() {
 		showAnswer = !showAnswer;
 		showHint = false; // Reset hint when toggling answer
-		// Stop auto-play if user manually toggles answer
-		if (isPlaying) {
-			stopAutoPlay();
-			isPlaying = false;
-		}
+		// Don't interfere with auto-play when user manually toggles
+		// Auto-play will handle its own timing
 	}
 
 	function nextCard() {
-		showAnswer = false;
-		showHint = false; // Reset hint when changing card
-		// Stop auto-play if user manually navigates
-		if (isPlaying) {
-			stopAutoPlay();
-			isPlaying = false;
+		if (!flashcardSet?.flashcards || flashcardSet.flashcards.length === 0) {
+			console.warn('Cannot navigate: no flashcards available');
+			return;
 		}
 
+		showAnswer = false;
+		showHint = false; // Reset hint when changing card
+
 		// Internal navigation logic
-		if (currentIndex < flashcardSet?.flashcards.length - 1) {
+		if (currentIndex < flashcardSet.flashcards.length - 1) {
 			currentIndex++;
 		}
 
@@ -88,12 +85,19 @@
 	}
 
 	function previousCard() {
+		if (!flashcardSet?.flashcards || flashcardSet.flashcards.length === 0) {
+			console.warn('Cannot navigate: no flashcards available');
+			return;
+		}
+
 		showAnswer = false;
 		showHint = false; // Reset hint when changing card
-		// Stop auto-play if user manually navigates
-		if (isPlaying) {
+		
+		// Stop auto-play when user manually goes back
+		if (isPlaying && autoPlayInterval) {
 			stopAutoPlay();
 			isPlaying = false;
+			toast.info('Auto-play stopped');
 		}
 
 		// Internal navigation logic
@@ -163,12 +167,20 @@
 	}
 
 	function togglePlay() {
+		// Add null check before toggling
+		if (!flashcardSet?.flashcards || flashcardSet.flashcards.length === 0) {
+			toast.error('No flashcards available for auto-play');
+			return;
+		}
+
 		isPlaying = !isPlaying;
 
 		if (isPlaying) {
 			startAutoPlay();
+			toast.success('Auto-play started');
 		} else {
 			stopAutoPlay();
+			toast.info('Auto-play stopped');
 		}
 	}
 
@@ -177,7 +189,21 @@
 			clearInterval(autoPlayInterval);
 		}
 
+		// Add null checks before starting auto-play
+		if (!flashcardSet?.flashcards || flashcardSet.flashcards.length === 0) {
+			console.warn('Cannot start auto-play: no flashcards available');
+			isPlaying = false;
+			return;
+		}
+
 		autoPlayInterval = setInterval(() => {
+			// Additional null check during auto-play
+			if (!flashcardSet?.flashcards || flashcardSet.flashcards.length === 0) {
+				stopAutoPlay();
+				isPlaying = false;
+				return;
+			}
+
 			if (!showAnswer) {
 				// Show answer first
 				showAnswer = true;
@@ -188,7 +214,10 @@
 					isPlaying = false;
 					toast.success('Auto-play completed!');
 				} else {
-					nextCard();
+					// Auto navigation - just update index and reset state
+					currentIndex++;
+					showAnswer = false;
+					showHint = false;
 				}
 			}
 		}, 3000); // Fixed 3 seconds interval
@@ -204,14 +233,19 @@
 	function handleShuffle() {
 		if (!flashcardSet?.flashcards) return;
 
-		if (!isShuffled) {
+		isShuffled = !isShuffled; // Toggle state first
+		
+		if (isShuffled) {
 			// Shuffle the cards
 			const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
 			flashcardSet = { ...flashcardSet, flashcards: shuffled };
 			currentIndex = 0;
-			isShuffled = true;
+			showAnswer = false; // Reset answer state
+			toast.success('Cards shuffled!');
 		} else {
-			isShuffled = false;
+			// For now, just show message that original order isn't restored
+			// TODO: Implement restore original order functionality
+			toast.info('Shuffle disabled (original order not restored yet)');
 		}
 	}
 
@@ -223,25 +257,13 @@
 		};
 	});
 
-	// Effect for autoplay setting
+	// Effect for shuffle setting - only sync from props when explicitly changed  
 	$effect(() => {
-		if (autoplayEnabled && !isPlaying) {
-			isPlaying = true;
-			startAutoPlay();
-		} else if (!autoplayEnabled && isPlaying) {
-			isPlaying = false;
-			stopAutoPlay();
-		}
-	});
-
-	// Effect for shuffle setting
-	$effect(() => {
+		// Only apply shuffle from props if not already shuffled
 		if (shuffleEnabled && !isShuffled) {
 			handleShuffle();
-		} else if (!shuffleEnabled && isShuffled) {
-			// Reset to original order - we'd need to store original order
-			isShuffled = false;
 		}
+		// Don't auto-unshuffle when shuffleEnabled is false, let user control it
 	});
 
 	// Keyboard shortcuts
@@ -354,29 +376,29 @@
 		if (config.frontSide !== undefined) {
 			frontSide = config.frontSide;
 		}
+		
+		// Update autoplay - sync both prop and local state
 		if (config.autoplay !== undefined) {
 			autoplayEnabled = config.autoplay;
+			isPlaying = config.autoplay;
+			
+			// Directly control autoplay based on the setting
+			if (config.autoplay) {
+				startAutoPlay();
+			} else {
+				stopAutoPlay();
+			}
 		}
+		
+		// Update shuffle
 		if (config.shuffle !== undefined) {
 			shuffleEnabled = config.shuffle;
-		}
-
-		// Apply shuffle jika diminta
-		if (config.shuffle && !isShuffled) {
-			handleShuffle();
-		} else if (!config.shuffle && isShuffled) {
-			// Reset shuffle jika dimatikan
-			isShuffled = false;
-			// Note: Untuk reset ke urutan asli, kita perlu menyimpan urutan asli
-		}
-
-		// Apply autoplay jika diminta
-		if (config.autoplay && !isPlaying) {
-			isPlaying = true;
-			startAutoPlay();
-		} else if (!config.autoplay && isPlaying) {
-			isPlaying = false;
-			stopAutoPlay();
+			if (config.shuffle && !isShuffled) {
+				handleShuffle();
+			} else if (!config.shuffle && isShuffled) {
+				// Reset shuffle state
+				isShuffled = false;
+			}
 		}
 
 		toast.success('Flashcard settings applied successfully');
@@ -590,7 +612,7 @@
 					<ArrowLeft class="h-7 w-7" size={20} />
 				</button>
 				<div class="{mode === 'fullpage' ? 'hidden' : 'static'} font-medium text-surface-600-400">
-					{currentIndex + 1} / {flashcardSet.flashcards.length}
+					{currentIndex + 1} / {flashcardSet?.flashcards?.length ?? 0}
 				</div>
 				<button class="btn rounded-full preset-outlined-surface-500 px-8 py-3" onclick={nextCard}>
 					<ArrowRight class="h-7 w-7" />
