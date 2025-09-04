@@ -21,32 +21,31 @@
 	let isLoading = $state(true);
 
 	// Test states
-	let showSetup = $state(true);
+	let showSetup = $state(true); // Aktifkan modal setup
 	let showResults = $state(false);
-	let testInProgress = $state(false);
+	let testInProgress = $state(false); // Mulai dengan setup mode
 	let testQuestions = $state([]);
 	let currentQuestionIndex = $state(0);
 	let testAnswers = $state({});
-	let testConfig = $state(null);
+	let testConfig = $state({
+		// Setup awal - gunakan modal untuk konfigurasi
+		questionCount: 10,
+		trueFalse: true,
+		multipleChoice: true,
+		matching: true,
+		written: true,
+		answerWith: 'both',
+		useStarredOnly: false,
+		instantFeedback: false
+	});
 	let showQuestionList = $state(true);
 	let showNavigationDropdown = $state(false);
 
 	onMount(async () => {
 		await loadFlashcardSet();
 
-		// Add scroll listener for updating current question index
-		const handleScroll = () => {
-			if (testInProgress) {
-				updateCurrentQuestionFromScroll();
-			}
-		};
-
-		window.addEventListener('scroll', handleScroll, { passive: true });
-
-		// Cleanup
-		return () => {
-			window.removeEventListener('scroll', handleScroll);
-		};
+		// Tidak auto-generate questions, tunggu user setup
+		// Biarkan user mengkonfigurasi test melalui modal
 	});
 
 	function toggleNavigationDropdown() {
@@ -104,6 +103,15 @@
 			testInProgress = true;
 			toast.info('Test started!');
 			console.log('Test started successfully with', testQuestions.length, 'questions');
+
+			// Add scroll listener for updating current question index
+			const handleScroll = () => {
+				if (testInProgress) {
+					updateCurrentQuestionFromScroll();
+				}
+			};
+
+			window.addEventListener('scroll', handleScroll, { passive: true });
 		} else {
 			console.error('Failed to generate questions');
 		}
@@ -126,10 +134,6 @@
 
 			if (availableCards.length === 0) {
 				toast.error('No starred cards available for test');
-				// Reset back to setup instead of calling undefined resetTest()
-				showSetup = true;
-				testInProgress = false;
-				testConfig = null;
 				return;
 			}
 		}
@@ -169,9 +173,6 @@
 		// Validate that questions were generated successfully
 		if (testQuestions.length === 0) {
 			toast.error('Failed to generate questions. Please try again.');
-			showSetup = true;
-			testInProgress = false;
-			testConfig = null;
 			return;
 		}
 
@@ -185,16 +186,25 @@
 
 		switch (type) {
 			case 'true_false':
+				// Untuk True/False, buat statement yang bisa benar atau salah
+				const isCorrectStatement = Math.random() > 0.5;
+				const statementTerm = isCorrectStatement ? card.term : generateWrongTerm(card);
+				const statementDefinition = isCorrectStatement
+					? card.definition
+					: generateWrongDefinition(card);
+
 				return {
 					id: id,
 					flashcard_id: card.id,
 					type: 'true_false',
-					term: card.term,
-					definition: card.definition,
-					question: isAskingForTerm ? card.definition : card.term,
-					correctAnswer: isAskingForTerm ? card.term : card.definition,
+					term: statementTerm,
+					definition: statementDefinition,
+					question: `Is this statement correct?`,
+					correctAnswer: isCorrectStatement ? 'True' : 'False',
 					options: ['True', 'False'],
-					actualAnswer: isAskingForTerm ? card.term : card.definition,
+					isCorrectStatement: isCorrectStatement,
+					originalTerm: card.term,
+					originalDefinition: card.definition,
 					isCorrect: false
 				};
 
@@ -229,6 +239,25 @@
 			default:
 				return null;
 		}
+	}
+
+	// Helper functions untuk True/False
+	function generateWrongTerm(card) {
+		const otherCards = flashcardSet.flashcards.filter((c) => c.id !== card.id);
+		if (otherCards.length > 0) {
+			const randomCard = otherCards[Math.floor(Math.random() * otherCards.length)];
+			return randomCard.term;
+		}
+		return card.term + ' (wrong)';
+	}
+
+	function generateWrongDefinition(card) {
+		const otherCards = flashcardSet.flashcards.filter((c) => c.id !== card.id);
+		if (otherCards.length > 0) {
+			const randomCard = otherCards[Math.floor(Math.random() * otherCards.length)];
+			return randomCard.definition;
+		}
+		return card.definition + ' (wrong)';
 	}
 
 	function generateMultipleChoiceQuestion(card, isAskingForTerm, id) {
@@ -318,12 +347,8 @@
 
 	function checkAnswerCorrectness(question, userAnswer) {
 		if (question.type === 'true_false') {
-			const statement = question.question;
-			const actualAnswer = question.actualAnswer;
-			const isStatementTrue = statement === actualAnswer;
-			return (
-				(userAnswer === 'True' && isStatementTrue) || (userAnswer === 'False' && !isStatementTrue)
-			);
+			// Untuk True/False, cek apakah user answer sama dengan correct answer
+			return userAnswer === question.correctAnswer;
 		} else if (question.type === 'written') {
 			return (
 				userAnswer &&
@@ -372,16 +397,19 @@
 	}
 
 	function retakeTest() {
-		showResults = false;
-		showSetup = true;
+		// Regenerate questions untuk test ulang
+		generateQuestions();
 		testAnswers = {};
+		showResults = false;
+		testInProgress = true;
 	}
 
 	function backToSetup() {
-		showResults = false;
-		showSetup = true;
-		testInProgress = false;
+		// Kembali ke setup modal
 		testAnswers = {};
+		showResults = false;
+		testInProgress = false;
+		showSetup = true;
 	}
 
 	function exitTest() {
@@ -420,6 +448,33 @@
 		});
 
 		currentQuestionIndex = currentIndex;
+	}
+
+	// Settings modal state
+	let showSettingsModal = $state(false);
+
+	function openSettings() {
+		showSettingsModal = true;
+	}
+
+	function handleSettingsApply(event) {
+		const newConfig = event.detail;
+
+		// Update test config
+		testConfig = { ...testConfig, ...newConfig };
+
+		// Regenerate questions with new config
+		generateQuestions();
+
+		// Reset answers
+		testAnswers = {};
+
+		showSettingsModal = false;
+		toast.info('Test settings updated!');
+	}
+
+	function closeSettings() {
+		showSettingsModal = false;
 	}
 </script>
 
@@ -488,6 +543,17 @@
 		{flashcardSet}
 		on:apply-settings={startTest}
 		on:close={cancelSetup}
+	/>
+
+	<!-- Settings Modal During Test -->
+	<SettingsModal
+		bind:show={showSettingsModal}
+		mode="test"
+		maxQuestions={flashcardSet?.flashcards?.length || 20}
+		{flashcardSet}
+		currentConfig={testConfig}
+		on:apply-settings={handleSettingsApply}
+		on:close={closeSettings}
 	/>
 
 	{#if testInProgress}
@@ -571,7 +637,11 @@
 						</div>
 
 						<div class="flex items-center justify-center space-x-2">
-							<button class="btn-icon btn-icon-lg preset-tonal-surface" title="Settings">
+							<button
+								onclick={openSettings}
+								class="btn-icon btn-icon-lg preset-tonal-surface"
+								title="Settings"
+							>
 								<Settings class="h-8 w-8" />
 							</button>
 
@@ -631,8 +701,60 @@
 
 								<!-- Answer Options -->
 								<div>
-									{#if question.type === 'multiple_choice' || question.type === 'true_false' || question.type === 'matching'}
-										<!-- Multiple Choice Options -->
+									{#if question.type === 'true_false'}
+										<!-- True/False - Statement dengan jawaban True/False -->
+										<div class="mb-6 rounded-lg bg-surface-200-800 p-4">
+											<div class="mb-4">
+												<p class="mb-4 text-sm text-surface-600-400">Statement:</p>
+												<div
+													class="grid grid-cols-[1fr_auto_1fr] items-center justify-center gap-4 text-center"
+												>
+													<div class="text-sm font-medium">{question.term}</div>
+													<div class="text-surface-500">is</div>
+													<div class="text-sm font-medium">{question.definition}</div>
+												</div>
+											</div>
+										</div>
+
+										<div class="space-y-3">
+											{#each question.options as option}
+												{@const isSelected = testAnswers[question.id] === option}
+												{@const isCorrectOption =
+													testConfig?.instantFeedback &&
+													question.showFeedback &&
+													option === question.correctAnswer}
+												{@const isWrongSelected =
+													testConfig?.instantFeedback &&
+													question.showFeedback &&
+													isSelected &&
+													!isCorrectOption}
+												<button
+													onclick={() => selectAnswer(question.id, option)}
+													disabled={testConfig?.instantFeedback && question.showFeedback}
+													class="w-full rounded-lg border-2 p-4 text-center text-lg font-medium transition-all duration-200
+														{isCorrectOption
+														? 'border-success-500 bg-success-50 dark:bg-success-900/20'
+														: isWrongSelected
+															? 'border-error-500 bg-error-50 dark:bg-error-900/20'
+															: isSelected
+																? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+																: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
+														{testConfig?.instantFeedback && question.showFeedback ? 'cursor-not-allowed' : ''}
+													"
+												>
+													{option}
+													{#if testConfig?.instantFeedback && question.showFeedback}
+														{#if isCorrectOption}
+															<span class="ml-2 font-medium text-success-500">✓</span>
+														{:else if isWrongSelected}
+															<span class="ml-2 font-medium text-error-500">✗</span>
+														{/if}
+													{/if}
+												</button>
+											{/each}
+										</div>
+									{:else if question.type === 'multiple_choice'}
+										<!-- Multiple Choice - Standard pilihan ganda -->
 										<div class="space-y-3">
 											{#each question.options as option}
 												{@const isSelected = testAnswers[question.id] === option}
@@ -688,6 +810,63 @@
 													</div>
 												</button>
 											{/each}
+										</div>
+									{:else if question.type === 'matching'}
+										<!-- Matching - Dua kolom dengan drag and drop style -->
+										<div class="grid grid-cols-2 gap-6">
+											<!-- Kolom Kiri: Terms/Definitions (static) -->
+											<div class="space-y-3">
+												<h4 class="mb-3 font-medium text-surface-600-400">Match this:</h4>
+												<div
+													class="rounded-lg border-2 border-primary-500 bg-primary-50 p-4 dark:bg-primary-900/20"
+												>
+													<div class="text-center font-medium">{question.question}</div>
+												</div>
+											</div>
+
+											<!-- Kolom Kanan: Options (clickable) -->
+											<div class="space-y-3">
+												<h4 class="mb-3 font-medium text-surface-600-400">With one of these:</h4>
+												{#each question.options as option}
+													{@const isSelected = testAnswers[question.id] === option}
+													{@const isCorrectOption =
+														testConfig?.instantFeedback &&
+														question.showFeedback &&
+														option === question.correctAnswer}
+													{@const isWrongSelected =
+														testConfig?.instantFeedback &&
+														question.showFeedback &&
+														isSelected &&
+														!isCorrectOption}
+													<button
+														onclick={() => selectAnswer(question.id, option)}
+														disabled={testConfig?.instantFeedback && question.showFeedback}
+														class="w-full rounded-lg border-2 p-4 text-center transition-all duration-200
+															{isCorrectOption
+															? 'border-success-500 bg-success-50 dark:bg-success-900/20'
+															: isWrongSelected
+																? 'border-error-500 bg-error-50 dark:bg-error-900/20'
+																: isSelected
+																	? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+																	: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
+															{testConfig?.instantFeedback && question.showFeedback ? 'cursor-not-allowed' : ''}
+														"
+													>
+														<div class="font-medium">{option}</div>
+														{#if testConfig?.instantFeedback && question.showFeedback}
+															{#if isCorrectOption}
+																<span class="mt-1 text-sm font-medium text-success-500"
+																	>✓ Correct Match</span
+																>
+															{:else if isWrongSelected}
+																<span class="mt-1 text-sm font-medium text-error-500"
+																	>✗ Wrong Match</span
+																>
+															{/if}
+														{/if}
+													</button>
+												{/each}
+											</div>
 										</div>
 									{:else if question.type === 'written'}
 										<!-- Written Answer -->

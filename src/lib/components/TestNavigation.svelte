@@ -46,12 +46,10 @@
 	function goToQuestion(index) {
 		dispatch('go-to-question', index);
 
-		// Auto close on mobile after selection
+		// Auto close on mobile after selection for better UX
 		if (window.innerWidth < 768) {
-			setTimeout(() => {
-				showQuestionList = false;
-				dispatch('toggle-question-list', false);
-			}, 500);
+			showQuestionList = false;
+			dispatch('toggle-question-list', false);
 		}
 	}
 
@@ -106,41 +104,42 @@
 
 {#if showQuestionList}
 	<div
-		class="fixed top-28 left-0 z-20 flex h-3/5 w-auto flex-col rounded-lg border border-surface-300-700 preset-tonal shadow-xl"
+		class="fixed top-20 left-4 z-30 flex h-auto max-h-[70vh] w-72 sm:w-80 md:w-96 flex-col rounded-xl border border-surface-300-700 bg-surface-50-950 shadow-2xl backdrop-blur-sm
+		   md:top-24 md:left-6"
 		transition:fly={{ x: -320, duration: 300, easing: quintOut }}
 	>
 		<!-- Navigation Header -->
-		<div class="mb-3 flex items-center gap-2 border-b border-surface-300-700 p-4">
-			<!-- <div class="mb-3 flex items-center justify-between"> -->
-			<h3 class="text-lg font-semibold">Questions</h3>
-			<div class="hidden rounded bg-surface-200-800 px-2 py-1 text-xs text-surface-600-400 md:flex">
-				<kbd class="mx-1 rounded bg-surface-300-700 px-1 text-xs">N</kbd> toggle
-				<kbd class="mx-1 rounded bg-surface-300-700 px-1 text-xs">ESC</kbd> close
-			</div>
+		<div class="flex items-center justify-between border-b border-surface-300-700 px-4 py-3">
+			<h3 class="text-sm font-semibold text-surface-900-50">Questions</h3>
+			
+			<div class="flex items-center gap-2">
+				<div class="hidden rounded-full bg-surface-200-800 px-3 py-1 text-xs text-surface-600-400 lg:block">
+					Press <kbd class="mx-1 rounded bg-surface-300-700 px-1 text-xs">N</kbd>
+				</div>
 
-			<button
-				onclick={toggleQuestionList}
-				class="btn-icon btn-icon-sm preset-filled-error-500 shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-90"
-				title="Close navigation (ESC)"
-			>
-				<X class="h-4 w-4" />
-			</button>
-			<!-- </div> -->
+				<button
+					onclick={toggleQuestionList}
+					class="rounded-full p-1.5 text-surface-600-400 transition-colors hover:bg-surface-200-800 hover:text-surface-900-50"
+					title="Close navigation (ESC)"
+				>
+					<X class="h-4 w-4" />
+				</button>
+			</div>
 		</div>
 
 		<!-- Question List by Type -->
-		<div class="flex-1 space-y-6 overflow-y-auto p-4">
+		<div class="flex-1 overflow-y-auto px-4 py-3">
 			{#each Object.entries(questionsByType) as [type, typeQuestions]}
-				<div>
+				<div class="mb-4 last:mb-0">
 					<!-- Type Header -->
-					<div class="mb-3">
-						<span class="badge rounded preset-tonal-primary px-2 py-1 text-xs font-light">
-							{getTypeDisplayName(type)}
+					<div class="mb-2">
+						<span class="inline-block rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+							{getTypeDisplayName(type)} ({typeQuestions.length})
 						</span>
 					</div>
 
-					<!-- Questions of this type -->
-					<div class="grid grid-cols-5 gap-2">
+					<!-- Questions Grid - Responsive -->
+					<div class="grid grid-cols-6 gap-1.5 sm:grid-cols-8 lg:grid-cols-10">
 						{#each typeQuestions as question}
 							{@const isActive = question.index === currentQuestionIndex}
 							{@const answered = isAnswered(question.id)}
@@ -149,46 +148,31 @@
 
 							<button
 								onclick={() => goToQuestion(question.index)}
-								class="relative h-10 w-10 transform rounded-lg border-2 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95
+								class="relative flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95
 									{isActive
-									? 'border-primary-500 bg-primary-500 text-white shadow-lg'
+									? 'bg-primary-500 text-white shadow-lg ring-2 ring-primary-300'
 									: showResults
 										? correct
-											? 'border-success-500 bg-success-500 text-white shadow-md'
+											? 'bg-success-500 text-white'
 											: incorrect
-												? 'border-error-500 bg-error-500 text-white shadow-md'
-												: 'border-surface-300-700 bg-surface-50-950 text-surface-700-300'
+												? 'bg-error-500 text-white'
+												: 'bg-surface-200-800 text-surface-600-400'
 										: answered
-											? 'border-success-500 bg-success-100 text-success-700 shadow-md dark:bg-success-900 dark:text-success-200'
-											: 'border-surface-300-700 bg-surface-50-950 text-surface-700-300 hover:border-surface-400-600 hover:shadow-md'}
-								"
-								title="Question {question.index + 1} {showResults
-									? correct
-										? '(Correct)'
-										: incorrect
-											? '(Incorrect)'
-											: '(Unanswered)'
-									: answered
-										? '(Answered)'
-										: '(Unanswered)'}"
+											? 'bg-success-100 text-success-700 ring-1 ring-success-300 dark:bg-success-900/40 dark:text-success-300'
+											: 'bg-surface-200-800 text-surface-600-400 hover:bg-surface-300-700'}"
+								title="Question {question.index + 1}"
 							>
 								{question.index + 1}
 
-								<!-- Correct/Incorrect indicators -->
+								<!-- Status indicator dot -->
 								{#if showResults}
 									{#if correct}
-										<div
-											class="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-success-600"
-										>
-											<span class="text-xs text-white">✓</span>
-										</div>
+										<div class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-success-400"></div>
 									{:else if incorrect}
-										<div
-											class="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-error-600"
-										>
-											<span class="text-xs text-white">✗</span>
-										</div>
+										<div class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-error-400"></div>
 									{/if}
+								{:else if answered}
+									<div class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-success-400"></div>
 								{/if}
 							</button>
 						{/each}
@@ -197,48 +181,42 @@
 			{/each}
 		</div>
 
-		<!-- Legend Footer -->
-		<div class="border-t border-surface-300-700 p-4">
-			<div class="space-y-2 text-xs">
-				{#if showResults}
-					<div class="flex flex-wrap items-center gap-4">
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded bg-success-500"></div>
-							<span class="text-surface-600-400">Correct</span>
-						</div>
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded bg-error-500"></div>
-							<span class="text-surface-600-400">Incorrect</span>
-						</div>
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded border-2 border-surface-300-700"></div>
-							<span class="text-surface-600-400">Unanswered</span>
-						</div>
+		<!-- Simplified Legend Footer -->
+		<div class="border-t border-surface-300-700 px-4 py-3">
+			{#if showResults}
+				<div class="flex items-center justify-center gap-4 text-xs">
+					<div class="flex items-center gap-1.5">
+						<div class="h-2.5 w-2.5 rounded-full bg-success-500"></div>
+						<span class="text-surface-600-400">Correct</span>
 					</div>
-				{:else}
-					<div class="flex flex-wrap items-center gap-4">
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded bg-success-500"></div>
-							<span class="text-surface-600-400">Answered</span>
-						</div>
-						<div class="flex items-center gap-1">
-							<div class="h-3 w-3 rounded border-2 border-surface-300-700"></div>
-							<span class="text-surface-600-400">Unanswered</span>
-						</div>
+					<div class="flex items-center gap-1.5">
+						<div class="h-2.5 w-2.5 rounded-full bg-error-500"></div>
+						<span class="text-surface-600-400">Wrong</span>
 					</div>
-				{/if}
-			</div>
+				</div>
+			{:else}
+				<div class="flex items-center justify-center gap-4 text-xs">
+					<div class="flex items-center gap-1.5">
+						<div class="h-2.5 w-2.5 rounded-full bg-success-400"></div>
+						<span class="text-surface-600-400">Answered</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<div class="h-2.5 w-2.5 rounded-full bg-surface-400-600"></div>
+						<span class="text-surface-600-400">Pending</span>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
 
-<!-- Floating Toggle Button -->
+<!-- Simplified Floating Toggle Button -->
 <button
 	onclick={toggleQuestionList}
-	class="fixed top-28 left-4 z-20 btn-icon btn-icon-base preset-filled-primary-500 shadow-xl transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 {showQuestionList
+	class="fixed top-24 left-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg transition-all duration-300 hover:bg-primary-600 hover:scale-110 hover:shadow-xl active:scale-95 {showQuestionList
 		? 'pointer-events-none rotate-180 opacity-0'
 		: 'rotate-0 opacity-100'}"
-	title="Show question list (Press N)"
+	title="Show questions (Press N)"
 >
 	<Logs class="h-5 w-5" />
 </button>
