@@ -7,12 +7,14 @@
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
 	import Modal from '$lib/components/Modal.svelte';
+	import CreateFolderModal from '$lib/components/CreateFolder.svelte';
 
 	let folderId;
 	let isLoading = true;
 	let folderSets = [];
 	let showRemoveModal = false;
 	let setToRemove = null;
+	let showEditModal = false;
 
 	onMount(async () => {
 		folderId = $page.params.id;
@@ -75,6 +77,38 @@
 		// Show remove modal instead of confirm
 		setToRemove = folderSets.find((s) => s.id === setId);
 		showRemoveModal = true;
+	}
+
+	function handleEdit() {
+		showEditModal = true;
+	}
+
+	async function handleUpdateFolder(event) {
+		try {
+			const folderData = event.detail;
+
+			const { error } = await supabase
+				.from('folders')
+				.update({
+					name: folderData.name,
+					description: folderData.description,
+					color: folderData.color
+				})
+				.eq('id', folderId);
+
+			if (error) throw error;
+
+			toast.success('Folder updated successfully!');
+			showEditModal = false;
+
+			// Update the current folder in the store
+			currentFolder.update((folder) => ({
+				...folder,
+				...folderData
+			}));
+		} catch (error) {
+			toast.error('Failed to update folder: ' + error.message);
+		}
 	}
 
 	async function confirmRemoveSet() {
@@ -174,7 +208,7 @@
 					</div>
 
 					<div class="flex items-center space-x-2">
-						<button class="btn preset-tonal-surface">
+						<button class="btn preset-tonal-surface" onclick={handleEdit}>
 							<Edit class="h-4 w-4" />
 							<span>Edit</span>
 						</button>
@@ -293,10 +327,7 @@
 			</p>
 
 			<div class="flex space-x-3 pt-4">
-				<button
-					class="preset-ghost-neutral-500-900 btn flex-1"
-					onclick={() => (showRemoveModal = false)}
-				>
+				<button class="btn flex-1 preset-tonal-surface" onclick={() => (showRemoveModal = false)}>
 					Cancel
 				</button>
 				<button class="preset-filled-warning-500-900 btn flex-1" onclick={confirmRemoveSet}>
@@ -306,3 +337,11 @@
 		</div>
 	{/snippet}
 </Modal>
+
+<!-- Edit Folder Modal -->
+<CreateFolderModal
+	bind:show={showEditModal}
+	editMode={true}
+	folderData={$currentFolder}
+	on:update={handleUpdateFolder}
+/>

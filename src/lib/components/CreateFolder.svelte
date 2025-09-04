@@ -5,12 +5,21 @@
 	import Modal from './Modal.svelte';
 
 	export let show = false;
+	export let editMode = false;
+	export let folderData = null;
 
 	const dispatch = createEventDispatcher();
 
 	let name = '';
 	let description = '';
 	let selectedColor = '#3B82F6';
+
+	// Watch for changes in folderData and editMode
+	$: if (editMode && folderData) {
+		name = folderData.name || '';
+		description = folderData.description || '';
+		selectedColor = folderData.color || '#3B82F6';
+	}
 
 	const colors = [
 		'#3B82F6', // Blue
@@ -40,7 +49,9 @@
 			return;
 		}
 
-		dispatch('create', {
+		const eventName = editMode ? 'update' : 'create';
+		dispatch(eventName, {
+			id: editMode ? folderData?.id : undefined,
 			name: name.trim(),
 			description: description.trim(),
 			color: selectedColor
@@ -50,7 +61,12 @@
 	}
 </script>
 
-<Modal bind:showModal={show} size="md" title="Create a new folder" onClose={resetForm}>
+<Modal
+	bind:showModal={show}
+	size="md"
+	title={editMode ? 'Edit folder' : 'Create a new folder'}
+	onClose={resetForm}
+>
 	{#snippet children()}
 		<form
 			onsubmit={(e) => {
@@ -123,7 +139,9 @@
 				<button type="button" class="preset-ghost-neutral-500-900 btn" onclick={closeModal}>
 					Cancel
 				</button>
-				<button type="submit" class="preset-filled-primary-500-900 btn"> Create folder </button>
+				<button type="submit" class="preset-filled-primary-500-900 btn">
+					{editMode ? 'Save changes' : 'Create folder'}
+				</button>
 			</div>
 		</form>
 	{/snippet}
