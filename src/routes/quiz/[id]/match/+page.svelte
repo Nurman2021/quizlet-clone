@@ -447,11 +447,6 @@
 								{matchedPairs.length}/{gameCards.length / 2}
 							</div>
 						</div>
-
-						<button onclick={resetGame} class="btn preset-tonal-surface" title="Reset Game">
-							<RotateCcw class="mr-2 h-4 w-4" />
-							Reset
-						</button>
 					</div>
 				{:else}
 					<div>
