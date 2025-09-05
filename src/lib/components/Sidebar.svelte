@@ -46,7 +46,7 @@
 		{/snippet}
 
 		{#snippet footer()}
-			<Navigation.Tile labelExpanded="Settings" href="/" title="Settings">
+			<Navigation.Tile labelExpanded="Settings" href="/settings" title="Settings">
 				<SettingsIcon />
 			</Navigation.Tile>
 		{/snippet}

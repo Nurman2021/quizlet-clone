@@ -1,16 +1,25 @@
 <script>
-	import { Search, User, Plus, Menu, LogOut } from 'lucide-svelte';
+	import { Search, User, Plus, Menu, LogOut, Settings, ChevronDown } from 'lucide-svelte';
 	import { sidebarExpanded } from '$lib/stores/sidebar.js';
 	import { supabase } from '$lib/supabase.js';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { clickOutside } from '$lib/utils/clickOutside.js';
+	import Avatar from './Avatar.svelte';
+	import { userProfile, loadUserProfile } from '$lib/stores/user.js';
 
 	let user = null;
+	let showUserMenu = false;
+
+	// Use store for user profile
+	$: currentUserProfile = $userProfile;
 
 	function toggleSidebar() {
 		sidebarExpanded.update((expanded) => !expanded);
 	}
 
+	// Listen for auth changes with debouncing
+	let authChangeTimeout;
 	onMount(async () => {
 		// Get current user
 		const {
@@ -18,15 +27,39 @@
 		} = await supabase.auth.getUser();
 		user = currentUser;
 
+		// Load user profile if user exists (store will handle caching)
+		if (currentUser) {
+			await loadUserProfile();
+		}
+
 		// Listen for auth changes
 		const {
 			data: { subscription }
-		} = supabase.auth.onAuthStateChange((event, session) => {
-			console.log('Auth state changed:', event, session?.user);
-			user = session?.user || null;
+		} = supabase.auth.onAuthStateChange(async (event, session) => {
+			console.log('Header: Auth state changed:', event, session?.user);
+
+			// Clear previous timeout
+			if (authChangeTimeout) {
+				clearTimeout(authChangeTimeout);
+			}
+
+			// Debounce auth state changes
+			authChangeTimeout = setTimeout(async () => {
+				user = session?.user || null;
+
+				// Force refresh profile data if user signed in
+				if (event === 'SIGNED_IN' && session?.user) {
+					await loadUserProfile(true);
+				}
+			}, 100);
 		});
 
-		return () => subscription.unsubscribe();
+		return () => {
+			subscription.unsubscribe();
+			if (authChangeTimeout) {
+				clearTimeout(authChangeTimeout);
+			}
+		};
 	});
 
 	async function handleLogout() {
@@ -34,10 +67,13 @@
 		goto('/login');
 	}
 
-	// Helper function to safely get avatar URL
-	$: avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
-	$: userDisplayName =
-		user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User';
+	function toggleUserMenu() {
+		showUserMenu = !showUserMenu;
+	}
+
+	function closeUserMenu() {
+		showUserMenu = false;
+	}
 </script>
 
 <header class="border-b border-surface-300-700 preset-tonal-surface px-4 py-4">
@@ -47,7 +83,7 @@
 			<!-- Sidebar Toggle Button -->
 			<button
 				class="btn preset-tonal-surface btn-lg"
-				onclick={toggleSidebar}
+				on:click={toggleSidebar}
 				aria-label="Toggle sidebar"
 			>
 				<Menu class="h-8 w-8" />
@@ -84,30 +120,55 @@
 					<Plus class="h-5 w-5" />
 				</a>
 
-				<div class="relative">
-					<button class="btn preset-tonal-surface btn-sm" aria-label="User profile">
-						{#if avatarUrl}
-							<img
-								src={avatarUrl}
-								alt="User avatar"
-								class="h-8 w-8 rounded-full object-cover"
-								onerror={(e) => (e.target.style.display = 'none')}
-							/>
-						{:else}
-							<div
-								class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-sm font-medium text-white"
-							>
-								{userDisplayName.charAt(0).toUpperCase()}
-							</div>
-						{/if}
+				<div class="relative" use:clickOutside={closeUserMenu}>
+					<button
+						class="btn flex items-center space-x-2 preset-tonal-surface btn-sm"
+						on:click={toggleUserMenu}
+						aria-label="User profile menu"
+					>
+						<Avatar user={currentUserProfile} size="sm" />
+						<ChevronDown
+							class="h-4 w-4 transition-transform duration-200 {showUserMenu ? 'rotate-180' : ''}"
+						/>
 					</button>
 
-					<!-- Dropdown menu (you can add this later) -->
-				</div>
+					<!-- Dropdown Menu -->
+					{#if showUserMenu}
+						<div
+							class="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-surface-300-700 bg-surface-100-900 py-2 shadow-lg"
+						>
+							<div class="border-b border-surface-300-700 px-4 py-2">
+								<p class="truncate text-sm font-medium">
+									{currentUserProfile?.display_name ||
+										currentUserProfile?.full_name ||
+										user.email?.split('@')[0] ||
+										'User'}
+								</p>
+								<p class="truncate text-xs text-surface-500">{user.email}</p>
+							</div>
 
-				<button class="btn preset-tonal-surface btn-sm" onclick={handleLogout} aria-label="Logout">
-					<LogOut class="h-5 w-5" />
-				</button>
+							<a
+								href="/settings"
+								class="flex items-center space-x-2 px-4 py-2 text-sm transition-colors hover:bg-surface-200-800"
+								on:click={closeUserMenu}
+							>
+								<Settings class="h-4 w-4" />
+								<span>Settings</span>
+							</a>
+
+							<button
+								class="flex w-full items-center space-x-2 px-4 py-2 text-left text-sm transition-colors hover:bg-surface-200-800"
+								on:click={() => {
+									closeUserMenu();
+									handleLogout();
+								}}
+							>
+								<LogOut class="h-4 w-4" />
+								<span>Sign Out</span>
+							</button>
+						</div>
+					{/if}
+				</div>
 			{:else}
 				<a href="/login" class="btn preset-tonal-surface btn-sm"> Sign In </a>
 				<a href="/signup" class="btn preset-tonal-success btn-sm"> Register </a>
