@@ -1,5 +1,5 @@
 <script>
-	import { Plus, Trash2, ArrowLeft } from 'lucide-svelte';
+	import { Plus, Trash2 } from 'lucide-svelte';
 	import { flashcardActions, folders, folderActions } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { goto } from '$app/navigation';
@@ -218,16 +218,13 @@
 		<div class="mx-auto max-w-4xl">
 			<!-- Header -->
 			<div class="mb-8 flex items-center justify-between">
-				<div class="flex items-center space-x-4">
-					<button
-						onclick={cancelEdit}
-						class="btn-icon btn-icon-sm preset-tonal-surface"
-						title="Back to Quiz"
-					>
-						<ArrowLeft class="h-5 w-5" />
-					</button>
-					<h1 class="text-2xl font-bold">Back to set</h1>
-				</div>
+				<button
+					onclick={cancelEdit}
+					class="mb-4 btn rounded-full preset-outlined-surface-500 text-sm font-semibold"
+					title="Back to Quiz"
+				>
+					Back to set
+				</button>
 				<div class="flex items-center space-x-4">
 					<button class="btn preset-tonal" onclick={cancelEdit} disabled={isSaving}>
 						Cancel

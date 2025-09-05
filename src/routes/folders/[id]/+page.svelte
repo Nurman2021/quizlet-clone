@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { ArrowLeft, Plus, MoreVertical, Edit, Trash2, FileText } from 'lucide-svelte';
+	import { Plus, MoreVertical, Edit, Trash2, FileText } from 'lucide-svelte';
 	import { folderActions, currentFolder } from '$lib/stores/flashcards.js';
 	import { supabase } from '$lib/supabase.js';
 	import { toast } from '$lib/stores/toast.js';
@@ -183,8 +183,10 @@
 		{:else if $currentFolder}
 			<!-- Header -->
 			<div class="mb-8">
-				<button class="mb-4 btn preset-tonal-surface btn-sm" onclick={() => goto('/folders')}>
-					<ArrowLeft class="h-4 w-4" />
+				<button
+					class="mb-4 btn rounded-full preset-outlined-surface-500 text-sm font-semibold"
+					onclick={() => goto('/folders')}
+				>
 					<span>Back to Folders</span>
 				</button>
 

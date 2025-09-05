@@ -116,7 +116,7 @@
 		<!-- User Actions -->
 		<div class="flex items-center space-x-2">
 			{#if user}
-				<a href="/create" class="btn preset-tonal-surface btn-sm" aria-label="Add content">
+				<a href="/create" class="btn rounded-full preset-tonal btn-base" aria-label="Add content">
 					<Plus class="h-5 w-5" />
 				</a>
 
