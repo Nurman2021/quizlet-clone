@@ -15,6 +15,7 @@
 	let showRemoveModal = false;
 	let setToRemove = null;
 	let showEditModal = false;
+	let showDeleteModal = false;
 
 	onMount(async () => {
 		folderId = $page.params.id;
@@ -81,6 +82,22 @@
 
 	function handleEdit() {
 		showEditModal = true;
+	}
+
+	function handleDelete() {
+		showDeleteModal = true;
+	}
+
+	async function confirmDeleteFolder() {
+		try {
+			await folderActions.deleteFolder(folderId);
+			toast.success('Folder deleted successfully');
+			goto('/folders');
+		} catch (error) {
+			toast.error('Failed to delete folder: ' + error.message);
+		} finally {
+			showDeleteModal = false;
+		}
 	}
 
 	async function handleUpdateFolder(event) {
@@ -152,7 +169,8 @@
 					</div>
 					<div class="flex items-center space-x-2">
 						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
-						<div class="h-10 w-24 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						<div class="h-10 w-20 animate-pulse rounded bg-surface-300-700"></div>
 					</div>
 				</div>
 			</div>
@@ -209,12 +227,16 @@
 						</div>
 					</div>
 
-					<div class="flex items-center space-x-2">
-						<button class="btn preset-tonal-surface" onclick={handleEdit}>
+					<div class="grid grid-cols-3 items-center gap-2">
+						<button class="btn preset-tonal-error" onclick={handleDelete}>
+							<Trash2 class="h-4 w-4" />
+							<span>Delete</span>
+						</button>
+						<button class="btn preset-tonal" onclick={handleEdit}>
 							<Edit class="h-4 w-4" />
 							<span>Edit</span>
 						</button>
-						<a href="/create?folder={folderId}" class="btn preset-tonal">
+						<a href="/create?folder={folderId}" class="btn preset-tonal-primary">
 							<Plus class="h-4 w-4" />
 							<span>Add Set</span>
 						</a>
@@ -334,6 +356,31 @@
 				</button>
 				<button class="btn flex-1 preset-filled-warning-100-900" onclick={confirmRemoveSet}>
 					Remove
+				</button>
+			</div>
+		</div>
+	{/snippet}
+</Modal>
+
+<!-- Delete Folder Confirmation Modal -->
+<Modal bind:showModal={showDeleteModal} size="sm" title="Delete Folder">
+	{#snippet children()}
+		<div class="space-y-4">
+			<p class="text-center">
+				Are you sure you want to delete the folder
+				<span class="font-semibold text-primary-500">"{$currentFolder?.name}"</span>?
+			</p>
+			<p class="text-center text-sm text-surface-600-400">
+				This action cannot be undone. All flashcard sets in this folder will be moved to "No
+				folder".
+			</p>
+
+			<div class="flex space-x-3 pt-4">
+				<button class="btn flex-1 preset-tonal-surface" onclick={() => (showDeleteModal = false)}>
+					Cancel
+				</button>
+				<button class="btn flex-1 preset-filled-error-100-900" onclick={confirmDeleteFolder}>
+					Delete
 				</button>
 			</div>
 		</div>
