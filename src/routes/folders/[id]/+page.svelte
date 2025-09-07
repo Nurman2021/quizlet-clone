@@ -332,7 +332,7 @@
 				<button class="btn flex-1 preset-tonal-surface" onclick={() => (showRemoveModal = false)}>
 					Cancel
 				</button>
-				<button class="preset-filled-warning-500-900 btn flex-1" onclick={confirmRemoveSet}>
+				<button class="btn flex-1 preset-filled-warning-100-900" onclick={confirmRemoveSet}>
 					Remove
 				</button>
 			</div>

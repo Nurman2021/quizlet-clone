@@ -88,33 +88,36 @@
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
 			<h1 class="text-3xl font-bold">Folders</h1>
-			<button class="preset-filled-primary-500-900 btn" onclick={() => (showCreateModal = true)}>
+			<button class="btn preset-filled-primary-100-900" onclick={() => (showCreateModal = true)}>
 				<FolderPlus class="h-5 w-5" />
 				<span>Create folder</span>
 			</button>
 		</div>
 
 		{#if isLoading}
-			<!-- Skeleton Loading State -->
+			<!-- Simplified Skeleton Loading State -->
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each Array(6) as _}
-					<div class="preset-ghost-neutral-500-900 card p-6">
-						<!-- Skeleton Folder Header -->
-						<div class="mb-4 flex items-start justify-between">
-							<div class="flex flex-1 items-center space-x-3">
-								<div class="h-12 w-12 animate-pulse rounded-lg bg-surface-300-700"></div>
-								<div class="min-w-0 flex-1 space-y-2">
-									<div class="h-5 w-3/4 animate-pulse rounded bg-surface-300-700"></div>
-									<div class="h-4 w-1/2 animate-pulse rounded bg-surface-300-700"></div>
-								</div>
+					<div class="animate-pulse card p-6">
+						<!-- Folder Icon & Title -->
+						<div class="mb-4 flex items-center space-x-3">
+							<div class="h-12 w-12 rounded-lg bg-surface-300-700"></div>
+							<div class="flex-1 space-y-2">
+								<div class="h-5 w-3/4 rounded bg-surface-300-700"></div>
+								<div class="h-4 w-1/2 rounded bg-surface-300-700"></div>
 							</div>
-							<div class="h-8 w-8 animate-pulse rounded bg-surface-300-700"></div>
 						</div>
 
-						<!-- Skeleton Folder Stats -->
-						<div class="flex items-center justify-between">
-							<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
-							<div class="h-4 w-20 animate-pulse rounded bg-surface-300-700"></div>
+						<!-- Content Area -->
+						<div class="mb-4 space-y-3">
+							<div class="h-4 w-full rounded bg-surface-300-700"></div>
+							<div class="h-4 w-2/3 rounded bg-surface-300-700"></div>
+						</div>
+
+						<!-- Stats -->
+						<div class="flex justify-between border-t border-surface-200-800 pt-4">
+							<div class="h-4 w-16 rounded bg-surface-300-700"></div>
+							<div class="h-4 w-20 rounded bg-surface-300-700"></div>
 						</div>
 					</div>
 				{/each}
@@ -136,7 +139,7 @@
 					Folders help you organize flashcard sets and practice tests
 				</p>
 
-				<button class="preset-filled-primary-500-900 btn" onclick={() => (showCreateModal = true)}>
+				<button class="btn preset-filled-primary-100-900" onclick={() => (showCreateModal = true)}>
 					<FolderPlus class="h-5 w-5" />
 					<span>Create folder</span>
 				</button>
@@ -146,7 +149,7 @@
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 				{#each $folders as folder}
 					<div
-						class="group preset-ghost-neutral-500-900 hover:preset-soft-neutral-500-900 cursor-pointer card transition-all"
+						class="group cursor-pointer card preset-tonal-surface transition-all hover:preset-tonal"
 						role="button"
 						tabindex="0"
 						onclick={() => openFolder(folder.id)}
@@ -179,7 +182,7 @@
 								<!-- Dropdown Menu -->
 								<div class="relative">
 									<button
-										class="preset-ghost-neutral-500-900 btn-icon btn-icon-sm opacity-0 transition-opacity group-hover:opacity-100"
+										class="btn-icon btn-icon-sm opacity-0 transition-opacity group-hover:opacity-100"
 										onclick={(e) => {
 											e.stopPropagation();
 											toggleDropdown(folder.id);
@@ -190,30 +193,28 @@
 
 									{#if showDropdown === folder.id}
 										<div
-											class="preset-filled-neutral-500-900 absolute right-0 z-10 mt-2 w-48 card shadow-xl"
+											class="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-surface-300-700 bg-surface-100-900 shadow-lg"
 										>
-											<nav class="list-nav p-2">
-												<button
-													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm"
-													onclick={() => {
-														// TODO: Implement edit
-														showDropdown = null;
-													}}
-												>
-													<Edit class="h-4 w-4" />
-													<span>Edit</span>
-												</button>
-												<button
-													class="preset-ghost-neutral-500-900 btn w-full justify-start btn-sm text-error-500"
-													onclick={() => {
-														deleteFolder(folder.id);
-														showDropdown = null;
-													}}
-												>
-													<Trash2 class="h-4 w-4" />
-													<span>Delete</span>
-												</button>
-											</nav>
+											<button
+												class="btn w-full justify-start btn-sm px-4 py-3 hover:bg-surface-200-800"
+												onclick={() => {
+													// TODO: Implement edit
+													showDropdown = null;
+												}}
+											>
+												<Edit class="h-4 w-4" />
+												<span>Edit</span>
+											</button>
+											<button
+												class="btn w-full justify-start btn-sm px-4 py-3 text-error-500 hover:bg-surface-200-800"
+												onclick={() => {
+													deleteFolder(folder.id);
+													showDropdown = null;
+												}}
+											>
+												<Trash2 class="h-4 w-4" />
+												<span>Delete</span>
+											</button>
 										</div>
 									{/if}
 								</div>
@@ -284,13 +285,10 @@
 			</p>
 
 			<div class="flex space-x-3 pt-4">
-				<button
-					class="preset-ghost-neutral-500-900 btn flex-1"
-					onclick={() => (showDeleteModal = false)}
-				>
+				<button class="btn flex-1 preset-tonal" onclick={() => (showDeleteModal = false)}>
 					Cancel
 				</button>
-				<button class="preset-filled-error-500-900 btn flex-1" onclick={confirmDeleteFolder}>
+				<button class="btn flex-1 preset-filled-error-100-900" onclick={confirmDeleteFolder}>
 					Delete
 				</button>
 			</div>

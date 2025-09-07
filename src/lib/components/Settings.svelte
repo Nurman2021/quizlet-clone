@@ -426,8 +426,8 @@
 
 			<!-- Actions -->
 			<div class="flex justify-end gap-2 pt-4">
-				<button onclick={closeModal} class="preset-outlined-neutral-500-900 btn"> Cancel </button>
-				<button onclick={applySettings} class="preset-filled-primary-500-900 btn px-8">
+				<button onclick={closeModal} class="btn preset-tonal"> Cancel </button>
+				<button onclick={applySettings} class="btn preset-filled-primary-100-900 px-8">
 					{mode === 'test' ? 'Start test' : 'Apply settings'}
 				</button>
 			</div>

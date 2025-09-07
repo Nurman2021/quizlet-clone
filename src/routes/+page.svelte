@@ -47,9 +47,6 @@
 									<div class="h-4 w-1/2 animate-pulse rounded bg-surface-300-700"></div>
 									<div class="h-3 w-full animate-pulse rounded bg-surface-300-700"></div>
 								</div>
-								<div class="flex items-center space-x-2">
-									<div class="h-4 w-16 animate-pulse rounded bg-surface-300-700"></div>
-								</div>
 							</div>
 						</div>
 					{/each}
@@ -58,7 +55,7 @@
 				<div class="space-y-4">
 					{#each $recentActivities as activity}
 						<div
-							class="cursor-pointer card preset-tonal-surface p-4 transition-all duration-200 hover:shadow-lg"
+							class="cursor-pointer card preset-tonal-surface p-4 shadow-lg transition-all duration-200 hover:preset-tonal"
 							role="button"
 							tabindex="0"
 							onclick={() => goToQuiz(activity.id)}
@@ -78,13 +75,6 @@
 									{#if activity.description}
 										<p class="mt-1 text-sm opacity-60">{activity.description}</p>
 									{/if}
-								</div>
-								<div class="flex items-center space-x-2">
-									<span class="text-xs opacity-60">
-										{new Date(activity.last_studied_at || activity.created_at).toLocaleDateString(
-											'en-US'
-										)}
-									</span>
 								</div>
 							</div>
 						</div>

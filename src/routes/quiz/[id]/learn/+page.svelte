@@ -204,7 +204,7 @@
 					<!-- Restart Button -->
 					<button
 						onclick={restartLearn}
-						class="preset-ghost-surface btn text-sm"
+						class="btn preset-tonal text-sm"
 						title="Restart Learn Session"
 					>
 						Restart

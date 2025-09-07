@@ -136,10 +136,8 @@
 
 			<!-- Actions -->
 			<div class="flex justify-end space-x-2 pt-4">
-				<button type="button" class="preset-ghost-neutral-500-900 btn" onclick={closeModal}>
-					Cancel
-				</button>
-				<button type="submit" class="preset-filled-primary-500-900 btn">
+				<button type="button" class=" btn preset-tonal" onclick={closeModal}> Cancel </button>
+				<button type="submit" class="btn preset-filled-primary-50-950">
 					{editMode ? 'Save changes' : 'Create folder'}
 				</button>
 			</div>
