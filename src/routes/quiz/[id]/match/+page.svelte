@@ -347,7 +347,7 @@
 
 		<!-- Skeleton Match Game Grid -->
 		<main class="flex-1 overflow-hidden p-6">
-			<div class="mx-auto max-w-6xl">
+			<div class="mx-auto max-w-4xl">
 				<!-- Skeleton Game Grid - 4x4 -->
 				<div class="grid grid-cols-4 gap-3 sm:gap-4">
 					{#each Array(16) as _}
@@ -515,9 +515,9 @@
 					</div>
 				</div>
 			{:else}
-				<!-- Game Grid  -->
+				<!-- Game Grid paling pas max-w-7xl jangan diubah  -->
 				<div class="flex h-full items-center justify-center p-4">
-					<div class="mx-auto w-full max-w-6xl">
+					<div class="mx-auto w-full max-w-7xl">
 						<div
 							class="mx-auto grid max-h-[calc(100vh-180px)] grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8"
 						>

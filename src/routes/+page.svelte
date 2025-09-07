@@ -28,7 +28,7 @@
 </svelte:head>
 
 <div class="bg-surface-50-950 p-6">
-	<div class="mx-auto max-w-5xl">
+	<div class="mx-auto max-w-4xl">
 		<!-- Popular Content Section -->
 		<div class="mt-12">
 			<h3 class="mb-6 text-xl font-semibold">Recents</h3>

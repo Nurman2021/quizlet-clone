@@ -84,7 +84,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-surface-50-950 p-6">
-	<div class="mx-auto max-w-5xl">
+	<div class="mx-auto max-w-4xl">
 		<!-- Header -->
 		<div class="mb-8 flex items-center justify-between">
 			<h1 class="text-3xl font-bold">Folders</h1>

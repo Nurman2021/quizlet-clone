@@ -133,7 +133,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-surface-50-950 p-6">
-	<div class="mx-auto max-w-6xl">
+	<div class="mx-auto max-w-4xl">
 		{#if isLoading}
 			<!-- Skeleton Loading State -->
 			<div class="mb-8">

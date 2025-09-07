@@ -365,7 +365,7 @@
 	<div class="my-12 min-h-screen bg-surface-50-950">
 		<!-- Skeleton Header -->
 		<header class="preset-tonal-surface px-6 py-4">
-			<div class="mx-auto max-w-6xl">
+			<div class="mx-auto max-w-4xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
 						<div>
@@ -393,7 +393,7 @@
 		</header>
 
 		<!-- Skeleton Flashcard -->
-		<main class="mx-auto max-w-6xl">
+		<main class="mx-auto max-w-4xl">
 			<section class="px-6 py-8">
 				<div class="mx-auto max-w-4xl">
 					<div class="min-h-[400px] animate-pulse rounded-xl bg-surface-200-800"></div>
@@ -417,7 +417,7 @@
 	<div class="my-12 min-h-screen bg-surface-50-950">
 		<!-- Header Section -->
 		<header class="preset-tonal-surface px-6 py-4">
-			<div class="mx-auto max-w-6xl">
+			<div class="mx-auto max-w-4xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
 						<div>
@@ -562,14 +562,6 @@
 							<span class="text-sm font-semibold">Test</span>
 						</a>
 
-						<!-- <a
-							href="/quiz/{setId}/uji"
-							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
-						>
-							<img src={testIcon} alt="uji" class="mx-auto mb-1 h-9 w-9 object-contain" />
-							<span class="text-sm font-semibold">Uji</span>
-						</a> -->
-
 						<a
 							href="/quiz/{setId}/match"
 							class="btn flex-col rounded-xl preset-tonal px-4 py-3 text-center no-underline"
@@ -582,7 +574,7 @@
 			</div>
 		</header>
 
-		<main class="mx-auto max-w-6xl">
+		<main class="mx-auto max-w-4xl">
 			<section>
 				<Flashcard
 					bind:flashcardSet
