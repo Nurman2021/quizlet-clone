@@ -416,12 +416,12 @@
 	<!-- Main Quiz Container -->
 	<div class="my-12 min-h-screen bg-surface-50-950">
 		<!-- Header Section -->
-		<header class="preset-tonal-surface px-6 py-4">
+		<header class="preset-tonal-surface py-4">
 			<div class="mx-auto max-w-4xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-4">
 						<div>
-							<h1 class="mb-2 text-3xl font-bold">{flashcardSet.title}</h1>
+							<h1 class="mb-2 text-xl font-bold md:text-3xl">{flashcardSet.title}</h1>
 						</div>
 					</div>
 
