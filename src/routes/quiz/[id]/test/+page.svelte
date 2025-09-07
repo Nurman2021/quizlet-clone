@@ -206,17 +206,7 @@
 				}
 
 			case 'matching':
-				return {
-					id: id,
-					flashcard_id: card.id,
-					type: 'matching',
-					term: card.term,
-					definition: card.definition,
-					question: isAskingForTerm ? card.definition : card.term,
-					correctAnswer: isAskingForTerm ? card.term : card.definition,
-					options: generateMatchingOptions(card, isAskingForTerm),
-					isCorrect: false
-				};
+				return generateMatchingPairs(card, id);
 
 			case 'written':
 				return {
@@ -310,6 +300,75 @@
 		};
 	}
 
+	// Generate 2 vs 4 matching pairs
+	function generateMatchingPairs(card, id) {
+		// Get another random card untuk pair kedua
+		const otherCards = flashcardSet.flashcards.filter((c) => c.id !== card.id);
+
+		if (otherCards.length === 0) {
+			// Fallback to simple matching if no other cards
+			return generateSingleMatching(card, id);
+		}
+
+		const secondCard = otherCards[Math.floor(Math.random() * otherCards.length)];
+
+		// Create left side (2 items to match)
+		const leftItems = [
+			{ id: 1, text: card.term, correctMatch: card.definition },
+			{ id: 2, text: secondCard.term, correctMatch: secondCard.definition }
+		];
+
+		// Create right side (4 options including 2 correct + 2 distractors)
+		const correctAnswers = [card.definition, secondCard.definition];
+		const shuffledOthers = otherCards
+			.filter((c) => c.id !== secondCard.id)
+			.sort(() => Math.random() - 0.5);
+
+		const distractors = [];
+		for (let i = 0; i < Math.min(2, shuffledOthers.length); i++) {
+			distractors.push(shuffledOthers[i].definition);
+		}
+
+		// Fill with placeholder if needed
+		while (distractors.length < 2) {
+			distractors.push(`Distractor ${distractors.length + 1}`);
+		}
+
+		const rightOptions = [...correctAnswers, ...distractors].sort(() => Math.random() - 0.5);
+
+		return {
+			id: id,
+			type: 'matching',
+			flashcard_id: card.id,
+			leftItems: leftItems,
+			rightOptions: rightOptions,
+			correctMatches: {
+				1: card.definition,
+				2: secondCard.definition
+			},
+			userMatches: {},
+			isCorrect: false
+		};
+	}
+
+	// Fallback for single matching (when only one card available)
+	function generateSingleMatching(card, id) {
+		return {
+			id: id,
+			type: 'matching',
+			flashcard_id: card.id,
+			leftItems: [{ id: 1, text: card.term, correctMatch: card.definition }],
+			rightOptions: [card.definition, 'Distractor 1', 'Distractor 2', 'Distractor 3'].sort(
+				() => Math.random() - 0.5
+			),
+			correctMatches: {
+				1: card.definition
+			},
+			userMatches: {},
+			isCorrect: false
+		};
+	}
+
 	function generateMatchingOptions(card, isAskingForTerm) {
 		const correctAnswer = isAskingForTerm ? card.term : card.definition;
 		const otherCards = flashcardSet.flashcards.filter((c) => c.id !== card.id);
@@ -328,30 +387,52 @@
 		return options.sort(() => Math.random() - 0.5);
 	}
 
-	function selectAnswer(questionId, answer) {
-		testAnswers[questionId] = answer;
+	function selectAnswer(questionId, answer, leftItemId = null) {
+		const question = testQuestions.find((q) => q.id === questionId);
 
-		// If instant feedback is enabled, show feedback immediately
-		if (testConfig?.instantFeedback) {
-			const question = testQuestions.find((q) => q.id === questionId);
-			if (question) {
-				const isCorrect = checkAnswerCorrectness(question, answer);
-				question.userAnswer = answer;
-				question.showFeedback = true;
-				question.isCorrectAnswer = isCorrect;
+		if (question && question.type === 'matching' && leftItemId) {
+			// Handle matching pairs
+			question.userMatches[leftItemId] = answer;
 
-				// Show toast feedback
+			// Check if this specific match is correct for instant feedback
+			if (testConfig?.instantFeedback) {
+				const isCorrect = question.correctMatches[leftItemId] === answer;
+				const leftItem = question.leftItems.find((item) => item.id === leftItemId);
+
+				// Show feedback for this specific match
 				if (isCorrect) {
-					toast.success('Correct!');
+					toast.success(`Correct match: ${leftItem.text}`);
 				} else {
-					// Handle multiple correct answers display
-					let correctAnswerText;
-					if (question.isCustomMC && Array.isArray(question.correctAnswer)) {
-						correctAnswerText = question.correctAnswer.join(', ');
+					toast.error(
+						`Incorrect. ${leftItem.text} matches with ${question.correctMatches[leftItemId]}`
+					);
+				}
+			}
+		} else {
+			// Handle other question types
+			testAnswers[questionId] = answer;
+
+			// If instant feedback is enabled, show feedback immediately
+			if (testConfig?.instantFeedback) {
+				if (question) {
+					const isCorrect = checkAnswerCorrectness(question, answer);
+					question.userAnswer = answer;
+					question.showFeedback = true;
+					question.isCorrectAnswer = isCorrect;
+
+					// Show toast feedback
+					if (isCorrect) {
+						toast.success('Correct!');
 					} else {
-						correctAnswerText = question.correctAnswer;
+						// Handle multiple correct answers display
+						let correctAnswerText;
+						if (question.isCustomMC && Array.isArray(question.correctAnswer)) {
+							correctAnswerText = question.correctAnswer.join(', ');
+						} else {
+							correctAnswerText = question.correctAnswer;
+						}
+						toast.error(`Incorrect. The correct answer(s): ${correctAnswerText}`);
 					}
-					toast.error(`Incorrect. The correct answer(s): ${correctAnswerText}`);
 				}
 
 				// Record progress for instant feedback only (avoid double recording)
@@ -380,6 +461,18 @@
 				userAnswer &&
 				userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim()
 			);
+		} else if (question.type === 'matching') {
+			// For matching questions, check if all pairs are correctly matched
+			const userMatches = question.userMatches;
+			const correctMatches = question.correctMatches;
+
+			// Check if all left items have been matched
+			for (const leftId of Object.keys(correctMatches)) {
+				if (!userMatches[leftId] || userMatches[leftId] !== correctMatches[leftId]) {
+					return false;
+				}
+			}
+			return true;
 		} else if (question.type === 'multiple_choice' && question.isCustomMC) {
 			// For custom MC questions, check against array of correct answers
 			const correctAnswers = question.correctAnswer;
@@ -814,60 +907,125 @@
 													{/each}
 												</div>
 											{:else if question.type === 'matching'}
-												<!-- Matching Implementation -->
-												<div class="grid grid-cols-2 gap-6">
-													<div class="space-y-3">
-														<h4 class="mb-3 font-medium text-surface-600-400">Match this:</h4>
-														<div
-															class="rounded-lg border-2 border-primary-500 bg-primary-50 p-4 dark:bg-primary-900/20"
-														>
-															<div class="text-center font-medium">{question.question}</div>
-														</div>
+												<!-- New 2 vs 4 Matching Implementation -->
+												<div class="grid grid-cols-2 gap-8">
+													<!-- Left Side: Items to Match (2 items) -->
+													<div class="space-y-4">
+														<h4 class="mb-4 font-medium text-surface-600-400">
+															Match these items:
+														</h4>
+														{#each question.leftItems as leftItem}
+															{@const isMatched = question.userMatches[leftItem.id]}
+															{@const isCorrectMatch =
+																question.userMatches[leftItem.id] ===
+																question.correctMatches[leftItem.id]}
+															{@const isSelected = question.selectedLeftItem === leftItem.id}
+															<button
+																onclick={() => {
+																	if (!isMatched) {
+																		question.selectedLeftItem = leftItem.id;
+																	}
+																}}
+																disabled={isMatched}
+																class="w-full rounded-lg border-2 p-4 text-center transition-all duration-200
+																{isMatched
+																	? testConfig?.instantFeedback
+																		? isCorrectMatch
+																			? 'cursor-not-allowed border-success-500 bg-success-50 dark:bg-success-900/20'
+																			: 'cursor-not-allowed border-error-500 bg-error-50 dark:bg-error-900/20'
+																		: 'cursor-not-allowed border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+																	: isSelected
+																		? 'border-primary-500 bg-primary-100 shadow-md dark:bg-primary-900/30'
+																		: 'border-surface-300-700 bg-surface-100-900 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}"
+															>
+																<div class="font-medium">{leftItem.text}</div>
+																{#if isMatched}
+																	<div class="mt-2 text-sm text-surface-600-400">
+																		→ {question.userMatches[leftItem.id]}
+																		{#if testConfig?.instantFeedback}
+																			{#if isCorrectMatch}
+																				<span class="ml-2 font-medium text-success-500">✓</span>
+																			{:else}
+																				<span class="ml-2 font-medium text-error-500">✗</span>
+																			{/if}
+																		{/if}
+																	</div>
+																{:else if isSelected}
+																	<div class="mt-2 text-sm font-medium text-primary-600">
+																		Click a match on the right →
+																	</div>
+																{/if}
+															</button>
+														{/each}
 													</div>
 
-													<div class="space-y-3">
-														<h4 class="mb-3 font-medium text-surface-600-400">
-															With one of these:
+													<!-- Right Side: Options to Choose From (4 options) -->
+													<div class="space-y-4">
+														<h4 class="mb-4 font-medium text-surface-600-400">
+															With these options:
 														</h4>
-														{#each question.options as option}
-															{@const isSelected = testAnswers[question.id] === option}
-															{@const isCorrectOption =
-																testConfig?.instantFeedback &&
-																question.showFeedback &&
-																option === question.correctAnswer}
-															{@const isWrongSelected =
-																testConfig?.instantFeedback &&
-																question.showFeedback &&
-																isSelected &&
-																!isCorrectOption}
+														{#each question.rightOptions as option}
+															{@const isUsed = Object.values(question.userMatches).includes(option)}
+															{@const isCorrectOption = Object.values(
+																question.correctMatches
+															).includes(option)}
 															<button
-																onclick={() => selectAnswer(question.id, option)}
-																disabled={testConfig?.instantFeedback && question.showFeedback}
+																onclick={() => {
+																	// Handle click-based matching
+																	const selectedLeft = question.selectedLeftItem;
+																	if (selectedLeft) {
+																		selectAnswer(question.id, option, selectedLeft);
+																		question.selectedLeftItem = null; // Reset selection
+																	} else {
+																		toast.info('Please select an item from the left side first');
+																	}
+																}}
+																disabled={testConfig?.instantFeedback &&
+																	question.showFeedback &&
+																	isUsed}
 																class="w-full rounded-lg border-2 p-4 text-center transition-all duration-200
-																{isCorrectOption
-																	? 'border-success-500 bg-success-50 dark:bg-success-900/20'
-																	: isWrongSelected
-																		? 'border-error-500 bg-error-50 dark:bg-error-900/20'
-																		: isSelected
-																			? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-																			: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600'}
-																{testConfig?.instantFeedback && question.showFeedback ? 'cursor-not-allowed' : ''}
+																{isUsed
+																	? testConfig?.instantFeedback
+																		? isCorrectOption
+																			? 'border-success-500 bg-success-50 opacity-75 dark:bg-success-900/20'
+																			: 'border-error-500 bg-error-50 opacity-75 dark:bg-error-900/20'
+																		: 'border-surface-300-700 bg-surface-200-800 opacity-75'
+																	: 'border-surface-300-700 bg-surface-100-900 hover:border-surface-400-600 hover:bg-surface-200-800'}
+																{testConfig?.instantFeedback && question.showFeedback && isUsed
+																	? 'cursor-not-allowed'
+																	: 'cursor-pointer'}
 															"
 															>
 																<div class="font-medium">{option}</div>
-																{#if testConfig?.instantFeedback && question.showFeedback}
+																{#if isUsed && testConfig?.instantFeedback}
 																	{#if isCorrectOption}
 																		<span class="mt-1 text-sm font-medium text-success-500"
-																			>✓ Correct Match</span
+																			>✓ Matched</span
 																		>
-																	{:else if isWrongSelected}
+																	{:else}
 																		<span class="mt-1 text-sm font-medium text-error-500"
-																			>✗ Wrong Match</span
+																			>✗ Used</span
 																		>
 																	{/if}
 																{/if}
 															</button>
 														{/each}
+
+														<!-- Selection Helper -->
+														<div class="mt-4 rounded-lg bg-surface-100-900 p-3">
+															<p class="text-center text-sm text-surface-600-400">
+																{#if question.selectedLeftItem}
+																	Selected: <span class="font-medium text-primary-500">
+																		{question.leftItems.find(
+																			(item) => item.id === question.selectedLeftItem
+																		)?.text}
+																	</span>
+																	<br />Click an option above to match
+																{:else}
+																	Click an item on the left, then click its match on the right
+																{/if}
+															</p>
+														</div>
 													</div>
 												</div>
 											{:else if question.type === 'written'}

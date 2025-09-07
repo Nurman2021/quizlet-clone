@@ -1001,10 +1001,14 @@
 
 							<!-- MC Question -->
 							<div class="mb-4">
-								<label class="mb-2 block text-sm font-medium text-surface-700-300">
+								<label
+									for="mc-question"
+									class="mb-2 block text-sm font-medium text-surface-700-300"
+								>
 									Question for Testing:
 								</label>
 								<input
+									id="mc-question"
 									bind:value={mcQuestion}
 									placeholder="e.g., What is the capital of France?"
 									class="input w-full"
@@ -1014,9 +1018,9 @@
 
 							<!-- MC Options -->
 							<div class="mb-4">
-								<label class="mb-3 block text-sm font-medium text-surface-700-300">
+								<div class="mb-3 block text-sm font-medium text-surface-700-300">
 									Answer Options:
-								</label>
+								</div>
 
 								{#each mcOptions as option, index}
 									<div class="mb-3 flex items-center space-x-3">
