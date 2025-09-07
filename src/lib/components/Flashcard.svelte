@@ -45,6 +45,16 @@
 	let editTerm = $state('');
 	let editDefinition = $state('');
 	let isSaving = $state(false);
+
+	// MC (Multiple Choice) states
+	let hasMC = $state(false);
+	let mcQuestion = $state('');
+	let mcOptions = $state([
+		{ text: '', isCorrect: false },
+		{ text: '', isCorrect: false },
+		{ text: '', isCorrect: false },
+		{ text: '', isCorrect: false }
+	]);
 	let isPlaying = $state(autoplayEnabled);
 	let autoPlayInterval = $state(null);
 	let isShuffled = $state(shuffleEnabled);
@@ -124,12 +134,43 @@
 		showEditModal = true;
 		editTerm = currentCard.term;
 		editDefinition = currentCard.definition;
+
+		// Load MC data if exists
+		hasMC = currentCard.has_multiple_choice || false;
+		if (currentCard.mc_options) {
+			mcQuestion = currentCard.mc_options.question || '';
+			mcOptions = currentCard.mc_options.options || [
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false }
+			];
+		} else {
+			// Reset to default
+			mcQuestion = '';
+			mcOptions = [
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false },
+				{ text: '', isCorrect: false }
+			];
+		}
 	}
 
 	function cancelEdit() {
 		showEditModal = false;
 		editTerm = '';
 		editDefinition = '';
+
+		// Reset MC data
+		hasMC = false;
+		mcQuestion = '';
+		mcOptions = [
+			{ text: '', isCorrect: false },
+			{ text: '', isCorrect: false },
+			{ text: '', isCorrect: false },
+			{ text: '', isCorrect: false }
+		];
 	}
 
 	async function saveEdit() {
@@ -138,14 +179,49 @@
 			return;
 		}
 
+		// Validate MC data if enabled
+		if (hasMC) {
+			if (!mcQuestion.trim()) {
+				toast.error('Multiple choice question cannot be empty');
+				return;
+			}
+
+			const validOptions = mcOptions.filter((opt) => opt.text.trim());
+			if (validOptions.length < 2) {
+				toast.error('At least 2 options are required for multiple choice');
+				return;
+			}
+
+			const correctOptions = validOptions.filter((opt) => opt.isCorrect);
+			if (correctOptions.length === 0) {
+				toast.error('At least one option must be marked as correct');
+				return;
+			}
+		}
+
 		isSaving = true;
 
 		try {
+			// Prepare MC data
+			const mcData = hasMC
+				? {
+						question: mcQuestion.trim(),
+						options: mcOptions
+							.filter((opt) => opt.text.trim())
+							.map((opt) => ({
+								text: opt.text.trim(),
+								isCorrect: opt.isCorrect
+							}))
+					}
+				: null;
+
 			const { error } = await supabase
 				.from('flashcards')
 				.update({
 					term: editTerm.trim(),
-					definition: editDefinition.trim()
+					definition: editDefinition.trim(),
+					has_multiple_choice: hasMC,
+					mc_options: mcData
 				})
 				.eq('id', currentCard.id);
 
@@ -154,6 +230,8 @@
 			// Update local data
 			currentCard.term = editTerm.trim();
 			currentCard.definition = editDefinition.trim();
+			currentCard.has_multiple_choice = hasMC;
+			currentCard.mc_options = mcData;
 
 			showEditModal = false;
 			toast.success('Flashcard updated successfully');
@@ -476,6 +554,27 @@
 		onTrackProgressToggle?.(checked);
 	}
 
+	// MC Helper Functions
+	function addMCOption() {
+		if (mcOptions.length < 6) {
+			// Limit to max 6 options
+			mcOptions = [...mcOptions, { text: '', isCorrect: false }];
+		}
+	}
+
+	function removeMCOption(index) {
+		if (mcOptions.length > 2) {
+			// Keep minimum 2 options
+			mcOptions = mcOptions.filter((_, i) => i !== index);
+		}
+	}
+
+	function updateMCOption(index, field, value) {
+		mcOptions = mcOptions.map((option, i) =>
+			i === index ? { ...option, [field]: value } : option
+		);
+	}
+
 	// Track Progress Functions
 	async function handleKnowCard() {
 		if (!currentCard || !flashcardSet?.id) return;
@@ -600,6 +699,16 @@
 							</button>
 
 							<div class="flex items-center space-x-2">
+								<!-- MC Indicator -->
+								{#if currentCard.has_multiple_choice}
+									<div
+										class="badge preset-filled-primary-500 text-xs font-semibold"
+										title="Multiple Choice Ready"
+									>
+										MC
+									</div>
+								{/if}
+
 								<button
 									class="btn-icon btn-icon-sm"
 									onclick={(e) => toggleCurrentCardStar(e)}
@@ -664,6 +773,16 @@
 							</button>
 
 							<div class="flex items-center space-x-2">
+								<!-- MC Indicator -->
+								{#if currentCard.has_multiple_choice}
+									<div
+										class="badge preset-filled-primary-500 text-xs font-semibold"
+										title="Multiple Choice Ready"
+									>
+										MC
+									</div>
+								{/if}
+
 								<button
 									class="btn-icon btn-icon-sm"
 									onclick={(e) => toggleCurrentCardStar(e)}
@@ -821,7 +940,7 @@
 		</div>
 	</div>
 
-	<!-- Edit Modal (existing - tidak berubah) -->
+	<!-- Edit Modal dengan MC Support -->
 	<Modal bind:showModal={showEditModal} title="Edit Flashcard">
 		{#snippet children()}
 			<div class="space-y-6">
@@ -853,6 +972,108 @@
 						rows="2"
 						disabled={isSaving}
 					></textarea>
+				</div>
+
+				<!-- MC Section -->
+				<div class="border-t border-surface-300-700 pt-6">
+					<div class="mb-4 flex items-center space-x-3">
+						<Switch
+							name="enable-mc"
+							checked={hasMC}
+							onCheckedChange={(e) => (hasMC = e.checked)}
+							disabled={isSaving}
+						/>
+						<div>
+							<span class="font-medium text-surface-900-100"
+								>Enable Multiple Choice for Testing</span
+							>
+							<p class="text-sm text-surface-600-400">
+								Create custom test questions with multiple choice options
+							</p>
+						</div>
+					</div>
+
+					{#if hasMC}
+						<div
+							class="card border-2 border-primary-200 bg-primary-50/50 p-4 dark:bg-primary-900/10"
+						>
+							<h4 class="mb-4 font-semibold text-surface-900-100">Multiple Choice Setup</h4>
+
+							<!-- MC Question -->
+							<div class="mb-4">
+								<label class="mb-2 block text-sm font-medium text-surface-700-300">
+									Question for Testing:
+								</label>
+								<input
+									bind:value={mcQuestion}
+									placeholder="e.g., What is the capital of France?"
+									class="input w-full"
+									disabled={isSaving}
+								/>
+							</div>
+
+							<!-- MC Options -->
+							<div class="mb-4">
+								<label class="mb-3 block text-sm font-medium text-surface-700-300">
+									Answer Options:
+								</label>
+
+								{#each mcOptions as option, index}
+									<div class="mb-3 flex items-center space-x-3">
+										<!-- Correct Answer Checkbox -->
+										<input
+											type="checkbox"
+											bind:checked={option.isCorrect}
+											class="checkbox-primary checkbox"
+											title="Mark as correct answer"
+											disabled={isSaving}
+										/>
+
+										<!-- Option Text -->
+										<input
+											bind:value={option.text}
+											placeholder="Answer option {index + 1}"
+											class="input flex-1"
+											disabled={isSaving}
+										/>
+
+										<!-- Remove Option -->
+										{#if mcOptions.length > 2}
+											<button
+												onclick={() => removeMCOption(index)}
+												class="btn-icon btn-icon-sm preset-filled-error-500"
+												title="Remove option"
+												disabled={isSaving}
+											>
+												<X class="h-4 w-4" />
+											</button>
+										{/if}
+									</div>
+								{/each}
+
+								<!-- Add New Option -->
+								{#if mcOptions.length < 6}
+									<button
+										onclick={addMCOption}
+										class="preset-tonal-primary-500 btn w-full"
+										disabled={isSaving}
+									>
+										+ Add Option
+									</button>
+								{/if}
+							</div>
+
+							<!-- MC Help Text -->
+							<div class="rounded-lg bg-surface-100-900 p-3 text-sm text-surface-600-400">
+								<strong>Tips:</strong>
+								<ul class="mt-1 list-inside list-disc space-y-1">
+									<li>You can mark multiple options as correct</li>
+									<li>At least 2 options and 1 correct answer required</li>
+									<li>This will be used for test mode instead of auto-generated questions</li>
+								</ul>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 

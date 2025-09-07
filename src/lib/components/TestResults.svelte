@@ -60,7 +60,7 @@
 					<svelte:component this={performanceLevel.icon} class="h-6 w-6 {scoreColor}" />
 					<span class="text-lg font-semibold {scoreColor}">{performanceLevel.label}</span>
 				</div>
-				<ProgressRing value={testScore} max={100} showLabel meterStroke={scoreColor} />
+				<ProgressRing value={Math.round(testScore)} max={100} showLabel meterStroke={scoreColor} />
 				<div class="flex items-center space-x-3 rounded-2xl bg-surface-100-900 px-6 py-3 shadow-lg">
 					<Trophy class="h-8 w-8 text-primary-500" />
 					<span class="text-lg font-semibold {scoreColor}">
@@ -174,9 +174,11 @@
 												userAnswer === option ||
 												(question.type === 'true_false' && userAnswer === option.toLowerCase())}
 											{@const isCorrectAnswer =
-												question.correctAnswer === option ||
-												(question.type === 'true_false' &&
-													question.correctAnswer === option.toLowerCase())}
+												question.isCustomMC && Array.isArray(question.correctAnswer)
+													? question.correctAnswer.includes(option)
+													: question.correctAnswer === option ||
+														(question.type === 'true_false' &&
+															question.correctAnswer === option.toLowerCase())}
 
 											<div
 												class="rounded-xl border-2 p-4 transition-all duration-200
@@ -263,10 +265,16 @@
 														<p
 															class="mb-2 text-sm font-semibold text-success-700 dark:text-success-300"
 														>
-															Correct Answer:
+															Correct Answer{question.isCustomMC &&
+															Array.isArray(question.correctAnswer) &&
+															question.correctAnswer.length > 1
+																? 's'
+																: ''}:
 														</p>
 														<p class="font-medium text-success-600 dark:text-success-400">
-															{question.correctAnswer}
+															{question.isCustomMC && Array.isArray(question.correctAnswer)
+																? question.correctAnswer.join(', ')
+																: question.correctAnswer}
 														</p>
 													</div>
 													<div class="rounded-full bg-success-500 p-1">

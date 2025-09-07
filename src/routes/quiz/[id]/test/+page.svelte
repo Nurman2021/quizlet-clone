@@ -81,8 +81,6 @@
 
 	function startTest(event) {
 		testConfig = event.detail;
-		console.log('Test config received:', $state.snapshot(testConfig));
-		console.log('Flashcard set available cards:', flashcardSet?.flashcards?.length);
 
 		// Validate flashcard set exists
 		if (!flashcardSet?.flashcards?.length) {
@@ -99,7 +97,6 @@
 			showSetup = false;
 			testInProgress = true;
 			toast.info('Test started!');
-			console.log('Test started successfully with', testQuestions.length, 'questions');
 
 			// Add scroll listener for updating current question index
 			const handleScroll = () => {
@@ -115,8 +112,6 @@
 	}
 
 	function cancelSetup() {
-		console.log('cancelSetup called - redirecting to quiz page');
-		// Redirect back to quiz page when user cancels setup
 		goto(`/quiz/${setId}`);
 	}
 
@@ -167,13 +162,10 @@
 		testAnswers = {};
 		currentQuestionIndex = 0;
 
-		// Validate that questions were generated successfully
 		if (testQuestions.length === 0) {
 			toast.error('Failed to generate questions. Please try again.');
 			return;
 		}
-
-		console.log(`Generated ${testQuestions.length} questions successfully`);
 	}
 
 	function generateQuestionByType(card, type, id) {
@@ -206,7 +198,12 @@
 				};
 
 			case 'multiple_choice':
-				return generateMultipleChoiceQuestion(card, isAskingForTerm, id);
+				// Check if card has custom MC setup
+				if (card.has_multiple_choice && card.mc_options && card.mc_options.question) {
+					return generateCustomMultipleChoiceQuestion(card, id);
+				} else {
+					return generateMultipleChoiceQuestion(card, isAskingForTerm, id);
+				}
 
 			case 'matching':
 				return {
@@ -255,6 +252,32 @@
 			return randomCard.definition;
 		}
 		return card.definition + ' (wrong)';
+	}
+
+	// Generate custom MC question from card's mc_options
+	function generateCustomMultipleChoiceQuestion(card, id) {
+		const mcData = card.mc_options;
+
+		// Extract text from option objects and shuffle
+		const optionTexts = mcData.options.map((option) => option.text);
+		const shuffledOptions = optionTexts.sort(() => Math.random() - 0.5);
+
+		// Extract correct answers
+		const correctAnswers = mcData.options
+			.filter((option) => option.isCorrect)
+			.map((option) => option.text);
+
+		return {
+			id: id,
+			type: 'multiple_choice',
+			term: card.term,
+			definition: card.definition,
+			question: mcData.question,
+			correctAnswer: correctAnswers, // Array of correct answers
+			options: shuffledOptions,
+			flashcard_id: card.id,
+			isCustomMC: true // Flag to identify custom MC questions
+		};
 	}
 
 	function generateMultipleChoiceQuestion(card, isAskingForTerm, id) {
@@ -321,7 +344,14 @@
 				if (isCorrect) {
 					toast.success('Correct!');
 				} else {
-					toast.error(`Incorrect. The correct answer is: ${question.correctAnswer}`);
+					// Handle multiple correct answers display
+					let correctAnswerText;
+					if (question.isCustomMC && Array.isArray(question.correctAnswer)) {
+						correctAnswerText = question.correctAnswer.join(', ');
+					} else {
+						correctAnswerText = question.correctAnswer;
+					}
+					toast.error(`Incorrect. The correct answer(s): ${correctAnswerText}`);
 				}
 
 				// Record progress for instant feedback only (avoid double recording)
@@ -350,6 +380,14 @@
 				userAnswer &&
 				userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim()
 			);
+		} else if (question.type === 'multiple_choice' && question.isCustomMC) {
+			// For custom MC questions, check against array of correct answers
+			const correctAnswers = question.correctAnswer;
+			if (Array.isArray(correctAnswers)) {
+				return correctAnswers.includes(userAnswer);
+			} else {
+				return userAnswer === correctAnswers;
+			}
 		} else {
 			return userAnswer === question.correctAnswer;
 		}
@@ -391,17 +429,6 @@
 					console.error(`Error recording progress for question ${question.id}:`, error);
 				});
 			});
-
-		// Process database operations in background (non-blocking)
-		if (progressPromises.length > 0) {
-			Promise.all(progressPromises)
-				.then(() => {
-					console.log('All progress records saved successfully');
-				})
-				.catch((error) => {
-					console.error('Some progress records failed to save:', error);
-				});
-		}
 	}
 
 	function retakeTest() {
@@ -751,7 +778,9 @@
 														{@const isCorrectOption =
 															testConfig?.instantFeedback &&
 															question.showFeedback &&
-															option === question.correctAnswer}
+															(question.isCustomMC && Array.isArray(question.correctAnswer)
+																? question.correctAnswer.includes(option)
+																: option === question.correctAnswer)}
 														{@const isWrongSelected =
 															testConfig?.instantFeedback &&
 															question.showFeedback &&
@@ -772,24 +801,7 @@
 														"
 														>
 															<div class="flex items-center justify-between">
-																<div class="flex items-center space-x-3">
-																	<div
-																		class="flex h-5 w-5 items-center justify-center rounded-full border-2
-																	{isCorrectOption
-																			? 'border-success-500 bg-success-500'
-																			: isWrongSelected
-																				? 'border-error-500 bg-error-500'
-																				: isSelected
-																					? 'border-primary-500 bg-primary-500'
-																					: 'border-surface-300-700'}
-																"
-																	>
-																		{#if isSelected || isCorrectOption}
-																			<div class="h-2 w-2 rounded-full bg-white"></div>
-																		{/if}
-																	</div>
-																	<span class="font-medium">{option}</span>
-																</div>
+																<span class="font-medium">{option}</span>
 																{#if testConfig?.instantFeedback && question.showFeedback}
 																	{#if isCorrectOption}
 																		<span class="font-medium text-success-500">✓ Correct</span>
