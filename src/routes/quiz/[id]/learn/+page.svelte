@@ -53,7 +53,9 @@
 
 			const { data: cards, error: cardsError } = await supabase
 				.from('flashcards')
-				.select('id, term, definition, is_starred, created_at, updated_at, set_id')
+				.select(
+					'id, term, definition, is_starred, created_at, updated_at, set_id, has_multiple_choice, mc_options'
+				)
 				.eq('set_id', setId)
 				.order('created_at');
 

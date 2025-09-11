@@ -40,7 +40,10 @@ export const flashcardActions = {
                         term,
                         definition,
                         image_url,
-                        position
+                        position,
+                        is_starred,
+                        has_multiple_choice,
+                        mc_options
                     )
                 `)
                 .order('created_at', { ascending: false });
@@ -218,7 +221,10 @@ export const flashcardActions = {
                         term,
                         definition,
                         image_url,
-                        position
+                        position,
+                        is_starred,
+                        has_multiple_choice,
+                        mc_options
                     )
                 `)
                 .eq('id', setId)
