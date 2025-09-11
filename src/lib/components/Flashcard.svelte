@@ -131,22 +131,63 @@
 	function enterEditMode(event) {
 		event?.stopPropagation();
 		if (!currentCard) return;
+
+		console.log('=== ENTERING EDIT MODE ===');
+		console.log('Current Card Data:', {
+			id: currentCard.id,
+			term: currentCard.term,
+			definition: currentCard.definition,
+			has_multiple_choice: currentCard.has_multiple_choice,
+			mc_options: currentCard.mc_options
+		});
+
+		// 🐛 DEBUG: Log raw database values
+		console.log('Raw database values:', {
+			has_multiple_choice_type: typeof currentCard.has_multiple_choice,
+			has_multiple_choice_value: currentCard.has_multiple_choice,
+			mc_options_type: typeof currentCard.mc_options,
+			mc_options_value: currentCard.mc_options
+		});
+
 		showEditModal = true;
 		editTerm = currentCard.term;
 		editDefinition = currentCard.definition;
 
-		// Load MC data if exists
-		hasMC = currentCard.has_multiple_choice || false;
-		if (currentCard.mc_options) {
+		// 🔧 FIX: Proper boolean handling from database
+		hasMC = Boolean(currentCard.has_multiple_choice);
+		console.log('MC Enabled from DB:', hasMC);
+
+		// 🔧 FIX: Better MC data loading logic
+		if (hasMC && currentCard.mc_options) {
+			console.log('Loading existing MC data:', currentCard.mc_options);
+
+			// Load question
 			mcQuestion = currentCard.mc_options.question || '';
-			mcOptions = currentCard.mc_options.options || [
-				{ text: '', isCorrect: false },
-				{ text: '', isCorrect: false },
-				{ text: '', isCorrect: false },
-				{ text: '', isCorrect: false }
-			];
+
+			// Load options or use defaults if none
+			if (currentCard.mc_options.options && Array.isArray(currentCard.mc_options.options)) {
+				// Ensure we have at least 4 options
+				const loadedOptions = [...currentCard.mc_options.options];
+				while (loadedOptions.length < 4) {
+					loadedOptions.push({ text: '', isCorrect: false });
+				}
+				mcOptions = loadedOptions;
+			} else {
+				// Fallback to defaults if options are corrupted
+				console.log('MC options array not found, using defaults');
+				mcOptions = [
+					{ text: '', isCorrect: false },
+					{ text: '', isCorrect: false },
+					{ text: '', isCorrect: false },
+					{ text: '', isCorrect: false }
+				];
+			}
+
+			console.log('Loaded MC Question:', mcQuestion);
+			console.log('Loaded MC Options:', mcOptions);
 		} else {
-			// Reset to default
+			// 🔧 FIX: Only reset if MC is actually disabled
+			console.log('MC disabled or no existing data, using defaults');
 			mcQuestion = '';
 			mcOptions = [
 				{ text: '', isCorrect: false },
@@ -155,6 +196,8 @@
 				{ text: '', isCorrect: false }
 			];
 		}
+
+		console.log('=== EDIT MODE SETUP COMPLETE ===');
 	}
 
 	function cancelEdit() {
@@ -215,7 +258,26 @@
 					}
 				: null;
 
-			const { error } = await supabase
+			// 🐛 DEBUG: Log current card state before save
+			console.log('=== FLASHCARD SAVE DEBUG ===');
+			console.log('Current Card ID:', currentCard.id);
+			console.log('Current Card Before Save:', {
+				term: currentCard.term,
+				definition: currentCard.definition,
+				has_multiple_choice: currentCard.has_multiple_choice,
+				mc_options: currentCard.mc_options
+			});
+
+			// 🐛 DEBUG: Log what we're trying to save
+			console.log('Attempting to save with data:', {
+				id: currentCard.id,
+				term: editTerm.trim(),
+				definition: editDefinition.trim(),
+				has_multiple_choice: hasMC,
+				mc_options: mcData
+			});
+
+			const { data, error } = await supabase
 				.from('flashcards')
 				.update({
 					term: editTerm.trim(),
@@ -223,9 +285,17 @@
 					has_multiple_choice: hasMC,
 					mc_options: mcData
 				})
-				.eq('id', currentCard.id);
+				.eq('id', currentCard.id)
+				.select(); // 🔧 Add select() to get returned data
 
-			if (error) throw error;
+			if (error) {
+				console.error('❌ Supabase Save Error:', error);
+				throw error;
+			}
+
+			// 🐛 DEBUG: Log what was actually saved to database
+			console.log('✅ Database Save Response:', data);
+			console.log('Saved flashcard data:', data?.[0]);
 
 			// Update local data
 			currentCard.term = editTerm.trim();
@@ -233,11 +303,30 @@
 			currentCard.has_multiple_choice = hasMC;
 			currentCard.mc_options = mcData;
 
+			// 🐛 DEBUG: Log updated local state
+			console.log('Updated Local Card State:', {
+				term: currentCard.term,
+				definition: currentCard.definition,
+				has_multiple_choice: currentCard.has_multiple_choice,
+				mc_options: currentCard.mc_options
+			});
+
+			// 🔧 Force reactivity update
+			flashcardSet = { ...flashcardSet };
+
 			showEditModal = false;
 			toast.success('Flashcard updated successfully');
 			onCardEdit?.(currentCard);
+
+			console.log('=== SAVE COMPLETED SUCCESSFULLY ===');
 		} catch (error) {
-			console.error('Error updating flashcard:', error);
+			console.error('❌ Error updating flashcard:', error);
+			console.error('Error details:', {
+				message: error.message,
+				code: error.code,
+				details: error.details,
+				hint: error.hint
+			});
 			toast.error('Failed to update flashcard: ' + error.message);
 		} finally {
 			isSaving = false;

@@ -36,8 +36,6 @@
 		const {
 			data: { subscription }
 		} = supabase.auth.onAuthStateChange(async (event, session) => {
-			console.log('Header: Auth state changed:', event, session?.user);
-
 			// Clear previous timeout
 			if (authChangeTimeout) {
 				clearTimeout(authChangeTimeout);
