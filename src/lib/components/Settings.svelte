@@ -68,18 +68,13 @@
 	});
 
 	function closeModal() {
-		console.log('Settings: closeModal called');
 		if (!isApplyingSettings) {
-			console.log('Settings: Manual close - dispatching close event');
 			dispatch('close');
 		}
 		show = false;
 	}
 
 	function applySettings() {
-		console.log('Settings: applySettings called for mode:', mode);
-
-		// Set flag BEFORE dispatching to prevent close event
 		isApplyingSettings = true;
 
 		let config = {
@@ -150,8 +145,6 @@
 			};
 		}
 
-		console.log('Dispatching apply-settings event with config:', $state.snapshot(config));
-
 		dispatch('apply-settings', config);
 
 		// Close modal directly without triggering close event
@@ -159,7 +152,6 @@
 
 		// Reset flag after modal is closed
 		setTimeout(() => {
-			console.log('Settings: Resetting isApplyingSettings flag');
 			isApplyingSettings = false;
 		}, 300);
 	}

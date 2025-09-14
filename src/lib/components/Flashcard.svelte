@@ -80,9 +80,7 @@
 
 	function toggleAnswer() {
 		showAnswer = !showAnswer;
-		showHint = false; // Reset hint when toggling answer
-		// Don't interfere with auto-play when user manually toggles
-		// Auto-play will handle its own timing
+		showHint = false;
 	}
 
 	function nextCard() {
@@ -92,9 +90,8 @@
 		}
 
 		showAnswer = false;
-		showHint = false; // Reset hint when changing card
+		showHint = false;
 
-		// Internal navigation logic
 		if (currentIndex < flashcardSet.flashcards.length - 1) {
 			currentIndex++;
 		}
@@ -110,9 +107,8 @@
 		}
 
 		showAnswer = false;
-		showHint = false; // Reset hint when changing card
+		showHint = false;
 
-		// Stop auto-play when user manually goes back
 		if (isPlaying && autoPlayInterval) {
 			stopAutoPlay();
 			isPlaying = false;
@@ -124,7 +120,6 @@
 			currentIndex--;
 		}
 
-		// Call parent callback if provided
 		onPrevious?.();
 	}
 
@@ -132,49 +127,22 @@
 		event?.stopPropagation();
 		if (!currentCard) return;
 
-		console.log('=== ENTERING EDIT MODE ===');
-		console.log('Current Card Data:', {
-			id: currentCard.id,
-			term: currentCard.term,
-			definition: currentCard.definition,
-			has_multiple_choice: currentCard.has_multiple_choice,
-			mc_options: currentCard.mc_options
-		});
-
-		// 🐛 DEBUG: Log raw database values
-		console.log('Raw database values:', {
-			has_multiple_choice_type: typeof currentCard.has_multiple_choice,
-			has_multiple_choice_value: currentCard.has_multiple_choice,
-			mc_options_type: typeof currentCard.mc_options,
-			mc_options_value: currentCard.mc_options
-		});
-
 		showEditModal = true;
 		editTerm = currentCard.term;
 		editDefinition = currentCard.definition;
 
-		// 🔧 FIX: Proper boolean handling from database
 		hasMC = Boolean(currentCard.has_multiple_choice);
-		console.log('MC Enabled from DB:', hasMC);
 
-		// 🔧 FIX: Better MC data loading logic
 		if (hasMC && currentCard.mc_options) {
-			console.log('Loading existing MC data:', currentCard.mc_options);
-
-			// Load question
 			mcQuestion = currentCard.mc_options.question || '';
 
-			// Load options or use defaults if none
 			if (currentCard.mc_options.options && Array.isArray(currentCard.mc_options.options)) {
-				// Ensure we have at least 4 options
 				const loadedOptions = [...currentCard.mc_options.options];
 				while (loadedOptions.length < 4) {
 					loadedOptions.push({ text: '', isCorrect: false });
 				}
 				mcOptions = loadedOptions;
 			} else {
-				// Fallback to defaults if options are corrupted
-				console.log('MC options array not found, using defaults');
 				mcOptions = [
 					{ text: '', isCorrect: false },
 					{ text: '', isCorrect: false },
@@ -182,12 +150,7 @@
 					{ text: '', isCorrect: false }
 				];
 			}
-
-			console.log('Loaded MC Question:', mcQuestion);
-			console.log('Loaded MC Options:', mcOptions);
 		} else {
-			// 🔧 FIX: Only reset if MC is actually disabled
-			console.log('MC disabled or no existing data, using defaults');
 			mcQuestion = '';
 			mcOptions = [
 				{ text: '', isCorrect: false },
@@ -196,8 +159,6 @@
 				{ text: '', isCorrect: false }
 			];
 		}
-
-		console.log('=== EDIT MODE SETUP COMPLETE ===');
 	}
 
 	function cancelEdit() {
@@ -258,25 +219,6 @@
 					}
 				: null;
 
-			// 🐛 DEBUG: Log current card state before save
-			console.log('=== FLASHCARD SAVE DEBUG ===');
-			console.log('Current Card ID:', currentCard.id);
-			console.log('Current Card Before Save:', {
-				term: currentCard.term,
-				definition: currentCard.definition,
-				has_multiple_choice: currentCard.has_multiple_choice,
-				mc_options: currentCard.mc_options
-			});
-
-			// 🐛 DEBUG: Log what we're trying to save
-			console.log('Attempting to save with data:', {
-				id: currentCard.id,
-				term: editTerm.trim(),
-				definition: editDefinition.trim(),
-				has_multiple_choice: hasMC,
-				mc_options: mcData
-			});
-
 			const { data, error } = await supabase
 				.from('flashcards')
 				.update({
@@ -293,23 +235,11 @@
 				throw error;
 			}
 
-			// 🐛 DEBUG: Log what was actually saved to database
-			console.log('✅ Database Save Response:', data);
-			console.log('Saved flashcard data:', data?.[0]);
-
 			// Update local data
 			currentCard.term = editTerm.trim();
 			currentCard.definition = editDefinition.trim();
 			currentCard.has_multiple_choice = hasMC;
 			currentCard.mc_options = mcData;
-
-			// 🐛 DEBUG: Log updated local state
-			console.log('Updated Local Card State:', {
-				term: currentCard.term,
-				definition: currentCard.definition,
-				has_multiple_choice: currentCard.has_multiple_choice,
-				mc_options: currentCard.mc_options
-			});
 
 			// 🔧 Force reactivity update
 			flashcardSet = { ...flashcardSet };
@@ -317,8 +247,6 @@
 			showEditModal = false;
 			toast.success('Flashcard updated successfully');
 			onCardEdit?.(currentCard);
-
-			console.log('=== SAVE COMPLETED SUCCESSFULLY ===');
 		} catch (error) {
 			console.error('❌ Error updating flashcard:', error);
 			console.error('Error details:', {
@@ -412,15 +340,12 @@
 		isShuffled = !isShuffled; // Toggle state first
 
 		if (isShuffled) {
-			// Shuffle the cards
 			const shuffled = [...flashcardSet.flashcards].sort(() => Math.random() - 0.5);
 			flashcardSet = { ...flashcardSet, flashcards: shuffled };
 			currentIndex = 0;
 			showAnswer = false; // Reset answer state
 			toast.success('Cards shuffled!');
 		} else {
-			// For now, just show message that original order isn't restored
-			// TODO: Implement restore original order functionality
 			toast.info('Shuffle disabled (original order not restored yet)');
 		}
 	}
@@ -433,13 +358,10 @@
 		};
 	});
 
-	// Effect for shuffle setting - only sync from props when explicitly changed
 	$effect(() => {
-		// Only apply shuffle from props if not already shuffled
 		if (shuffleEnabled && !isShuffled) {
 			handleShuffle();
 		}
-		// Don't auto-unshuffle when shuffleEnabled is false, let user control it
 	});
 
 	// Keyboard shortcuts
@@ -476,14 +398,12 @@
 				toggleHint();
 				break;
 			case 'y':
-				// Yes - I know this (only in track progress mode)
 				if (trackProgress) {
 					event.preventDefault();
 					handleKnowCard();
 				}
 				break;
 			case 'n':
-				// No - Still learning (only in track progress mode)
 				if (trackProgress) {
 					event.preventDefault();
 					handleStillLearning();
@@ -492,7 +412,6 @@
 		}
 	}
 
-	// Function untuk toggle star current card
 	async function toggleCurrentCardStar(event) {
 		event?.stopPropagation();
 		if (!currentCard) return;
@@ -542,35 +461,29 @@
 				const cardIndex = flashcardSet.flashcards.findIndex((c) => c.id === updatedCard.id);
 				if (cardIndex !== -1) {
 					flashcardSet.flashcards[cardIndex] = updatedCard;
-					flashcardSet = flashcardSet; // Trigger reactivity
+					flashcardSet = flashcardSet;
 				}
 			}
 
-			// Call parent callback if provided
 			onCardEdit?.(updatedCard);
 		} catch (error) {
 			console.error('Failed to update card:', error);
 		}
 	}
 
-	// Function untuk toggle hint
 	function toggleHint(event) {
 		event?.stopPropagation();
 		showHint = !showHint;
 	}
 
-	// Function untuk membuka settings modal
 	function openSettingsModal(event) {
 		event?.stopPropagation();
 		showSettingsModal = true;
 	}
 
-	// Function untuk menangani apply settings dari modal
 	function handleApplySettings(event) {
 		const config = event.detail;
-		console.log('Applying flashcard settings:', config);
 
-		// Update settings berdasarkan config yang diterima dari Settings modal
 		if (config.frontSide !== undefined) {
 			frontSide = config.frontSide;
 		}

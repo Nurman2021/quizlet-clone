@@ -302,9 +302,7 @@
 	function applySettings(event) {
 		matchSettings = event.detail;
 		showSettings = false;
-		console.log('Match settings applied:', matchSettings);
 
-		// If the game hasn't started yet and settings affect card selection, restart game preparation
 		if (!gameStarted) {
 			prepareGame();
 		}

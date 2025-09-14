@@ -135,7 +135,6 @@ export async function updateUserProfile(updates) {
         profileCache.set(currentProfile.id, data);
         userProfile.set(data);
 
-        console.log('Profile updated successfully:', data);
         return data;
     } catch (error) {
         console.error('Error updating user profile:', error);

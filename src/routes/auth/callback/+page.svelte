@@ -8,18 +8,12 @@
 	let errorMessage = '';
 
 	onMount(async () => {
-		console.log('Auth callback page loaded');
-		console.log('Current URL:', window.location.href);
-		console.log('URL search params:', $page.url.searchParams.toString());
-
 		try {
 			// Get URL parameters
 			const urlParams = new URLSearchParams(window.location.search);
 			const code = urlParams.get('code');
 			const error = urlParams.get('error');
 			const errorDescription = urlParams.get('error_description');
-
-			console.log('URL params:', { code: !!code, error, errorDescription });
 
 			// Check for OAuth errors first
 			if (error) {
@@ -48,8 +42,6 @@
 				window.location.href
 			);
 
-			console.log('Auth callback result:', { data: !!data, error: authError });
-
 			if (authError) {
 				console.error('Error during authentication:', authError);
 				errorMessage = authError.message;
@@ -71,7 +63,6 @@
 			}
 
 			if (data?.session?.user) {
-				console.log('Authentication successful:', data.session.user);
 				loading = false;
 
 				// Wait a bit for the auth state to propagate
@@ -79,7 +70,6 @@
 					goto('/');
 				}, 1000);
 			} else {
-				console.log('No session created, redirecting to login');
 				errorMessage = 'No session created';
 				loading = false;
 				setTimeout(() => {

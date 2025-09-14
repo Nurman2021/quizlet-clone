@@ -55,26 +55,34 @@
 				<div class="space-y-4">
 					{#each $recentActivities as activity}
 						<div
-							class="cursor-pointer card preset-tonal-surface p-4 shadow-lg transition-all duration-200 hover:preset-tonal"
+							class="min-h-[100px] cursor-pointer card preset-tonal-surface p-4 shadow-lg transition-all duration-200 hover:preset-tonal"
 							role="button"
 							tabindex="0"
 							onclick={() => goToQuiz(activity.id)}
 							onkeydown={(e) => e.key === 'Enter' && goToQuiz(activity.id)}
 						>
-							<div class="flex items-center space-x-4">
-								<div class="flex h-12 w-12 items-center justify-center rounded bg-primary-500">
+							<div class="flex h-full items-start space-x-4">
+								<div
+									class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded bg-primary-500"
+								>
 									<Book class="h-6 w-6 text-white" />
 								</div>
-								<div class="flex-1">
-									<h4 class="font-semibold">
-										{activity.title}
-									</h4>
-									<p class="text-sm opacity-75">
-										{activity.total_cards} cards • {activity.users?.full_name || 'Anonymous'}
-									</p>
-									{#if activity.description}
-										<p class="mt-1 text-sm opacity-60">{activity.description}</p>
-									{/if}
+								<div class="flex min-h-[68px] flex-1 flex-col justify-between">
+									<div class="space-y-1">
+										<h4 class="leading-tight font-semibold">
+											{activity.title}
+										</h4>
+										<p class="text-sm opacity-75">
+											{activity.total_cards} cards • {activity.users?.full_name || 'Anonymous'}
+										</p>
+									</div>
+									<div class="mt-auto">
+										{#if activity.description}
+											<p class="line-clamp-2 text-sm opacity-60">{activity.description}</p>
+										{:else}
+											<div class="h-5"></div>
+										{/if}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -96,3 +104,15 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.line-clamp-2 {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		line-height: 1.4;
+		max-height: calc(1.4em * 2);
+	}
+</style>

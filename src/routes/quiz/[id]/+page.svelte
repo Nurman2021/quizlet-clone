@@ -136,12 +136,10 @@
 
 	function handleCardEdit(updatedCard) {
 		updateStarredCards();
-		console.log('Card updated in main page:', updatedCard);
 	}
 
 	function handleStarToggle(cardId) {
 		updateStarredCards();
-		console.log('Star toggled in main page:', cardId);
 	}
 
 	function toggleDropdown() {

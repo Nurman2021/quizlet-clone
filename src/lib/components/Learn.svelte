@@ -29,8 +29,6 @@
 			// Access filterStarred here to make it a dependency
 			const shouldFilterStarred = filterStarred;
 
-			console.log('Generating questions with filterStarred:', shouldFilterStarred);
-
 			// Use centralized question service
 			const newQuestions = QuestionService.generateMultipleChoice(flashcardSet.flashcards, {
 				maxOptions: 4,

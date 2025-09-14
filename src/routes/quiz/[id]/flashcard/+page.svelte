@@ -75,22 +75,12 @@
 		showNavigationDropdown = !showNavigationDropdown;
 	}
 
-	// Card edit callback - for parent-level updates
-	function handleCardEdit(updatedCard) {
-		console.log('Card updated in flashcard page:', updatedCard);
-	}
-
-	function handleStarToggle(cardId) {
-		console.log('Star toggled in flashcard page:', cardId);
-	}
-
 	function openSettings() {
 		showSettings = true;
 	}
 
 	function handleSettingsApply(event) {
 		const newSettings = event.detail;
-		console.log('Applying flashcard settings:', newSettings);
 
 		flashcardSettings = { ...flashcardSettings, ...newSettings };
 
@@ -275,8 +265,6 @@
 				frontSide={flashcardSettings.frontSide}
 				autoplayEnabled={flashcardSettings.autoplay}
 				shuffleEnabled={flashcardSettings.shuffle}
-				onCardEdit={handleCardEdit}
-				onStarToggle={handleStarToggle}
 				showTrackProgress={false}
 			/>
 		</main>

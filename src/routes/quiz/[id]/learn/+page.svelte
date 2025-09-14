@@ -87,9 +87,6 @@
 	function applySettings(event) {
 		learnSettings = event.detail;
 		showSettings = false;
-		console.log('Learn settings applied:', learnSettings);
-		// Note: You might want to pass these settings to the Learn component
-		// For now, we'll just store them for future use
 	}
 </script>
 

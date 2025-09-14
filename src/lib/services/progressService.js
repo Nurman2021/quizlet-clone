@@ -22,12 +22,7 @@ export class ProgressService {
             const flashcardIdStr = String(flashcardId);
             const setIdStr = String(setId);
 
-            console.log('Recording attempt:', {
-                flashcardId: flashcardIdStr,
-                setId: setIdStr,
-                mode,
-                isCorrect
-            });
+
 
             // Record attempt history
             const { error: historyError } = await supabase
@@ -167,11 +162,8 @@ export class ProgressService {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                console.log('No user authenticated for progress');
                 return { stillLearning: [], mastered: [] };
             }
-
-            console.log('Getting progress for user:', user.id, 'setId:', setId);
 
             const { data: progress, error } = await supabase
                 .from('user_progress')
@@ -192,21 +184,9 @@ export class ProgressService {
                 return { stillLearning: [], mastered: [] };
             }
 
-            console.log('Raw progress data:', progress);
 
             const stillLearning = progress?.filter(p => p.status === 'learning') || [];
             const mastered = progress?.filter(p => p.status === 'mastered') || [];
-
-            console.log('Filtered progress:', {
-                stillLearning: stillLearning.length,
-                mastered: mastered.length,
-                masteredItems: mastered.map(m => ({
-                    term: m.flashcards?.term,
-                    status: m.status,
-                    confidence: m.confidence_level,
-                    masteredAt: m.mastered_at
-                }))
-            });
 
             return { stillLearning, mastered };
 
@@ -277,7 +257,6 @@ export class ProgressService {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                console.log('No user authenticated');
                 return;
             }
 
@@ -300,21 +279,12 @@ export class ProgressService {
                 return;
             }
 
-            console.log('=== USER PROGRESS DEBUG ===');
-            console.log('User ID:', user.id);
-            console.log('Total progress records:', allProgress?.length || 0);
-
-            allProgress?.forEach((p, index) => {
-                console.log(`${index + 1}. ${p.flashcards?.term || 'Unknown term'} - Status: ${p.status}, Confidence: ${p.confidence_level}, Mastered: ${p.mastered_at}`);
-            });
-
             const statusBreakdown = {
                 learning: allProgress?.filter(p => p.status === 'learning').length || 0,
                 mastered: allProgress?.filter(p => p.status === 'mastered').length || 0
             };
 
-            console.log('Status breakdown:', statusBreakdown);
-            console.log('=== END DEBUG ===');
+
 
             return allProgress;
 

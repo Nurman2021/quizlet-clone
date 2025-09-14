@@ -57,7 +57,6 @@
 			} = await supabase.auth.getUser();
 
 			if (authError || !user) {
-				console.log('No authenticated user, redirecting to login');
 				goto('/login');
 				return;
 			}
